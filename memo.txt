@@ -1,0 +1,79 @@
+Postgres:
+	.Is a database server
+	.stores data to retrieve it later
+
+
+Postgres image on dockerhub:
+	https://hub.docker.com/_/postgres
+
+Access to db files:
+	/var/lib/postgresql/data/base/[...]
+
+PpgAdmin:
+	.pgAdmin 4 provides simple but powerful dialogs that you can use to design and create database objects.
+	Each dialog contains a series of tabs that you use to describe the object that will be created by the dialog;
+	the SQL tab displays the SQL command that the server will execute when creating the object.
+
+NestJs:
+	.Framework in js.
+	.Uses Express as the default HTTP SERVER framework
+	
+	Controller with routes
+		.app.controller.ts
+	Unit tests for controller
+		.app.controller.spec.ts
+	Root module of the app
+		.app.module.ts 
+	Basic service with a single method
+		.app.service.ts 
+	Entry file of the aapp which uses thhe core function Nestacctr to create a Nest application instance.
+		.main.ts 
+
+Main.ts includes an async funcion which will bootstrap (launch directly) the app 
+
+A. CONTROLLER
+	A controller receive requests for the app
+	It has a routing mechanism 
+
+	Return in Controller (rResponse-header and Response-body):
+		There is two methods
+
+		I. Using the built-in method, when a request handler returns a JavaScript object or array, it will automatically be serialized to JSON.
+		When it returns a JavaScript primitive type (e.g., string, number, boolean), however, Nest will send just the value without attempting to serialize it.
+		This makes response handling simple: just return the value, and Nest takes care of the rest.
+		Furthermore, the response's status code is always 200 by default, except for POST requests which use 201. 
+		We can easily change this behavior by adding the @HttpCode(...) decorator at a handler-level (see Status codes).
+
+		II. We can use the library-specific (e.g., Express) response object, which can be injected using the @Res() decorator in the method handler signature (e.g., findAll(@Res() response)).
+		With this approach, you have the ability to use the native response handling methods exposed by that object.
+		For example, with Express, you can construct responses using code like response.status(200).send().
+
+	N.B: @[...] is a Decorator ; to create our own : https://docs.nestjs.com/custom-decorators
+
+	Asynchronicity in Controller:
+		Every async function has to return a Promise (an object Promise)
+		Ex: @Get()
+				async findAll(): Promise<any[]> {
+				return [];
+			}
+
+B. PROVIDER
+	Many of Nest Classes are providers (Service, Repositori, Factory, Helper etc.)
+	They can be dependant of others
+	There is something called Dependency Injection (design Pattern)
+	This design pattern means that class needs to call others from external sources rather than creating them
+
+Question : what is the difference between interface and dto ?
+
+C. MODULE 
+	Is another type of class with a special decorator aka @Module 
+	It uses import and export keyword to allow modules to call Providers from others
+	Usefull.
+
+D. MiddleWare
+	Is a middleman between client and RouteHandler
+	It has access to Requests and Responses, can change them, can cut the connection or call the next one
+
+
+
+
