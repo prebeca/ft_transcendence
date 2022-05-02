@@ -1,6 +1,10 @@
 FROM node:16.14.2-alpine
 
-RUN apk update
+RUN apk update &&\
+	apk add zsh &&\
+	apk add git &&\
+	apk add curl &&\
+	sh -c "$(curl -fsSL https://raw.github.com/ohmyzsh/ohmyzsh/master/tools/install.sh)"
 
 # RUN npm install -g @vue/cli
 
