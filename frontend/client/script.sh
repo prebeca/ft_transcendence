@@ -6,9 +6,5 @@ then
 	npm install
 fi
 
-# npm install
-
+umask 0000
 exec npm run dev
-
-# npm run build
-# exec npm run start
