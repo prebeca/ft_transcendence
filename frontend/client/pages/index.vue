@@ -70,9 +70,13 @@
           >
             Continue
           </v-btn>
-			<v-btn
-			elevation="2"
-			>asdasd</v-btn>	
+          <v-btn
+                color="primary"
+                nuxt
+                to="/userpage"
+              >
+              UserPage
+          </v-btn>
         </v-card-actions>
 		<v-btn
 		elevation="2"
