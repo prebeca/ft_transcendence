@@ -1,4 +1,4 @@
-import { ValidationPipe } from '@nestjs/common';
+/*import { ValidationPipe } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { NestFactory } from '@nestjs/core';
 import { NestExpressApplication } from '@nestjs/platform-express';
@@ -10,6 +10,7 @@ import { AppModule } from './app.module';
 **
 ** This piece of code simpy starts an HTTP listener (it is waiting for HTTP Request)
 */
+/*
 async function bootstrap() {
 	const app: NestExpressApplication = await NestFactory.create(AppModule);
 	const config: ConfigService = app.get(ConfigService);
@@ -22,4 +23,15 @@ async function bootstrap() {
 	});
 }
 
+bootstrap();
+*/
+
+import { NestFactory } from '@nestjs/core';
+import { AppModule } from './app.module';
+
+async function bootstrap() {
+  const app = await NestFactory.create(AppModule);
+  app.enableCors();
+  await app.listen(3000);
+}
 bootstrap();
