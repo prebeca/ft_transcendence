@@ -8,21 +8,13 @@ export class User {
 	})
 	id: number;
 
-	@Column({
-		nullable: false,
-		default: '',
-	})
+	@Column({ unique: true })
 	username: string;
 
-	@Column({
-		name: 'email_address',
-		nullable: false,
-		default: '',
-	})
+	@Column({ unique: true })
 	email: string;
 
 	@Column({
-		nullable: false,
 		default: '',
 	})
 	password: string;

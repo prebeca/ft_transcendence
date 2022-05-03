@@ -10,7 +10,7 @@ export class UsersService {
 		@InjectRepository(User) private readonly userRepository: Repository<User>,
 	) { }
 
-	getUsers() {
+	getUsers(): Promise<User[]> {
 		return this.userRepository.find();
 	}
 
@@ -19,8 +19,18 @@ export class UsersService {
 		return this.userRepository.save(newUser);
 	}
 
-	findUsersById(id: number) {
+	findUsersById(id: number): Promise<User> {
 		return this.userRepository.findOne(id);
+	}
+
+	async remove(id: number): Promise<User[]> {
+		await this.userRepository.delete(id);
+		return this.getUsers();
+	}
+
+	async removeAll(): Promise<User[]> {
+		await this.userRepository.clear();
+		return this.getUsers();
 	}
 
 }

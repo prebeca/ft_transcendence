@@ -15,7 +15,7 @@ import { UsersService } from 'src/users/services/users.service';
 export class UsersController {
 	constructor(private readonly userService: UsersService) { }
 
-	@Get('users')
+	@Get()
 	getUsers() {
 		return this.userService.getUsers();
 	}
@@ -29,5 +29,15 @@ export class UsersController {
 	@UsePipes(ValidationPipe)
 	createUsers(@Body() createUserDto: CreateUserDto) {
 		return this.userService.createUser(createUserDto);
+	}
+	
+	@Get('delete/:id')
+	deleteUsersById(@Param('id', ParseIntPipe) id: number) {
+		return this.userService.remove(id);
+	}
+
+	@Get('deleteall')
+	deleteUsers() {
+		return this.userService.removeAll();
 	}
 }

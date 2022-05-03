@@ -76,4 +76,13 @@ D. MiddleWare
 
 
 
+Questions :
+
+- difference entre un Model et une Entity ? Les deux peuvent etre utilise par typeorm et font la meme chose...
+- comment utiliser les Promises correctement ?
+- comment utiliser les migrations ? (pour tester les clefs etrangeres et le linkage logique entre les tables (souvent user_id))
+
+Commandes :
+- nest g resource `nom_de_lobjet` pour creer directement un dossier et tous les fichiers
+	(controller + service + entity + module + spec.ts = suffit ensuite de remplir l'entity pour que typeorm cree la table correspondante)
 
