@@ -86,3 +86,23 @@ Commandes :
 - nest g resource `nom_de_lobjet` pour creer directement un dossier et tous les fichiers
 	(controller + service + entity + module + spec.ts = suffit ensuite de remplir l'entity pour que typeorm cree la table correspondante)
 
+Resume du back-end:
+TypeORM est un utilitaire qui permet de link la DB a l'application NestJs
+Il propose plusieurs objet tels que les Repository pour pouvoir effectuer des actions dans la DB sans avoir besoin d ecrire du SQL
+
+Il cree les tables en rapport avec la structure que l'on precise dans objet.entity.ts
+Il sait ainsi de quel types sont les donnees stockees dams la DB.
+
+En ce qui concerne les controllers, grossierement, ils mappent un chemin d'acces (URL)
+a une action concernant un ou plusieurs objet (insertion, update, deletion, etc)
+
+Les services quant a eux sont les fonctions qui vont modifier eux les objets,
+pour l'instant une instance d'un objet et une entree de la DB sont intrinsequeent lies.
+Ainsi lorsque l'on modifie un objet il est updater dans la DB.
+
+Les DTO nous permettent de valider ou non les donnes recues par example via POST/ PATCH/ PUT
+avant de modifier ou d'inserer un element.
+
+Les modules eux, permettent simplement d'autoriser ou non l'exportation de tout ces fichiers
+et de choisir des modules a importer pour le bon fonctionnement du module (une partie d'applciation)
+

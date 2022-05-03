@@ -8,8 +8,8 @@ import {
 	UsePipes,
 	ValidationPipe,
 } from '@nestjs/common';
-import { CreateScoreDto } from 'src/scores/scores.dto';
-import { ScoresService } from 'src/scores/services/scores.service';
+import { CreateScoreDto } from '../dto/scores.dto';
+import { ScoresService } from '../services/scores.service';
 
 @Controller('scores')
 export class ScoresController {

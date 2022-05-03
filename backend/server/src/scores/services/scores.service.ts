@@ -2,7 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Score } from 'src/typeorm';
 import { Repository } from 'typeorm';
-import { CreateScoreDto } from 'src/scores/scores.dto';
+import { CreateScoreDto } from '../dto/scores.dto';
 
 @Injectable()
 export class ScoresService {
