@@ -2,9 +2,15 @@ Postgres:
 	.Is a database server
 	.stores data to retrieve it later
 
-
-Postgres image on dockerhub:
-	https://hub.docker.com/_/postgres
+LINKS:
+	Postgres image on dockerhub:
+		https://hub.docker.com/_/postgres
+	Icons for front-end:
+		https://pictogrammers.github.io/@mdi/font/1.1.34/
+	ref for authentication:
+		https://datatracker.ietf.org/doc/html/rfc6749#section-1.3.4
+	42API OAuth explained:
+		https://api.intra.42.fr/apidoc/guides/web_application_flow
 
 Access to db files:
 	/var/lib/postgresql/data/base/[...]
@@ -87,6 +93,7 @@ Commandes :
 	(controller + service + entity + module + spec.ts = suffit ensuite de remplir l'entity pour que typeorm cree la table correspondante)
 
 Resume du back-end:
+
 TypeORM est un utilitaire qui permet de link la DB a l'application NestJs
 Il propose plusieurs objet tels que les Repository pour pouvoir effectuer des actions dans la DB sans avoir besoin d ecrire du SQL
 

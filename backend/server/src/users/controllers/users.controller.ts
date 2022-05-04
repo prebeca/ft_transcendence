@@ -7,8 +7,12 @@ import {
 	Post,
 	UsePipes,
 	ValidationPipe,
+	Req,
+	ParseArrayPipe
 } from '@nestjs/common';
-import { CreateUserDto } from 'src/users/dto/users.dto';
+import { equal } from 'assert';
+import { CreateUserDto} from '../dto/users.dto';
+import { CreateMultipleUsersDto } from '../dto/multipleusers';
 import { UsersService } from 'src/users/services/users.service';
 
 @Controller('users')
@@ -39,5 +43,14 @@ export class UsersController {
 	@Get('deleteall')
 	deleteUsers() {
 		return this.userService.removeAll();
+	}
+
+	@Post('addGroup')
+	addGroup(@Body(new ParseArrayPipe({items: CreateUserDto}))
+		createUserDtos: CreateUserDto[],
+	) {
+		for (const val of createUserDtos)
+			this.userService.createUser(val);
+		return this.userService.getUsers();
 	}
 }

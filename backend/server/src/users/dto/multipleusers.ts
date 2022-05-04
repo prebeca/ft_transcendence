@@ -1,6 +1,6 @@
 import { IsEmail, IsNotEmpty, MinLength } from "class-validator";
 
-export class CreateUserDto {
+export class CreateMultipleUsersDto {
 	@IsNotEmpty()
 	@MinLength(3)
 	username: string;
@@ -13,11 +13,3 @@ export class CreateUserDto {
 	@IsEmail()
 	email: string;
 }
-/*
-export class CreateUserDto
-{
-	@Type(() => TestItemDto)
-	@ValidateNested({ each: true })
-	public actions: TestItemDto[];
-}
-*/

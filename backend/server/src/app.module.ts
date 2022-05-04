@@ -21,6 +21,7 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { AppService } from './app.service';
 import { TypeOrmConfigService } from './typeorm/typeorm.service';
 import { LoggerMiddleware } from './logger.middleware';
+import { AuthModule } from './auth/auth.module';
 import { UsersModule } from './users/users.module';
 import { ScoresModule } from './scores/scores.module';
 import { MessagesModule } from './messages/messages.module';
@@ -29,6 +30,7 @@ import { MessagesModule } from './messages/messages.module';
   imports: [
     ConfigModule.forRoot({ isGlobal: true }),
     TypeOrmModule.forRootAsync({useClass: TypeOrmConfigService}),
+    AuthModule,
     UsersModule,
 	ScoresModule,
 	MessagesModule
