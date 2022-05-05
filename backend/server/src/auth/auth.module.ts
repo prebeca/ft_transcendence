@@ -9,12 +9,13 @@ import { JwtModule } from '@nestjs/jwt';
 import { jwtConstants } from './constants';
 import { JwtStrategy } from './strategies/jwt.strategy';
 import { ConfigModule } from '@nestjs/config';
-
+import { HttpModule } from '@nestjs/axios';
 @Module({
 	imports: [
 		ConfigModule,
 		UsersModule,
 		PassportModule,
+		HttpModule,
 		JwtModule.register({
 			secret: jwtConstants.secret,
 			signOptions: {expiresIn: '7200s'},

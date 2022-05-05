@@ -24,9 +24,10 @@ export class UsersController {
 		return this.userService.getUsers();
 	}
 
-	@Get('id/:id')
-	findUsersById(@Param('id', ParseIntPipe) id: number) {
-		return this.userService.findUsersById(id);
+	@Get('id?:id')
+	findUsersById(@Param('id') id: string) {
+		console.log(id);
+		//return this.userService.findUsersById(id);
 	}
 
 	@Post('create')

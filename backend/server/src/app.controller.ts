@@ -1,4 +1,4 @@
-import { Controller, Get, Inject } from '@nestjs/common';
+import { Controller, Get, Inject, Redirect } from '@nestjs/common';
 import { AppService } from './app.service';
 import { ConfigService } from '@nestjs/config';
 
@@ -21,4 +21,5 @@ export class AppController {
 		//console.log(this.config.get<string>('DB_HOST'));
 		return this.appService.getMembers();
 	}
+
 }

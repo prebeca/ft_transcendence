@@ -32,8 +32,8 @@ import { MessagesModule } from './messages/messages.module';
     TypeOrmModule.forRootAsync({useClass: TypeOrmConfigService}),
     AuthModule,
     UsersModule,
-	ScoresModule,
-	MessagesModule
+	  ScoresModule,
+	  MessagesModule
   ],
   controllers: [AppController],
   providers: [AppService],
