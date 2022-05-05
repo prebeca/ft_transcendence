@@ -1,29 +1,24 @@
-import { Controller, Get, Post, Req, Request, Res, UseGuards } from '@nestjs/common';
+import { Controller, Get, Post, Request, UseGuards } from '@nestjs/common';
 import { LocalAuthGuard } from '../guards/local-auth.guard';
-import { Response } from 'express';
-import { FtGuard } from '../guards/ft.guard';
+import { AuthService } from '../services/auth.service';
+import { JwtAuthGuard } from '../guards/jwt-auth.guard';
 
 @Controller()
 export class AuthController {
-	constructor() {}
-
-	@Get()
-	@UseGuards(FtGuard)
-	async ftAuth(@Req() _req) {
-		// Guard redirects
-	}
-
-	@Get('redirect')
-	@UseGuards(FtGuard)
-	async ftAuthRedirect(@Request() req, @Res() res: Response) {
-		// For now, we'll just show the user object
-		return req.user;
-	}
+	constructor(private authService: AuthService){}
 
 	@UseGuards(LocalAuthGuard)
 	@Post('auth/login')
-	async login(@Request() req){
-		return req.user;
+	async login(@Request() req)
+	{
+		//https://api.intra.42.fr/oauth/authorize
+		console.log("inside auth/login post");
+		return this.authService.login(req.user);
 	}
 
+	@UseGuards(JwtAuthGuard)
+	@Get('profile')
+	getProfile(@Request() req) {
+		return req.user;
+	}
 }

@@ -90,7 +90,12 @@ export default  Vue.extend ({
 						username: 'prebeca',
 						email: 'prebeca@student.42.fr',
 						password: '123456789',
-					}
+					},
+					{
+						username: 'john',
+						email: 'john@student.42.fr',
+						password: 'changeme',
+					},
 					]),
 			}).then((res) => res.json());
 			this.items = await fetch("http://localhost:3000/users").then(

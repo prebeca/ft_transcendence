@@ -11,6 +11,9 @@ LINKS:
 		https://datatracker.ietf.org/doc/html/rfc6749#section-1.3.4
 	42API OAuth explained:
 		https://api.intra.42.fr/apidoc/guides/web_application_flow
+	TYPEORM SQL METHODS:
+		https://orkhan.gitbook.io/typeorm/docs/find-options
+
 
 Access to db files:
 	/var/lib/postgresql/data/base/[...]
