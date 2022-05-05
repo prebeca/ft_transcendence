@@ -1,45 +1,43 @@
 version: '3.9'
 
 services:
-  
-  backend:
-    container_name: backend_container
-    build: ./backend/
-    restart: unless-stopped
-    ports:
-      - "3000:3000"
-    volumes:
-      - ./backend/server:/server
 
-  frontend:
-    container_name: frontend_container
-    build: ./frontend/
-    restart: unless-stopped
-    environment:
-      NUXT_HOST: 0.0.0.0
-      NUXT_PORT: 8080
-    ports:
-      - "8080:8080"
-    volumes:
-      - ./frontend/client:/client
+    backend:
+        container_name: backend_container
+        build: ./backend/
+        restart: always
+        ports:
+            - "3000:3000"
+        env_file:
+            - ./backend/.env
+        volumes:
+            - ./backend/server:/server
 
-  db:
-    container_name: pg_container
-    image: postgres
-    restart: unless-stopped
-    environment:
-      POSTGRES_USER: root
-      POSTGRES_PASSWORD: root
-      POSTGRES_DB: test_db
-    # ports:
-    #   - "5432:5432"
+    frontend:
+        container_name: frontend_container
+        build: ./frontend/
+        restart: always
+        ports:
+            - "8080:8080"
+        env_file:
+            - ./frontend/.envs 
+        volumes:
+            - ./frontend/client:/client
 
-  pgadmin:
-    container_name: pgadmin4_container
-    image: dpage/pgadmin4
-    restart: unless-stopped
-    environment:
-      PGADMIN_DEFAULT_EMAIL: admin@admin.com
-      PGADMIN_DEFAULT_PASSWORD: root
-    ports:
-      - "5050:80"
+    db:
+        container_name: pg_container
+        build: ./postgres/
+        restart: always
+        env_file:
+            - ./postgres/.env
+        ports:
+            - "5432:5432"
+
+    pgadmin:
+        container_name: pgadmin4_container
+        build: ./pgadmin/
+        restart: always
+        env_file:
+            - ./pgadmin/.env
+        ports:
+            - "5050:80"
