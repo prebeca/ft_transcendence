@@ -1,103 +1,23 @@
 <template>
-  <v-row justify="center" align="center">
-    <v-col cols="12" sm="8" md="6">
-      <v-card class="logo py-4 d-flex justify-center">
-        <NuxtLogo />
-        <VuetifyLogo />
-      </v-card>
-      <v-card>
-        <v-card-title class="headline">
-          Welcome to the Vuetify + Nuxt.js template
-        </v-card-title>
-        <v-card-text>
-          <p>Vuetify is a progressive Material Design component framework for Vue.js. It was designed to empower developers to create amazing applications.</p>
-          <p>
-            For more information on Vuetify, check out the <a
-              href="https://vuetifyjs.com"
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              documentation
-            </a>.
-          </p>
-          <p>
-            If you have questions, please join the official <a
-              href="https://chat.vuetifyjs.com/"
-              target="_blank"
-              rel="noopener noreferrer"
-              title="chat"
-            >
-              discord
-            </a>.
-          </p>
-          <p>
-            Find a bug? Report it on the github <a
-              href="https://github.com/vuetifyjs/vuetify/issues"
-              target="_blank"
-              rel="noopener noreferrer"
-              title="contribute"
-            >
-              issue board
-            </a>.
-          </p>
-          <p>
-            Connect to 42 account <a
-              href="https://api.intra.42.fr/oauth/authorize?client_id=ded1c1648dc1695fc3426269408516c8d74bc4c0834510bc6608539ed52d81a1&redirect_uri=http%3A%2F%2Flocalhost%3A8080&response_type=code"
-              target="_blank"
-              rel="noopener noreferrer"
-              title="contribute"
-            >
-              42 Connect
-            </a>.
-          </p>
-          <p>Thank you for developing with Vuetify and I look forward to bringing more exciting features in the future.</p>
-          <div class="text-xs-right">
-            <em><small>&mdash; John Leider</small></em>
-          </div>
-          <hr class="my-3">
-          <a
-            href="https://nuxtjs.org/"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Nuxt Documentation
-          </a>
-          <br>
-          <a
-            href="https://github.com/nuxt/nuxt.js"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Nuxt GitHub
-          </a>
-        </v-card-text>
-        <v-card-actions>
-          <v-spacer />
-          <v-btn
-            color="primary"
-            nuxt
-            to="/inspire"
-          >
-            Continue
-          </v-btn>
-          <v-btn
-                color="primary"
-                nuxt
-                to="/userpage"
-              >
-              UserPage
-          </v-btn>
-        </v-card-actions>
-		<v-btn
-		elevation="2"
-		>asdasd</v-btn>
-      </v-card>
-    </v-col>
-  </v-row>
+  <div class="main d-flex flex-column justify-center align-center">
+    <h1 class="text-center info--text">PONG GAME</h1>
+    <v-btn rounded to="/login" 
+     style="width: 220px; height: 80px;" 
+     color="secondary"
+     elevation="20">
+      <span class="font-weight-black d-inline pa-1">LOGIN WITH</span>
+      <v-img src="/42white.png" 
+       style="height: 130px; width: 70px" ></v-img>
+    </v-btn>
+  </div>
 </template>
 
-<script>
+<script lang="ts">
 export default {
-  name: 'IndexPage'
+  name: 'IndexPage',
+  layout: 'empty'
 }
 </script>
+
+<style scoped lang="scss" src="./index.scss">
+</style>
