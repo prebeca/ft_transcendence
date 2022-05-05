@@ -6,6 +6,7 @@
       :clipped="clipped"
       fixed
       app
+      v-if="user.login"
     >
       <v-list>
         <v-list-item
@@ -28,6 +29,7 @@
       :clipped-left="clipped"
       fixed
       app
+      v-if="user.login"
     >
       <v-app-bar-nav-icon @click.stop="drawer = !drawer" />
       <v-btn
@@ -111,8 +113,17 @@ export default {
       miniVariant: false,
       right: true,
       rightDrawer: false,
-      title: 'The Pong Game'
+      title: 'The Pong Game',
+      user : {
+        login : false,
+      }
     }
   }
 }
 </script>
+
+<style scoped>
+.v-application {
+  background-color: rgb(77, 77, 77);
+}
+</style>
