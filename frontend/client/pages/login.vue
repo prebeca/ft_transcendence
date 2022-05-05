@@ -84,6 +84,8 @@ import ImageInput from '/components/ImageInput.vue'
 
 export default {
   name: 'app',
+  layout: "empty",
+  
   data () {
     return {
       avatar: null,
@@ -115,10 +117,13 @@ export default {
     },
     logIn() {
       const { username } = this;
-      console.log(username + " logged in");
+      
       this.username = username;
-      this.registered = true;
-      this.$router.replace({name:'login'})
+      if (this.username != "") {
+        console.log(username + " logged in");
+        this.registered = true;
+        this.$router.push('/home');
+      }
     }
   }
 }
