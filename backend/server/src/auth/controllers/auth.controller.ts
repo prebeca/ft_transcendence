@@ -21,6 +21,7 @@ export class AuthController {
 	getCode(@Query('code') code?: string){
 		return this.authService.getToken(code);
 	}
+	
 	/*async login(@Request() req)
 	{
 		//https://api.intra.42.fr/oauth/authorize

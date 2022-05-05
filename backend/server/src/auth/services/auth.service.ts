@@ -36,19 +36,18 @@ export class AuthService {
     };
   }
 
-  getToken(code_api: string)//: Promise<AxiosResponse>
-  {
+  getToken(code_api: string): Promise<AxiosResponse> {
     console.log("getToken = async");
     console.log("client_id = ded1c1648dc1695fc3426269408516c8d74bc4c0834510bc6608539ed52d81a1");
     console.log("client_secret = " + this.config.get<string>('APPLICATION_SECRET'));
     console.log("code = " + code_api);
-		firstValueFrom(this.httpService.post('https://api.intra.42.fr/oauth/token',
-    {
-        grant_type: 'client_credentials',
+		return lastValueFrom(this.httpService.post('https://api.intra.42.fr/oauth/token',
+      {
+        grant_type: 'authorization_code',
         client_id: 'ded1c1648dc1695fc3426269408516c8d74bc4c0834510bc6608539ed52d81a1',
         client_secret: this.config.get<string>('APPLICATION_SECRET'),
         code: code_api,
-        redirect_uri: 'http://localhost:8080/userpage'
-    }));
+        redirect_uri: 'http://localhost:8080/userpage',
+      }));
   }
 }
