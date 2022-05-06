@@ -2,7 +2,7 @@
     <v-app>
         <Nuxt />
 
-        <Footer />
+        <LayoutFooter />
     </v-app>
 </template>
 

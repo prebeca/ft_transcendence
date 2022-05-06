@@ -1,5 +1,5 @@
 <template>
-  <div style="height: 100vh; max-height: 100%; row-gap: 80px" class="d-flex flex-column justify-center align-center">
+  <div style="height: 100vh; max-height: 100%;" class="d-flex flex-column justify-center align-center">
 
   <v-card
     color="secondary"
@@ -57,7 +57,7 @@
          rounded
          dense
          required
-         color="deep-purple lighten-2"
+         color="info"
         ></v-text-field>
     </v-row>  
 
@@ -79,8 +79,10 @@
   </div>
 </template>
 
-<script>
-import ImageInput from '/components/ImageInput.vue' 
+<script lang="ts">
+
+import  Vue from "vue"
+import ImageInput from '../components/ImageInput.vue' 
 
 export default {
   name: 'app',
