@@ -20,7 +20,7 @@ services:
         ports:
             - "8080:8080"
         env_file:
-            - ./frontend/.envs 
+            - ./frontend/.env
         volumes:
             - ./frontend/client:/client
 
