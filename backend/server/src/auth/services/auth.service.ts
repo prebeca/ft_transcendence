@@ -8,6 +8,8 @@ import axios, { Axios, AxiosRequestConfig, AxiosResponse } from 'axios';
 import { response } from 'express';
 
 const FormData = require('form-data');
+const request = require('request');
+
 @Injectable()
 export class AuthService {
   constructor(
@@ -37,14 +39,8 @@ export class AuthService {
       access_token: this.jwtService.sign(payload),
     };
   }
-
-  async getToken(code_api: string, state_api: string){
-    console.log("getToken = async");
-    console.log("client_id = " + this.config.get<string>('APPLICATION_UID'));
-    console.log("client_secret = " + this.config.get<string>('APPLICATION_SECRET'));
-    console.log("code = " + code_api);
-    console.log("state =" + state_api);
-
+  
+  async getToken(code_api: string, state_api: string)/*: Promise<String>*/ {
     const formData = new FormData();
     formData.append('grant_type', 'authorization_code');
     formData.append('client_id', this.config.get<string>('APPLICATION_UID'));
@@ -56,10 +52,8 @@ export class AuthService {
     let access_token: string;
     const res = await axios.post('https://api.intra.42.fr/oauth/token',formData,{headers: formData.getHeaders()})
       .then(function(response: AxiosResponse){
-        console.log("access_token = " + response.data.access_token);
         access_token = response.data.access_token;
       }).catch(function (response) {
-      console.log(response);
     });
     const config: AxiosRequestConfig= {
       method: 'get',
