@@ -61,8 +61,7 @@ export default {
 					},
 					body: JSON.stringify({
 						username: this.username,
-						email: this.email,
-						password: this.password,
+						email: this.email
 					}),
 				}).then((res) => res.json());
 			}

@@ -1,24 +1,28 @@
-import { IsEmail, IsNotEmpty, MinLength } from "class-validator";
+import { IsEmail, IsNotEmpty } from "class-validator";
 
 export class CreateUserDto {
 	@IsNotEmpty()
-	@MinLength(3)
-	username: string;
-
-	@IsNotEmpty()
-	@MinLength(8)
-	password: string;
+	login: string;
 
 	@IsNotEmpty()
 	@IsEmail()
 	email: string;
-}
 
-/*
-export class CreateUserDto
-{
-	@Type(() => TestItemDto)
-	@ValidateNested({ each: true })
-	public actions: TestItemDto[];
+	@IsNotEmpty()
+	access_token: string;
+
+	@IsNotEmpty()
+	refresh_token: string;
+	
+	@IsNotEmpty()
+	scope: string;
+
+	@IsNotEmpty()
+	expires_in: number;
+	
+	@IsNotEmpty()
+	created_at: number;
+
+	@IsNotEmpty()
+	image_url: string;
 }
-*/

@@ -10,6 +10,7 @@ import { jwtConstants } from './constants';
 import { JwtStrategy } from './strategies/jwt.strategy';
 import { ConfigModule } from '@nestjs/config';
 import { HttpModule } from '@nestjs/axios';
+import { FtStrategy } from './strategies/ft.strategy';
 @Module({
 	imports: [
 		ConfigModule,
@@ -22,7 +23,7 @@ import { HttpModule } from '@nestjs/axios';
 		}),
 	],
 	controllers: [AuthController],
-	providers: [AuthService, /* FtStrategy,*/ LocalStrategy, JwtStrategy],
+	providers: [AuthService, FtStrategy, LocalStrategy, JwtStrategy],
 	exports: [AuthService],
 })
 
