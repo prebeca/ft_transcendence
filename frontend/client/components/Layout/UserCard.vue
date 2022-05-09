@@ -10,7 +10,7 @@
                     Your Profile
                 </v-btn>
                 <v-divider class="my-3"></v-divider>
-                <v-btn to="/profile" depressed rounded text color="info">
+                <v-btn to="/edit-profile" depressed rounded text color="info">
                     Edit Your Profile
                 </v-btn>
                 <v-divider class="my-3"></v-divider>
