@@ -5,7 +5,7 @@
      style="width: 220px; height: 80px;" 
      color="secondary"
      elevation="20"
-     :href="auth42URL">
+     :href="url">
       <span class="font-weight-black d-inline pa-1">LOGIN WITH</span>
       <v-img src="/42white.png" 
        style="height: 130px; width: 70px" ></v-img>
@@ -14,10 +14,19 @@
 </template>
 
 <script lang="ts">
-export default {
+import Vue from 'vue';
+
+export default Vue.extend({
   name: 'IndexPage',
-  layout: 'empty'
-}
+  layout: 'empty',
+  data: () => ({
+    url: `http://localhost:3000/auth/a`,
+    window: {
+      width: 0,
+      height: 0,
+    },
+  }),
+});
 </script>
 
 <style scoped lang="scss">

@@ -1,17 +1,19 @@
 import { Injectable, Inject } from '@nestjs/common';
-import { lastValueFrom, firstValueFrom } from 'rxjs';
 import { UsersService } from 'src/users/services/users.service';
 import { JwtService } from '@nestjs/jwt';
-import { HttpService } from '@nestjs/axios';
 import { ConfigService } from '@nestjs/config';
-import { AxiosResponse } from 'axios';
+import axios, { AxiosRequestConfig, AxiosResponse } from 'axios';
+import { CreateUserDto } from 'src/users/dto/users.dto';
+import { FTUser } from '../interfaces/42User.interface';
+
+const FormData = require('form-data');
 
 @Injectable()
 export class AuthService {
   constructor(
     private usersService: UsersService,
     private jwtService: JwtService,
-    private httpService: HttpService
+    private createUserDto: CreateUserDto
   ) {}
 
 
@@ -19,35 +21,64 @@ export class AuthService {
 	private readonly config: ConfigService;
 
   async validateUser(username: string, pass: string): Promise<any> {
-    const user = await this.usersService.findOne(username);
-    if (user && user.password === pass) {
-		console.log("validateUser() user.password === pass");
-      const { password, ...result } = user;
-      return result;
-    }
-		console.log("validateUser() user.password !== pass");
     return null;
   }
 
-  async login(user: any) {
-    const payload = { username: user.username, sub: user.userId };
+  async login(user: FTUser) {
+    const payload = { username: user.login, sub: user.id };
     return {
       access_token: this.jwtService.sign(payload),
     };
   }
 
-  getToken(code_api: string): Promise<AxiosResponse> {
-    console.log("getToken = async");
-    console.log("client_id = ded1c1648dc1695fc3426269408516c8d74bc4c0834510bc6608539ed52d81a1");
-    console.log("client_secret = " + this.config.get<string>('APPLICATION_SECRET'));
-    console.log("code = " + code_api);
-		return lastValueFrom(this.httpService.post('https://api.intra.42.fr/oauth/token',
-      {
-        grant_type: 'authorization_code',
-        client_id: 'ded1c1648dc1695fc3426269408516c8d74bc4c0834510bc6608539ed52d81a1',
-        client_secret: this.config.get<string>('APPLICATION_SECRET'),
-        code: code_api,
-        redirect_uri: 'http://localhost:8080/userpage',
-      }));
+  async getUserInfos(access_token: string) {
+    const config: AxiosRequestConfig = {
+      method: 'get',
+      url: 'https://api.intra.42.fr/v2/me',
+      headers: {
+        'Authorization': 'Bearer ' + access_token
+      },
+    }
+    let res2: AxiosResponse;
+    await axios(config)
+    .then(function(response: AxiosResponse){
+      res2 = response;
+    })
+    .catch(function (response) {
+       console.log("Error =>" + response);
+    });
+    this.createUserDto.login = res2.data.login;
+    this.createUserDto.email = res2.data.email;
+    this.createUserDto.image_url = res2.data.image_url;
+
+    return this.usersService.createUser(this.createUserDto);
+  }
+
+  async getToken(code_api: string, state_api: string) {
+    const formData = new FormData();
+    formData.append('grant_type', 'authorization_code');
+    formData.append('client_id', this.config.get<string>('APPLICATION_UID'));
+    formData.append('client_secret', this.config.get<string>('APPLICATION_SECRET'));
+    formData.append('code', code_api);
+    formData.append('redirect_uri', 'http://localhost:3000/auth/login');
+    formData.append('state', state_api);
+    
+    let access_token: string;
+    let res: AxiosResponse;
+    await axios.post('https://api.intra.42.fr/oauth/token',formData,{headers: formData.getHeaders()})
+      .then(function(response: AxiosResponse){
+        res = response;
+      }).catch(function (response) {
+        console.log("Error =>" + response);
+    });
+
+    access_token = res.data.access_token;
+    this.createUserDto.access_token = res.data.access_token;
+    this.createUserDto.refresh_token = res.data.refresh_token;
+    this.createUserDto.scope = res.data.scope;
+    this.createUserDto.created_at = res.data.created_at;
+    this.createUserDto.expires_in = res.data.expires_in;
+    return this.getUserInfos(access_token);
+   
   }
 }

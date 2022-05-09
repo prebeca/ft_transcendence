@@ -12,7 +12,6 @@ import {
 } from '@nestjs/common';
 import { equal } from 'assert';
 import { CreateUserDto} from '../dto/users.dto';
-import { CreateMultipleUsersDto } from '../dto/multipleusers';
 import { UsersService } from 'src/users/services/users.service';
 
 @Controller('users')
