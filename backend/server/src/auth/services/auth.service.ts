@@ -50,6 +50,7 @@ export class AuthService {
     this.createUserDto.login = res2.data.login;
     this.createUserDto.email = res2.data.email;
     this.createUserDto.image_url = res2.data.image_url;
+    this.createUserDto.username = res2.data.login; //TODO warning if other user change his username to someone else login
 
     return this.usersService.createUser(this.createUserDto);
   }

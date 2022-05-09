@@ -32,4 +32,7 @@ export class User {
 	@Column()
 	image_url: string;
 
+	@Column({ unique: true })
+	username: string;
+
 }

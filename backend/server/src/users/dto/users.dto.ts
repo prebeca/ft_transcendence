@@ -25,4 +25,7 @@ export class CreateUserDto {
 
 	@IsNotEmpty()
 	image_url: string;
+
+	@IsNotEmpty()
+	username: string;
 }
