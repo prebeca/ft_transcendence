@@ -1,11 +1,11 @@
 <template>
   <div class="main d-flex flex-column justify-center align-center">
     <h1 class="text-center info--text">PONG GAME</h1>
-    <v-btn 
+    <v-btn
+    :href="url"
      style="width: 220px; height: 80px;" 
      color="secondary"
      elevation="20"
-     @click="login"
      >
       <span class="font-weight-black d-inline pa-1">LOGIN WITH</span>
       <v-img src="/42white.png" 
@@ -15,15 +15,19 @@
 </template>
 
 <script lang="ts">
-export default {
+import Vue from 'vue';
+
+export default Vue.extend({
   name: 'IndexPage',
   layout: 'empty',
-	methods: {
-		async login() {
-       await fetch("http://localhost:3000/auth/login");
-		},
-	},
-};
+  data: () => ({
+    url: `http://localhost:3000/auth/a`,
+    window: {
+      width: 0,
+      height: 0,
+    },
+  }),
+});
 </script>
 
 <style scoped lang="scss">
