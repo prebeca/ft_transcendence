@@ -9,13 +9,27 @@ export class User {
 	id: number;
 
 	@Column({ unique: true })
-	username: string;
+	login: string;
 
 	@Column({ unique: true })
 	email: string;
 
-	@Column({
-		default: '',
-	})
-	password: string;
+	@Column({ unique: true })
+	access_token: string;
+
+	@Column({ unique: true })
+	refresh_token: string;
+
+	@Column()
+	scope: string;
+
+	@Column()
+	expires_in: number;
+
+	@Column()
+	created_at: number;
+
+	@Column()
+	image_url: string;
+
 }

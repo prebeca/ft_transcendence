@@ -1,37 +1,31 @@
-/*import { PassportStrategy } from '@nestjs/passport';
-import { Profile, Strategy } from 'passport-google-oauth20';
+import { PassportStrategy } from '@nestjs/passport';
+import { Strategy } from 'passport-42';
 import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { UsersService } from 'src/users/services/users.service';
+import { FTUser } from '../interfaces/42User.interface';
 
 @Injectable()
-export class FtStrategy extends PassportStrategy(Strategy, 'google') {
+export class FtStrategy extends PassportStrategy(Strategy) {
   constructor(
-    configService: ConfigService,
-    private readonly usersService: UsersService,
-  ) {
+    private readonly configService: ConfigService) {
     super({
-      // Put config in `.env`
-      clientID: configService.get<string>('OAUTH_GOOGLE_ID'),
-      clientSecret: configService.get<string>('OAUTH_GOOGLE_SECRET'),
-      callbackURL: configService.get<string>('OAUTH_GOOGLE_REDIRECT_URL'),
-      scope: ['email', 'profile'],
+      clientID: configService.get<string>('APPLICATION_UID'),
+      clientSecret: configService.get<string>('APLICATION_SECRET'),
+      callbackURL: configService.get<string>('http://localhost:3000/auth/login'),
+      profileFields: {
+        'id': function (obj) { return String(obj.id);},
+        'username': 'login',
+        'emails.0.value': 'email',
+        'photos.0.value': 'image_url'
+      }
     });
   }
 
-  async validate(
-    _accessToken: string,
-    _refreshToken: string,
-    profile: Profile,
-  ) {
-    const { id, name, emails } = profile;
-
-    // Here a custom User object is returned. In the the repo I'm using a UsersService with repository pattern, learn more here: https://docs.nestjs.com/techniques/database
-    return {
-      provider: 'google',
-      providerId: id,
-      name: name.givenName,
-      username: emails[0].value,
+  validate(
+    accessToken: string,
+    refreshToken: string,
+    profile: FTUser,
+  ): FTUser {
+      return profile;
     };
-  }
-}*/
+}

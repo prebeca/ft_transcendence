@@ -1,11 +1,9 @@
 import { Injectable, Inject } from '@nestjs/common';
-import { lastValueFrom, firstValueFrom } from 'rxjs';
 import { UsersService } from 'src/users/services/users.service';
 import { JwtService } from '@nestjs/jwt';
-import { HttpService } from '@nestjs/axios';
 import { ConfigService } from '@nestjs/config';
-import axios, { Axios, AxiosRequestConfig, AxiosResponse } from 'axios';
-import { response } from 'express';
+import axios, { AxiosRequestConfig, AxiosResponse } from 'axios';
+import { CreateUserDto } from 'src/users/dto/users.dto';
 
 const FormData = require('form-data');
 @Injectable()
@@ -13,7 +11,7 @@ export class AuthService {
   constructor(
     private usersService: UsersService,
     private jwtService: JwtService,
-    private httpService: HttpService
+    private createUserDto: CreateUserDto
   ) {}
 
 
@@ -21,13 +19,6 @@ export class AuthService {
 	private readonly config: ConfigService;
 
   async validateUser(username: string, pass: string): Promise<any> {
-    const user = await this.usersService.findOne(username);
-    if (user && user.password === pass) {
-		console.log("validateUser() user.password === pass");
-      const { password, ...result } = user;
-      return result;
-    }
-		console.log("validateUser() user.password !== pass");
     return null;
   }
 
@@ -38,13 +29,31 @@ export class AuthService {
     };
   }
 
-  async getToken(code_api: string, state_api: string){
-    console.log("getToken = async");
-    console.log("client_id = " + this.config.get<string>('APPLICATION_UID'));
-    console.log("client_secret = " + this.config.get<string>('APPLICATION_SECRET'));
-    console.log("code = " + code_api);
-    console.log("state =" + state_api);
+  async getUserInfos(access_token: string) {
+    const config: AxiosRequestConfig = {
+      method: 'get',
+      url: 'https://api.intra.42.fr/v2/me',
+      headers: {
+        'Authorization': 'Bearer ' + access_token,
+        'Access-Control-Allow-Origin': 'http://localhost:8080',
+      },
+    }
 
+    let res2: AxiosResponse;
+    await axios(config)
+    .then(function(response: AxiosResponse){
+      res2 = response;
+    })
+    .catch(function (response) {
+       console.log("Error =>" + response);
+    });
+    this.createUserDto.login = res2.data.login;
+    this.createUserDto.email = res2.data.email;
+    this.createUserDto.image_url = res2.data.image_url;
+    return this.usersService.createUser(this.createUserDto);
+  }
+
+  async getToken(code_api: string, state_api: string) {
     const formData = new FormData();
     formData.append('grant_type', 'authorization_code');
     formData.append('client_id', this.config.get<string>('APPLICATION_UID'));
@@ -52,23 +61,23 @@ export class AuthService {
     formData.append('code', code_api);
     formData.append('redirect_uri', 'http://localhost:3000/auth/code');
     formData.append('state', state_api);
-
+    
     let access_token: string;
-    const res = await axios.post('https://api.intra.42.fr/oauth/token',formData,{headers: formData.getHeaders()})
+    let res: AxiosResponse;
+    await axios.post('https://api.intra.42.fr/oauth/token',formData,{headers: formData.getHeaders()})
       .then(function(response: AxiosResponse){
-        console.log("access_token = " + response.data.access_token);
-        access_token = response.data.access_token;
+        res = response;
       }).catch(function (response) {
-      console.log(response);
+        console.log("Error =>" + response);
     });
-    const config: AxiosRequestConfig= {
-      method: 'get',
-      url: 'https://api.intra.42.fr/v2/me',
-      headers: { 'Authorization': 'Bearer ' + access_token},
-    }
-    const res2 = await axios(config)
-    .then(function(response: AxiosResponse){
-      console.log(response.data);
-    });
+
+    access_token = res.data.access_token;
+    this.createUserDto.access_token = res.data.access_token;
+    this.createUserDto.refresh_token = res.data.refresh_token;
+    this.createUserDto.scope = res.data.scope;
+    this.createUserDto.created_at = res.data.created_at;
+    this.createUserDto.expires_in = res.data.expires_in;
+    return this.getUserInfos(access_token);
+   
   }
 }
