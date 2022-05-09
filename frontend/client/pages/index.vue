@@ -1,7 +1,7 @@
 <template>
   <div class="main d-flex flex-column justify-center align-center">
     <h1 class="text-center info--text">PONG GAME</h1>
-    <v-btn rounded to="/login" 
+    <v-btn rounded to="/login"
      style="width: 220px; height: 80px;" 
      color="secondary"
      elevation="20">
@@ -19,5 +19,18 @@ export default {
 }
 </script>
 
-<style scoped lang="scss" src="./index.scss">
+<style scoped lang="scss">
+
+.main {
+    height: 100vh;
+    row-gap: 80px;
+}
+
+h1 {
+    font-size: 60px;
+}
+
+span {
+    font-size: 20px;
+}
 </style>
