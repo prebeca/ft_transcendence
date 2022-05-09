@@ -4,9 +4,9 @@ import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
 import axios, { AxiosRequestConfig, AxiosResponse } from 'axios';
 import { CreateUserDto } from 'src/users/dto/users.dto';
+import { FTUser } from '../interfaces/42User.interface';
 
 const FormData = require('form-data');
-const request = require('request');
 
 @Injectable()
 export class AuthService {
@@ -24,8 +24,8 @@ export class AuthService {
     return null;
   }
 
-  async login(user: any) {
-    const payload = { username: user.username, sub: user.userId };
+  async login(user: FTUser) {
+    const payload = { username: user.login, sub: user.id };
     return {
       access_token: this.jwtService.sign(payload),
     };
