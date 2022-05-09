@@ -6,8 +6,8 @@ export default {
 
   // Global page headers: https://go.nuxtjs.dev/config-head
   head: {
-    titleTemplate: '%s - client',
-    title: 'client',
+    // titleTemplate: '%s',
+    title: 'PONG GAME',
     htmlAttrs: {
       lang: 'en'
     },
@@ -60,13 +60,14 @@ export default {
       dark: true,
       themes: {
         dark: {
-          primary: colors.blue.darken2,
-          accent: colors.grey.darken3,
-          secondary: colors.amber.darken3,
-          info: colors.teal.lighten1,
+          background: colors.grey.darken3,
+          primary: colors.deepPurple.darken4,
+          accent: colors.deepOrange.accent3,
+          secondary: colors.deepPurple.darken2,
+          info: colors.deepPurple.lighten4,
           warning: colors.amber.base,
           error: colors.deepOrange.accent4,
-          success: colors.green.accent3
+          success: colors.green.accent3,
         }
       }
     }

@@ -1,0 +1,23 @@
+<template>
+    <v-card color="secondary">
+        <v-list-item-content class="justify-center">
+            <div class="mx-auto text-center">
+                <v-avatar size="80">
+                    <v-img src="/avatar.png"></v-img>
+                </v-avatar>
+                <v-divider class="my-3"></v-divider>
+                <v-btn to="/profile" depressed rounded text color="info">
+                    Your Profile
+                </v-btn>
+                <v-divider class="my-3"></v-divider>
+                <v-btn to="/profile" depressed rounded text color="info">
+                    Edit Your Profile
+                </v-btn>
+                <v-divider class="my-3"></v-divider>
+                <v-btn to="/" depressed rounded text color="accent">
+                    Log out
+                </v-btn>
+            </div>
+        </v-list-item-content>
+    </v-card>
+</template>

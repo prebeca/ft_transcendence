@@ -1,13 +1,8 @@
-CREATE TABLE Joueur (
+CREATE TABLE player (
 	id INT PRIMARY KEY NOT NULL,
-	First_name VARCHAR (100),
-	Last_name VARCHAR(100),
+	first_name VARCHAR (100),
+	last_name VARCHAR(100),
 	email VARCHAR(255),
-	date_naissance DATE,
-	pays VARCHAR(255),
-	ville VARCHAR(255),
-	code_postal VARCHAR(5),
-	nombre_achat INT
 );
 
 CREATE TABLE IF NOT EXISTS score

@@ -6,6 +6,8 @@ import axios, { AxiosRequestConfig, AxiosResponse } from 'axios';
 import { CreateUserDto } from 'src/users/dto/users.dto';
 
 const FormData = require('form-data');
+const request = require('request');
+
 @Injectable()
 export class AuthService {
   constructor(

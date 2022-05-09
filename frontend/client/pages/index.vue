@@ -25,3 +25,19 @@ export default {
 	},
 };
 </script>
+
+<style scoped lang="scss">
+
+.main {
+    height: 100vh;
+    row-gap: 80px;
+}
+
+h1 {
+    font-size: 60px;
+}
+
+span {
+    font-size: 20px;
+}
+</style>
