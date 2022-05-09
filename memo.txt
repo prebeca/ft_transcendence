@@ -117,7 +117,7 @@ Les modules eux, permettent simplement d'autoriser ou non l'exportation de tout 
 et de choisir des modules a importer pour le bon fonctionnement du module (une partie d'applciation)
 
 RESPONSE HEADER DE BANANAPONG:
-
+(theirs)
 HTTP/1.1 302 Found
 X-Powered-By: Express
 Access-Control-Allow-Origin: *
@@ -128,6 +128,18 @@ Date: Mon, 09 May 2022 12:29:59 GMT
 Connection: keep-alive
 Keep-Alive: timeout=5
 
+(ours)
+HTTP/1.1 302 Found
+X-Powered-By: Express
+Access-Control-Allow-Origin: *
+Access-Control-Allow-Credentials: true
+Location: https://api.intra.42.fr/oauth/authorize?response_type=code&redirect_uri=http%3A%2F%2Flocalhost%3A3000%2Fauth%2Flogin&client_id=ded1c1648dc1695fc3426269408516c8d74bc4c0834510bc6608539ed52d81a1
+Content-Length: 0
+Date: Mon, 09 May 2022 12:39:42 GMT
+Connection: keep-alive
+Keep-Alive: timeout=5
+
+(theirs)
 HTTP/2 302 Found
 cache-control: no-cache
 content-encoding: gzip
@@ -141,6 +153,23 @@ x-frame-options: SAMEORIGIN
 x-rack-cors: preflight-hit; no-origin
 x-request-id: 13b92925-634b-450a-8f4a-91f126a88836
 x-runtime: 0.006822
+x-xss-protection: 1; mode=block
+X-Firefox-Spdy: h2
+
+(ours)
+HTTP/2 302 Found
+cache-control: no-cache
+content-encoding: gzip
+content-type: text/html; charset=utf-8
+date: Mon, 09 May 2022 12:39:42 GMT
+location: https://signin.intra.42.fr/users/sign_in?redirect_to=https%3A%2F%2Fapi.intra.42.fr%2Foauth%2Fauthorize%3Fresponse_type%3Dcode%26redirect_uri%3Dhttp%253A%252F%252Flocalhost%253A3000%252Fauth%252Flogin%26client_id%3Dded1c1648dc1695fc3426269408516c8d74bc4c0834510bc6608539ed52d81a1
+status: 302 Found
+vary: Origin,Accept-Encoding
+x-content-type-options: nosniff
+x-frame-options: SAMEORIGIN
+x-rack-cors: preflight-hit; no-origin
+x-request-id: 4307eb38-affd-46be-8a22-b457b9b74ab6
+x-runtime: 0.007517
 x-xss-protection: 1; mode=block
 X-Firefox-Spdy: h2
 
@@ -162,6 +191,22 @@ Sec-Fetch-User: ?1
 Pragma: no-cache
 Cache-Control: no-cache
 
+GET /auth/login HTTP/1.1
+Host: localhost:3000
+User-Agent: Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:99.0) Gecko/20100101 Firefox/99.0
+Accept: */*
+Accept-Language: en-US,en;q=0.5
+Accept-Encoding: gzip, deflate, br
+Referer: http://localhost:8080/
+Origin: http://localhost:8080
+Connection: keep-alive
+Sec-Fetch-Dest: empty
+Sec-Fetch-Mode: cors
+Sec-Fetch-Site: same-site
+Pragma: no-cache
+Cache-Control: no-cache
+
+(theirs)
 GET /oauth/authorize?response_type=code&redirect_uri=http%3A%2F%2F%3CSERVER_IP%2FHOSTNAME%3E%3A3000%2Fauth%2F42%2Fcallback&client_id=%3C42_API_UID%3E HTTP/2
 Host: api.intra.42.fr
 User-Agent: Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:99.0) Gecko/20100101 Firefox/99.0
@@ -176,5 +221,37 @@ Sec-Fetch-Dest: document
 Sec-Fetch-Mode: navigate
 Sec-Fetch-Site: cross-site
 Sec-Fetch-User: ?1
+Pragma: no-cache
+Cache-Control: no-cache
+
+(ours)
+GET /oauth/authorize?response_type=code&redirect_uri=http%3A%2F%2Flocalhost%3A3000%2Fauth%2Flogin&client_id=ded1c1648dc1695fc3426269408516c8d74bc4c0834510bc6608539ed52d81a1 HTTP/2
+Host: api.intra.42.fr
+User-Agent: Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:99.0) Gecko/20100101 Firefox/99.0
+Accept: */*
+Accept-Language: en-US,en;q=0.5
+Accept-Encoding: gzip, deflate, br
+Origin: null
+Referer: http://localhost:8080/
+Connection: keep-alive
+Sec-Fetch-Dest: empty
+Sec-Fetch-Mode: cors
+Sec-Fetch-Site: cross-site
+Pragma: no-cache
+Cache-Control: no-cache
+
+(ours vendredi)
+GET /oauth/authorize?client_id=ded1c1648dc1695fc3426269408516c8d74bc4c0834510bc6608539ed52d81a1&redirect_uri=http%3A%2F%2Flocalhost%3A3000%2Fauth%2Flogin&response_type=code&scopepublic&state=ddde57f1bd1897c2dfd00c0189acca5ffa363b32f8273deba54fc27e8b102d6709caa2ccc2e75d0aae23855bab9be2ce139d70a53e24659b180254cc4be9aca9 HTTP/2
+Host: api.intra.42.fr
+User-Agent: Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:99.0) Gecko/20100101 Firefox/99.0
+Accept: */*
+Accept-Language: en-US,en;q=0.5
+Accept-Encoding: gzip, deflate, br
+Origin: null
+Referer: http://localhost:8080/
+Connection: keep-alive
+Sec-Fetch-Dest: empty
+Sec-Fetch-Mode: cors
+Sec-Fetch-Site: cross-site
 Pragma: no-cache
 Cache-Control: no-cache

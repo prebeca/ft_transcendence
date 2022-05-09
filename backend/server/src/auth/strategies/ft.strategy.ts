@@ -6,8 +6,7 @@ import { FTUser } from '../interfaces/42User.interface';
 
 @Injectable()
 export class FTStrategy extends PassportStrategy(Strategy, 'ft') {
-  constructor(
-    configService: ConfigService) {
+  constructor(configService: ConfigService) {
     super({
       clientID: configService.get<string>('APPLICATION_UID'),
       clientSecret: configService.get<string>('APLICATION_SECRET'),

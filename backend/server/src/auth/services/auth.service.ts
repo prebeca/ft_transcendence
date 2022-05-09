@@ -36,11 +36,9 @@ export class AuthService {
       method: 'get',
       url: 'https://api.intra.42.fr/v2/me',
       headers: {
-        'Authorization': 'Bearer ' + access_token,
-        'Access-Control-Allow-Origin': 'http://localhost:8080',
+        'Authorization': 'Bearer ' + access_token
       },
     }
-
     let res2: AxiosResponse;
     await axios(config)
     .then(function(response: AxiosResponse){
@@ -52,6 +50,7 @@ export class AuthService {
     this.createUserDto.login = res2.data.login;
     this.createUserDto.email = res2.data.email;
     this.createUserDto.image_url = res2.data.image_url;
+
     return this.usersService.createUser(this.createUserDto);
   }
 
@@ -61,7 +60,7 @@ export class AuthService {
     formData.append('client_id', this.config.get<string>('APPLICATION_UID'));
     formData.append('client_secret', this.config.get<string>('APPLICATION_SECRET'));
     formData.append('code', code_api);
-    formData.append('redirect_uri', 'http://localhost:3000/auth/code');
+    formData.append('redirect_uri', 'http://localhost:3000/auth/login');
     formData.append('state', state_api);
     
     let access_token: string;
