@@ -3,8 +3,6 @@ import { AuthService } from '../services/auth.service';
 import { JwtAuthGuard } from '../guards/jwt-auth.guard';
 import { ConfigService } from '@nestjs/config'; 
 import { Response } from 'express';
-import { FTAuthGuard } from '../guards/ft-auth.guard';
-import { FTUser } from '../interfaces/42User.interface';
 
 @Controller()
 export class AuthController {
@@ -45,12 +43,14 @@ export class AuthController {
 
 	@Get('auth/login')
 	@Redirect('http://localhost:8080/login', 302)
-	getCode(@Query('code') code?: string, @Query('state') state?: string){
+	async getCode(@Res({ passthrough: true }) response: Response, @Query('code') code?: string, @Query('state') state?: string)
+	{
 		console.log('+++getCode+++');
 		var found = this.states.findIndex(String => String == state);
 		if (found >= 0) {
 			this.states.splice(found);
-			this.authService.getToken(code, state);
+			const token_client: string  = await this.authService.getToken(code, state);
+			response.cookie('access_token', token_client);
 		}
 		else
 		{
@@ -58,4 +58,5 @@ export class AuthController {
 			return null;
 		}
 	}
+
 }

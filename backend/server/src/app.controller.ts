@@ -1,7 +1,8 @@
-import { Controller, Get, Inject, Redirect } from '@nestjs/common';
+import { Controller, Request, Get, Inject, Redirect } from '@nestjs/common';
 import { AppService } from './app.service';
 import { ConfigService } from '@nestjs/config';
-
+import { JwtAuthGuard } from './auth/guards/jwt-auth.guard';
+import { UseGuards } from '@nestjs/common';
 
 @Controller()
 export class AppController {
@@ -17,9 +18,12 @@ export class AppController {
 
 	@Get('members')
 	getMembers() {
-		//console.log(this.config.get<string>('APPLICATION_SECRET'));
-		//console.log(this.config.get<string>('DB_HOST'));
 		return this.appService.getMembers();
 	}
 
+	@UseGuards(JwtAuthGuard)
+	@Get('profile')
+	getProfile(@Request() req) {
+	  return req.user;
+	}
 }
