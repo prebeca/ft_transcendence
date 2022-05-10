@@ -18,7 +18,7 @@
         </v-toolbar-title>
     </v-toolbar>
 
-    <v-row 
+    <v-row
      class="pt-12 pb-2"
      justify="center"
      align="center">
@@ -57,7 +57,7 @@
          required
          color="info"
         ></v-text-field>
-    </v-row>  
+    </v-row>
 
     <v-divider></v-divider>
 
@@ -78,7 +78,7 @@
 
 <script lang="ts">
 
-import ImageInput from './ImageInput.vue' 
+import ImageInput from './ImageInput.vue'
 
 export default {
   name: 'app',
@@ -113,7 +113,7 @@ export default {
     },
     logIn() {
       const { username } = this;
-      
+
       this.username = username;
       if (this.username != "") {
         console.log(username + " logged in");
