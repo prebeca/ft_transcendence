@@ -3,8 +3,6 @@ import { AuthService } from '../services/auth.service';
 import { JwtAuthGuard } from '../guards/jwt-auth.guard';
 import { ConfigService } from '@nestjs/config'; 
 import { Response } from 'express';
-import { FTAuthGuard } from '../guards/ft-auth.guard';
-import { FTUser } from '../interfaces/42User.interface';
 
 @Controller()
 export class AuthController {
