@@ -45,12 +45,14 @@ export class AuthController {
 
 	@Get('auth/login')
 	@Redirect('http://localhost:8080/login', 302)
-	getCode(@Query('code') code?: string, @Query('state') state?: string){
+	async getCode(@Res({ passthrough: true }) response: Response, @Query('code') code?: string, @Query('state') state?: string)
+	{
 		console.log('+++getCode+++');
 		var found = this.states.findIndex(String => String == state);
 		if (found >= 0) {
 			this.states.splice(found);
-			return this.authService.getToken(code, state);
+			const token_client: string  = await this.authService.getToken(code, state);
+			response.cookie('access_token', token_client);
 		}
 		else
 		{

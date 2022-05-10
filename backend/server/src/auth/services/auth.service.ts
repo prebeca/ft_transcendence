@@ -27,7 +27,7 @@ export class AuthService {
     };
   }
 
-  async getUserInfos(access_token: string) {
+  async getUserInfos(access_token: string): Promise<string> {
     const config: AxiosRequestConfig = {
       method: 'get',
       url: 'https://api.intra.42.fr/v2/me',
@@ -52,8 +52,8 @@ export class AuthService {
     if (result_create === null)
       return null;
     const result_jwtsign: any = await this.login(res2.data.login, res2.data.id);
-    console.log(result_jwtsign);
-    return result_jwtsign;
+    console.log(result_jwtsign.access_token);
+    return result_jwtsign.access_token;
   }
 
   async getToken(code_api: string, state_api: string) {
