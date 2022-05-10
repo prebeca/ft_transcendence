@@ -1,5 +1,5 @@
 // import { PassportStrategy } from '@nestjs/passport';
-// // import { Strategy } from 'passport-42';
+// import { Strategy } from 'passport-42';
 // import { Injectable } from '@nestjs/common';
 // import { ConfigService } from '@nestjs/config';
 // import { FTUser } from '../interfaces/42User.interface';
