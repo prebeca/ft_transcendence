@@ -17,22 +17,25 @@
 				COMPLETE YOUR PROFILE
 				</v-toolbar-title>
 		</v-toolbar>
+    <v-row 
+     class="pt-12 pb-2"
+     justify="center"
+     align="center">
+      <image-input v-model="avatar">
+        <div slot="activator">
+          <v-avatar size="150px" v-ripple v-if="avatar" class="mb-3">
+            <img :src="avatar.imageURL" alt="avatar">
+          </v-avatar>
+          <v-avatar size="150px" v-ripple v-else-if="users[0]" class="mb-3">
+            <img :src="users[0].image_url" alt="avatar">
+          </v-avatar>
+          <v-avatar size="150px" v-ripple v-else color="deep-purple">
+            <span>hello</span>
+          </v-avatar>
 
-		<v-row 
-		 class="pt-12 pb-2"
-		 justify="center"
-		 align="center">
-			<image-input v-model="avatar">
-				<div slot="activator">
-					<v-avatar size="150px" v-ripple v-if="avatar" class="mb-3">
-						<img :src="avatar.imageURL" alt="avatar">
-					</v-avatar>
-					<v-avatar size="150px" v-ripple v-else-if="users[0]" class="mb-3">
-						<img :src="users[0].image_url" alt="avatar">
-					</v-avatar>
-					<v-avatar size="150px" v-ripple v-else color="deep-purple">
-						<span>hello</span>
-					</v-avatar>
+        </div>
+      </image-input>
+    </v-row>
 
 				</div>
 			</image-input>
