@@ -14,12 +14,4 @@ export class AppController {
 	getHello(): string {
 		return this.appService.getHello();
 	}
-
-	@Get('members')
-	getMembers() {
-		//console.log(this.config.get<string>('APPLICATION_SECRET'));
-		//console.log(this.config.get<string>('DB_HOST'));
-		return this.appService.getMembers();
-	}
-
 }
