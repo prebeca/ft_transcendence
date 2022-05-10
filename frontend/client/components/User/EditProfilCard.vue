@@ -89,9 +89,10 @@
 
 <script lang="ts">
 
+import  Vue from "vue"
 import ImageInput from './ImageInput.vue' 
 
-export default {
+export default Vue.extend ({
   name: 'app',
   data () {
     return {
@@ -124,5 +125,5 @@ export default {
         this.$router.push('/home');
     }
   }
-}
+})
 </script>
