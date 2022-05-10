@@ -21,10 +21,6 @@ export default Vue.extend({
   layout: 'empty',
   data: () => ({
     url: `http://localhost:3000/auth/a`,
-    window: {
-      width: 0,
-      height: 0,
-    },
   }),
 });
 </script>

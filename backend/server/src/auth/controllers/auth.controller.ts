@@ -50,7 +50,7 @@ export class AuthController {
 		var found = this.states.findIndex(String => String == state);
 		if (found >= 0) {
 			this.states.splice(found);
-			this.authService.getToken(code, state);
+			return this.authService.getToken(code, state);
 		}
 		else
 		{
