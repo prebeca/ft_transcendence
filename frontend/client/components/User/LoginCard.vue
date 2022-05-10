@@ -100,7 +100,7 @@ export default Vue.extend ({
 	},
 	async fetch() {
 		const access_token = this.$cookies.get('access_token');
-		axios.get('http://localhost:3000/users/nfo', {
+		axios.get('http://localhost:3000/profile', {
 			headers: {
 				'Authorization': `Bearer ${access_token}`
 			}
