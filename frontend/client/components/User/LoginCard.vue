@@ -18,7 +18,7 @@
         </v-toolbar-title>
     </v-toolbar>
 
-    <v-row 
+    <v-row
      class="pt-12 pb-2"
      justify="center"
      align="center">
@@ -61,7 +61,7 @@
          required
          color="info"
         ></v-text-field>
-    </v-row>  
+    </v-row>
 
     <v-divider></v-divider>
 

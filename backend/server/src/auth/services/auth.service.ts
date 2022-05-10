@@ -24,14 +24,14 @@ export class AuthService {
     return null;
   }
 
-  async login(user: FTUser) {
-    const payload = { username: user.login, sub: user.id };
+  async login(userlogin: string, userid: string) {
+    const payload = { username: userlogin, sub: userid };
     return {
       access_token: this.jwtService.sign(payload),
     };
   }
 
-  async getUserInfos(access_token: string) {
+  async getUserInfos(access_token: string): Promise<string> {
     const config: AxiosRequestConfig = {
       method: 'get',
       url: 'https://api.intra.42.fr/v2/me',
@@ -52,7 +52,15 @@ export class AuthService {
     this.createUserDto.image_url = res2.data.image_url;
     this.createUserDto.username = res2.data.login; //TODO warning if other user change his username to someone else login
 
-    return this.usersService.createUser(this.createUserDto);
+    const user = await this.usersService.findOne(this.createUserDto.login);
+    if (!user) {
+      const result_create = await this.usersService.createUser(this.createUserDto);
+      if (result_create === null)
+        return null;
+    }
+    const result_jwtsign: any = await this.login(res2.data.login, res2.data.id);
+    console.log(result_jwtsign);
+    return result_jwtsign.access_token;
   }
 
   async getToken(code_api: string, state_api: string) {
@@ -63,7 +71,7 @@ export class AuthService {
     formData.append('code', code_api);
     formData.append('redirect_uri', 'http://localhost:3000/auth/login');
     formData.append('state', state_api);
-    
+
     let access_token: string;
     let res: AxiosResponse;
     await axios.post('https://api.intra.42.fr/oauth/token',formData,{headers: formData.getHeaders()})
@@ -80,6 +88,6 @@ export class AuthService {
     this.createUserDto.created_at = res.data.created_at;
     this.createUserDto.expires_in = res.data.expires_in;
     return this.getUserInfos(access_token);
-   
+
   }
 }
