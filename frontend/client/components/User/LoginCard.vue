@@ -24,12 +24,16 @@
      align="center">
       <image-input v-model="avatar">
         <div slot="activator">
-          <v-avatar size="150px" v-ripple v-if="!avatar" color="deep-purple">
-            <span>Click to add avatar</span>
-          </v-avatar>
-          <v-avatar size="150px" v-ripple v-else class="mb-3">
+          <v-avatar size="150px" v-ripple v-if="avatar" class="mb-3">
             <img :src="avatar.imageURL" alt="avatar">
           </v-avatar>
+          <v-avatar size="150px" v-ripple v-else-if="users[0]" class="mb-3">
+            <img :src="users[0].image_url" alt="avatar">
+          </v-avatar>
+          <v-avatar size="150px" v-ripple v-else color="deep-purple">
+            <span>hello</span>
+          </v-avatar>
+
         </div>
       </image-input>
     </v-row>
@@ -78,9 +82,10 @@
 
 <script lang="ts">
 
+import  Vue from "vue"
 import ImageInput from './ImageInput.vue' 
 
-export default {
+export default Vue.extend ({
   name: 'app',
   data () {
     return {
@@ -89,8 +94,14 @@ export default {
       saved: false,
       username: "",
       registered: false,
+      users: [],
     }
   },
+  async fetch() {
+		this.users = await fetch("http://localhost:3000/users").then((res) =>
+			res.json()
+		);
+	},
   components: {
     ImageInput: ImageInput
   },
@@ -114,13 +125,11 @@ export default {
     logIn() {
       const { username } = this;
       
-      this.username = username;
-      if (this.username != "") {
-        console.log(username + " logged in");
-        this.registered = true;
-        this.$router.push('/home');
-      }
+      this.users[0].username = username;
+      this.users[0].image_url = this.avatar;
+      
     }
-  }
-}
+  },
+
+})
 </script>
