@@ -18,9 +18,9 @@
 <script lang="ts">
 import Vue from 'vue';
 
-export default Vue.extend({
-  name: 'IndexPage',
+export default ({
   layout: 'empty',
+  name: 'IndexPage',
   data: () => ({
     url: `http://localhost:3000/auth/a`,
     token: '',
