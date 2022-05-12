@@ -20,10 +20,6 @@ export class AuthService {
 	@Inject(ConfigService)
 	private readonly config: ConfigService;
 
-  async validateUser(username: string, pass: string): Promise<any> {
-    return null;
-  }
-
   async login(userlogin: string, userid: string) {
     const payload = { username: userlogin, sub: userid };
     return {
@@ -59,7 +55,6 @@ export class AuthService {
         return null;
     }
     const result_jwtsign: any = await this.login(res2.data.login, res2.data.id);
-    console.log(result_jwtsign);
     return result_jwtsign.access_token;
   }
 

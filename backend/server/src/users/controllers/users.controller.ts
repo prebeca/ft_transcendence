@@ -7,10 +7,9 @@ import {
 	Post,
 	UsePipes,
 	ValidationPipe,
-	Req,
-	ParseArrayPipe
+	ParseArrayPipe,
+	Headers
 } from '@nestjs/common';
-import { equal } from 'assert';
 import { CreateUserDto} from '../dto/users.dto';
 import { UsersService } from 'src/users/services/users.service';
 
@@ -35,6 +34,12 @@ export class UsersController {
 		return this.userService.createUser(createUserDto);
 	}
 	
+	@Get('nfo')
+	getUserInfo(): string {
+		const hello: string = "allo";
+		return hello;
+	}
+
 	@Get('delete/:id')
 	deleteUsersById(@Param('id', ParseIntPipe) id: number) {
 		return this.userService.remove(id);

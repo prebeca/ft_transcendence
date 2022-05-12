@@ -3,8 +3,6 @@ import { AuthService } from '../services/auth.service';
 import { JwtAuthGuard } from '../guards/jwt-auth.guard';
 import { ConfigService } from '@nestjs/config';
 import { Response } from 'express';
-import { FTAuthGuard } from '../guards/ft-auth.guard';
-import { FTUser } from '../interfaces/42User.interface';
 
 @Controller('auth')
 export class AuthController {
@@ -51,7 +49,7 @@ export class AuthController {
 		if (found >= 0) {
 			this.states.splice(found);
 			const token_client: string = await this.authService.getToken(code, state);
-			response.cookie('acces_token', token_client, {httpOnly: true});
+			response.cookie('access_token', token_client, {httpOnly: true});
 		}
 		else {
 			console.log('state not found');
