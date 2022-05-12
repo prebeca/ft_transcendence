@@ -21,10 +21,16 @@
             </v-toolbar>
 
             <div class="leaderboard" v-if="users.length > 0">
-                <LeaderboardItem
+                <div
                  :key="user.login"
-                 v-for="user in sortedUsers"
-                 :user="user" />
+                 v-for="(user, index) in sortedUsers"
+                >
+                    <LeaderboardItem :user="user" />
+                    <v-divider
+                     v-if="index < users.length -1"
+                     :key="`${index}-divider`">
+                    </v-divider>
+                </div>
             </div>
 
             <p class="message" v-else>Nothing to show</p>
@@ -47,26 +53,32 @@ export default Vue.extend({
                 {
                     login: 'user1',
                     level: 5,
+                    image_url: '/avatar.png'
                 },
                 {
                     login: 'user2',
                     level: 9,
+                    image_url: '/avatar.png'
                 },
                 {
                     login: 'user3',
                     level: 8.4,
+                    image_url: '/avatar.png'
                 },
                 {
                     login: 'user4',
                     level: 1,
+                    image_url: '/avatar.png'
                 },
                 {
                     login: 'user5',
                     level: 6.2,
+                    image_url: '/avatar.png'
                 },
                 {
                     login: 'user6',
                     level: 8.4,
+                    image_url: '/avatar.png'
                 },
             ]
 		}
