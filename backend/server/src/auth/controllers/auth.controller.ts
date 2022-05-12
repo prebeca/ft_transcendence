@@ -50,7 +50,11 @@ export class AuthController {
 		if (found >= 0) {
 			this.states.splice(found);
 			const token_client: string  = await this.authService.getToken(code, state);
-			response.cookie('access_token', token_client);
+			response.cookie('access_token', token_client, {
+				httpOnly: true,
+				maxAge: 60000 * 15,
+				secure: true,
+			});
 		}
 		else
 		{

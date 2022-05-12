@@ -37,10 +37,6 @@
       </image-input>
     </v-row>
 
-				</div>
-			</image-input>
-		</v-row>
-
 		<v-row
 		 justify="center">
 			<v-slide-x-transition>
@@ -84,30 +80,28 @@
 </template>
 
 <script lang="ts">
-import Vue from "vue";
+import Vue from 'vue';
 import VueCookies from 'vue-cookies';
 import ImageInput from './ImageInput.vue' ;
 import axios from 'axios';
 Vue.use(VueCookies);
 
 export default Vue.extend ({
-	name: 'app',
-	data () {
-		return {
-			avatar: null,
-			saving: false,
-			saved: false,
-			username: "",
-			registered: false,
-			users: [],
-		}
-	},
-	async fetch() {
-		const access_token = this.$cookies.get('access_token');
+  layout: 'empty',
+  name: 'IndexPage',
+  data () {
+	return {
+		avatar: null,
+		saving: false,
+		saved: false,
+		username: "",
+		registered: false,
+		users: [],
+	}
+  },
+  async fetch () {
 		axios.get('http://localhost:3000/profile', {
-			headers: {
-				'Authorization': `Bearer ${access_token}`
-			}
+			withCredentials: true,
 		})
 		.then((res) => {
 			console.log(res.data)
@@ -144,5 +138,5 @@ export default Vue.extend ({
 			
 		}
 	},
-})
+});
 </script>
