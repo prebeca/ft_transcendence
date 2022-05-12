@@ -3,6 +3,7 @@ import { AuthService } from '../services/auth.service';
 import { JwtAuthGuard } from '../guards/jwt-auth.guard';
 import { ConfigService } from '@nestjs/config';
 import { Response } from 'express';
+import { sign } from 'crypto';
 
 @Controller('auth')
 export class AuthController {
@@ -42,14 +43,18 @@ export class AuthController {
 	}
 
 	@Get('login')
-	// @Redirect('http://localhost:8080/login', 302)
+	@Redirect('http://localhost:8080/login', 302)
 	async getCode(@Res({ passthrough: true }) response: Response, @Query('code') code?: string, @Query('state') state?: string){
 		console.log('+++getCode+++');
 		var found = this.states.findIndex(String => String == state);
 		if (found >= 0) {
 			this.states.splice(found);
 			const token_client: string = await this.authService.getToken(code, state);
-			response.cookie('access_token', token_client, {httpOnly: true});
+			response.cookie('access_token', token_client, {
+				httpOnly: true,
+				maxAge: 1000 * 60 * 15,
+				// secure: true,
+			});
 		}
 		else {
 			console.log('state not found');
