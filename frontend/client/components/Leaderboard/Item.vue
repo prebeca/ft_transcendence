@@ -1,12 +1,17 @@
 <template>
 
     <div class="leaderboard__item">
-        <span class="leaderboard__user">{{ user.login }}</span>
-        <v-spacer></v-spacer>
-        <span class="leaderboard__level">Level</span>
-        <span class="leaderboard__level">
-            {{ user.level }} 
-        </span>
+      
+      <v-avatar size="40px" class="mr-5">
+        <img :src="user.image_url" alt="avatar">
+      </v-avatar>
+      <span class="leaderboard__user">{{ user.login }}</span>
+      <v-spacer></v-spacer>
+      <span class="leaderboard__level">Level</span>
+      <span class="leaderboard__level">
+        {{ user.level }} 
+      </span>
+
     </div>
     
 </template>
