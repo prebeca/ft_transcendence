@@ -15,25 +15,6 @@ export class UsersService {
 	}
 
 	async createUser(createUserDto: CreateUserDto) {
-		let result;
-		if (result = await this.userRepository.findOne({where: {login: createUserDto.login}}))
-		{
-			console.log(result);
-			console.log("Error login already exist !");
-			return (null)
-		}
-		if (result = await this.userRepository.findOne({where: {email: createUserDto.email}}))
-		{
-			console.log(result);
-			console.log("Error email already exist !");
-			return (null)
-		}
-		if (result = await this.userRepository.findOne({where: {username: createUserDto.username}}))
-		{
-			console.log(result);
-			console.log("Error username already in use !");
-			return (null)
-		}
 		const newUser = this.userRepository.create(createUserDto);
 		console.log(newUser);
 		return this.userRepository.save(newUser);
@@ -45,7 +26,7 @@ export class UsersService {
 
 	async remove(id: number): Promise<User[]> {
 		await this.userRepository.delete(id);
-		return this.getUsers(); 
+		return this.getUsers();
 	}
 
 	async removeAll(): Promise<User[]> {
