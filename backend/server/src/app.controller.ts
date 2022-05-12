@@ -22,9 +22,4 @@ export class AppController {
 		return this.appService.getMembers();
 	}
 
-	@UseGuards(JwtAuthGuard)
-	@Get('profile')
-	getProfile(@Req() req: Request) {
-	  return req.user;
-	}
 }

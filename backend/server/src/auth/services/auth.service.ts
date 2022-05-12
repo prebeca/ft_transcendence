@@ -3,7 +3,7 @@ import { UsersService } from 'src/users/services/users.service';
 import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
 import axios, { AxiosRequestConfig, AxiosResponse } from 'axios';
-import { CreateUserDto } from 'src/users/dto/users.dto';
+import { UserDto } from 'src/users/dto/users.dto';
 import { FTUser } from '../interfaces/42User.interface';
 
 const FormData = require('form-data');
@@ -13,14 +13,14 @@ export class AuthService {
   constructor(
     private usersService: UsersService,
     private jwtService: JwtService,
-    private createUserDto: CreateUserDto
+    private createUserDto: UserDto
   ) {}
 
 
 	@Inject(ConfigService)
 	private readonly config: ConfigService;
 
-  async login(userlogin: string, userid: string) {
+  async login(userlogin: string, userid: number) {
     const payload = { username: userlogin, sub: userid };
     return {
       access_token: this.jwtService.sign(payload),
@@ -48,13 +48,14 @@ export class AuthService {
     this.createUserDto.image_url = res2.data.image_url;
     this.createUserDto.username = res2.data.login; //TODO warning if other user change his username to someone else login
 
-    const user = await this.usersService.findOne(this.createUserDto.login);
+    var user = await this.usersService.findOne(this.createUserDto.login);
     if (!user) {
-      const result_create = await this.usersService.createUser(this.createUserDto);
-      if (result_create === null)
+      var user = await this.usersService.createUser(this.createUserDto);
+      if (user === null)
         return null;
     }
-    const result_jwtsign: any = await this.login(res2.data.login, res2.data.id);
+    const id = user.id;
+    const result_jwtsign: any = await this.login(res2.data.login, id);
     return result_jwtsign.access_token;
   }
 

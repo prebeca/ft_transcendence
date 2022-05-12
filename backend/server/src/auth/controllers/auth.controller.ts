@@ -53,6 +53,7 @@ export class AuthController {
 			response.cookie('access_token', token_client, {
 				httpOnly: true,
 				maxAge: 1000 * 60 * 15,
+				secure: true,
 			});
 		}
 		else {

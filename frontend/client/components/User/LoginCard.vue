@@ -17,25 +17,25 @@
 				COMPLETE YOUR PROFILE
 				</v-toolbar-title>
 		</v-toolbar>
-    <v-row
-     class="pt-12 pb-2"
-     justify="center"
-     align="center">
-      <image-input v-model="avatar">
-        <div slot="activator">
-          <v-avatar size="150px" v-ripple v-if="avatar" class="mb-3">
-            <img :src="avatar.imageURL" alt="avatar">
-          </v-avatar>
-          <v-avatar size="150px" v-ripple v-else-if="users[0]" class="mb-3">
-            <img :src="users[0].image_url" alt="avatar">
-          </v-avatar>
-          <v-avatar size="150px" v-ripple v-else color="deep-purple">
-            <span>hello</span>
-          </v-avatar>
+	<v-row
+	 class="pt-12 pb-2"
+	 justify="center"
+	 align="center">
+	  <image-input v-model="avatar">
+		<div slot="activator">
+		  <v-avatar size="150px" v-ripple v-if="avatar" class="mb-3">
+			<img :src="avatar.imageURL" alt="avatar">
+		  </v-avatar>
+		  <v-avatar size="150px" v-ripple v-else-if="user" class="mb-3">
+			<img :src="user.image_url" alt="avatar">
+		  </v-avatar>
+		  <v-avatar size="150px" v-ripple v-else color="deep-purple">
+			<span>hello</span>
+		  </v-avatar>
 
-        </div>
-      </image-input>
-    </v-row>
+		</div>
+	  </image-input>
+	</v-row>
 
 		<v-row
 		 justify="center">
@@ -52,7 +52,7 @@
 				<v-text-field
 				 v-model="username"
 				 name="username"
-				 label="username"
+				 :label="user.username"
 				 type="text"
 				 filled
 				 rounded
@@ -87,21 +87,32 @@ import axios from 'axios';
 Vue.use(VueCookies);
 
 export default Vue.extend ({
-	name: 'app',
-	data () {
+	name: 'loginCard',
+	data() {
 		return {
 			avatar: null,
 			saving: false,
 			saved: false,
 			username: "",
-			registered: false,
-			users: [],
+			user: {
+				id: 0,
+				login: "",
+				email: "",
+				access_token: "",
+				refresh_token: "",
+				scope: "",
+				expires_in: 0,
+				created_at: 0,
+				image_url: "",
+				username: "",
+			},
 		}
 	},
 	async fetch() {
-		axios.get('http://localhost:3000/profile', {withCredentials: true} )
+		axios.get('http://localhost:3000/users/profile', {withCredentials: true} )
 		.then((res) => {
 			console.log(res.data)
+			this.user = res.data;
 		})
 		.catch((error) => {
 			console.error(error)
@@ -127,13 +138,18 @@ export default Vue.extend ({
 			this.saving = false
 			this.saved = true
 		},
-		logIn() {
+		async logIn() {
 			const { username } = this;
-
-			this.users[0].username = username;
-			this.users[0].image_url = this.avatar;
-
-		}
+			this.user.username = username;
+			console.log(this.user.username);
+			axios.post('http://localhost:3000/users/profile/update', {new_username: this.user.username} , {withCredentials: true} )
+			.then((res) => {
+				console.log(res)
+			})
+			.catch((error) => {
+				console.error(error)
+			});
+		},
 	},
 });
 </script>

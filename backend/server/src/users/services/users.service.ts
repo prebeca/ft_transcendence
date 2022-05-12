@@ -1,8 +1,9 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { User } from 'src/typeorm';
-import { Any, Repository } from 'typeorm';
-import { CreateUserDto } from 'src/users/dto/users.dto';
+import { User } from 'src/users/entities/user.entity';
+import { Repository } from 'typeorm';
+import { UserDto } from 'src/users/dto/users.dto';
+import {getRepository} from "typeorm";
 
 @Injectable()
 export class UsersService {
@@ -10,18 +11,35 @@ export class UsersService {
 		@InjectRepository(User) private readonly userRepository: Repository<User>,
 	) { }
 
-	getUsers(): Promise<User[]> {
+	async getUsers(): Promise<User[]> {
 		return this.userRepository.find();
 	}
 
-	async createUser(createUserDto: CreateUserDto) {
-		const newUser = this.userRepository.create(createUserDto);
+	async createUser(userDto: UserDto) {
+		const newUser = this.userRepository.create(userDto);
 		console.log(newUser);
 		return this.userRepository.save(newUser);
 	}
 
-	findUsersById(id: number): Promise<User> {
+	async findUsersById(id: number): Promise<User> {
 		return this.userRepository.findOne(id);
+	}
+
+	async updateUsersById(userid: number, userDto: UserDto): Promise<User> {
+		return this.userRepository.save({userDto, id: userid});
+	}
+
+	async updateUsername(userid: number, new_username: string) {
+		console.log("updateUsername in service () " + userid);
+		const a = await getRepository(User)
+			.createQueryBuilder("user")
+			.update(User)
+			.set({
+				username: new_username,
+			})
+			.where("id = :id", {id: userid})
+			.printSql() 
+			.execute();
 	}
 
 	async remove(id: number): Promise<User[]> {
