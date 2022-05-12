@@ -17,7 +17,7 @@
 				COMPLETE YOUR PROFILE
 				</v-toolbar-title>
 		</v-toolbar>
-    <v-row 
+    <v-row
      class="pt-12 pb-2"
      justify="center"
      align="center">
@@ -60,7 +60,7 @@
 				 required
 				 color="info"
 				></v-text-field>
-		</v-row>  
+		</v-row>
 
 		<v-divider></v-divider>
 
@@ -87,22 +87,19 @@ import axios from 'axios';
 Vue.use(VueCookies);
 
 export default Vue.extend ({
-  layout: 'empty',
-  name: 'IndexPage',
-  data () {
-	return {
-		avatar: null,
-		saving: false,
-		saved: false,
-		username: "",
-		registered: false,
-		users: [],
-	}
-  },
-  async fetch () {
-		axios.get('http://localhost:3000/profile', {
-			withCredentials: true,
-		})
+	name: 'app',
+	data () {
+		return {
+			avatar: null,
+			saving: false,
+			saved: false,
+			username: "",
+			registered: false,
+			users: [],
+		}
+	},
+	async fetch() {
+		axios.get('http://localhost:3000/profile', {withCredentials: true} )
 		.then((res) => {
 			console.log(res.data)
 		})
@@ -132,10 +129,10 @@ export default Vue.extend ({
 		},
 		logIn() {
 			const { username } = this;
-			
+
 			this.users[0].username = username;
 			this.users[0].image_url = this.avatar;
-			
+
 		}
 	},
 });

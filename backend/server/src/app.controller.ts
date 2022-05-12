@@ -1,4 +1,4 @@
-import { Controller, Get, Inject, Req, Redirect } from '@nestjs/common';
+import { Controller, Get, Inject, Redirect, Req } from '@nestjs/common';
 import { AppService } from './app.service';
 import { ConfigService } from '@nestjs/config';
 import { JwtAuthGuard } from './auth/guards/jwt-auth.guard';
@@ -22,10 +22,9 @@ export class AppController {
 		return this.appService.getMembers();
 	}
 
-	//@UseGuards(JwtAuthGuard)
+	@UseGuards(JwtAuthGuard)
 	@Get('profile')
-	getProfile(@Req() request: Request) {
-		console.log("cookies: " + request.cookies['access_token']);
-	 	//return req.user;
+	getProfile(@Req() req: Request) {
+	  return req.user;
 	}
 }
