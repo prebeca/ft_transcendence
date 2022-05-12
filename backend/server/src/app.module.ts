@@ -25,6 +25,7 @@ import { AuthModule } from './auth/auth.module';
 import { UsersModule } from './users/users.module';
 import { ScoresModule } from './scores/scores.module';
 import { MessagesModule } from './messages/messages.module';
+import { ChannelsModule } from './chat/channels/channels.module';
 
 @Module({
   imports: [
@@ -32,6 +33,7 @@ import { MessagesModule } from './messages/messages.module';
     TypeOrmModule.forRootAsync({useClass: TypeOrmConfigService}),
     AuthModule,
     UsersModule,
+    ChannelsModule,
 	  ScoresModule,
 	  MessagesModule
   ],

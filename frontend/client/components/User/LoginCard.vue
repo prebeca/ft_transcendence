@@ -37,10 +37,6 @@
       </image-input>
     </v-row>
 
-				</div>
-			</image-input>
-		</v-row>
-
 		<v-row
 		 justify="center">
 			<v-slide-x-transition>
@@ -128,8 +124,8 @@ export default Vue.extend ({
 		logIn() {
 			const { username } = this;
 
-			this.users[0].username = username;
-			this.users[0].image_url = this.avatar;
+			// this.users[0].username = username;
+			// this.users[0].image_url = this.avatar;
 
 		}
 	},
