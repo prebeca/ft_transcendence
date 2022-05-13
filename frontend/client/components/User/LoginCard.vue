@@ -1,8 +1,8 @@
 <template>
 		<v-card
 		color="secondary"
-		width="500px"
-		max-height="550px"
+		width="800px"
+		max-height="700px"
 		elevation="20"
 		style="border-radius:25px"
 		>
@@ -32,16 +32,45 @@
 		  <v-avatar size="150px" v-ripple v-else color="deep-purple">
 			<span>hello</span>
 		  </v-avatar>
-
 		</div>
 	  </image-input>
 	</v-row>
-
+	<v-row
+	 justify="center"
+	 align="center">
+		<v-text-field
+		v-model="photoName"
+		name="photo"
+		outline
+		background-color="blue"
+		color="blue"
+		label="Select image"
+		@click="selectImage"/>
+		<input
+		ref="image"
+		class="hide-input"
+		type="file"
+		accept="image/*"
+		@change="imageSelected">
+	</v-row>
+	<v-row
+		justify="center">
+		<v-btn
+			class="upload-button"
+			color="indigo"
+			@click="saveAvatar">
+			Upload
+			<v-icon
+			right
+			color="white">
+			</v-icon>
+		</v-btn>
+	</v-row>
 		<v-row
 		 justify="center">
 			<v-slide-x-transition>
 				<div v-if="avatar && saved == false">
-					<v-btn text class="secondary" @click="uploadImage" :loading="saving">Save Avatar</v-btn>
+					<v-btn text class="secondary" @click="saveAvatar" :loading="saving">Save Avatar</v-btn>
 				</div>
 			</v-slide-x-transition>
 		</v-row>
@@ -70,7 +99,7 @@
 			<v-btn
 				color="accent"
 				text
-				@click="logIn"
+				@click="saveUsername"
 			>
 				Validate
 			</v-btn>
@@ -90,7 +119,8 @@ export default Vue.extend ({
 	name: 'loginCard',
 	data() {
 		return {
-			avatar: null,
+			avatar: '',
+			photo: '',
 			saving: false,
 			saved: false,
 			username: "",
@@ -130,6 +160,14 @@ export default Vue.extend ({
 		}
 	},
 	methods: {
+		selectImage() {
+			this.photo = (this.$refs as HTMLFormElement).image.click()
+		},
+		imageSelected(e: { target: HTMLInputElement; }) {
+			const target = e.target as HTMLInputElement;
+			this.$emit('input', e!.target!.files[0]);
+			this.photo = (this.$refs as HTMLFormElement).image.files[0];
+		},
 		uploadImage() {
 			this.saving = true
 			setTimeout(() => this.savedAvatar(), 1000)
@@ -138,11 +176,11 @@ export default Vue.extend ({
 			this.saving = false
 			this.saved = true
 		},
-		async logIn() {
+		async saveUsername() {
 			const { username } = this;
 			this.user.username = username;
 			console.log(this.user.username);
-			axios.post('http://localhost:3000/users/profile/update', {new_username: this.user.username} , {withCredentials: true} )
+			axios.post('http://localhost:3000/users/profile/update/username', {new_username: this.user.username} , {withCredentials: true} )
 			.then((res) => {
 				console.log(res)
 			})
@@ -150,6 +188,23 @@ export default Vue.extend ({
 				console.error(error)
 			});
 		},
+		async saveAvatar() {
+			let formdata = new FormData();
+			formdata.append('file', this.photo);
+			let config = {
+				withCredentials: true,
+				headers: {
+			        'content-type': 'multipart/form-data; boundary=5e6wf59ew5f62ew'
+				}
+			}
+			axios.post('http://localhost:3000/users/profile/update/avatar', formdata, config)
+			.then((res) => {
+				console.log(res)
+			})
+			.catch((error) => {
+				console.error(error)
+			});
+		}
 	},
 });
 </script>

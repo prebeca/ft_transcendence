@@ -4,6 +4,7 @@ import { User } from 'src/users/entities/user.entity';
 import { Repository } from 'typeorm';
 import { UserDto } from 'src/users/dto/users.dto';
 import {getRepository} from "typeorm";
+import axios, { AxiosRequestConfig, AxiosResponse } from 'axios';
 
 @Injectable()
 export class UsersService {
@@ -14,11 +15,10 @@ export class UsersService {
 	async getUsers(): Promise<User[]> {
 		return this.userRepository.find();
 	}
-
+	
 	async createUser(userDto: UserDto) {
 		const newUser = this.userRepository.create(userDto);
-		console.log(newUser);
-		return this.userRepository.save(newUser);
+		return await this.userRepository.save(newUser);
 	}
 
 	async findUsersById(id: number): Promise<User> {

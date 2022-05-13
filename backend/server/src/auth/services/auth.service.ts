@@ -50,7 +50,7 @@ export class AuthService {
 
     var user = await this.usersService.findOne(this.createUserDto.login);
     if (!user) {
-      var user = await this.usersService.createUser(this.createUserDto);
+      user = await this.usersService.createUser(this.createUserDto);
       if (user === null)
         return null;
     }

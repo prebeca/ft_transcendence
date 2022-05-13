@@ -8,13 +8,18 @@ import {
 	Post,
 	UsePipes,
 	ValidationPipe,
-	ParseArrayPipe
+	ParseArrayPipe,
+	UploadedFile,
+	UseInterceptors
 } from '@nestjs/common';
 import { UserDto} from '../dto/users.dto';
 import { UsersService } from 'src/users/services/users.service';
 import { UseGuards } from '@nestjs/common';
 import { JwtAuthGuard } from 'src/auth/guards/jwt-auth.guard';
 import { Request } from 'express';
+import { FileInterceptor } from '@nestjs/platform-express';
+import { Express } from 'express';
+import { multerOptions } from 'src/common/UploadOptions';
 
 @Controller('users')
 export class UsersController {
@@ -32,11 +37,21 @@ export class UsersController {
 	}
 
 	@UseGuards(JwtAuthGuard)
-	@Post('profile/update')
+	@Post('profile/update/username')
 	updateProfile(@Req() req: Request) {
 		return this.userService.updateUsername(req.user["userid"], req.body["new_username"]);
 	}
 
+	@UseGuards(JwtAuthGuard)
+	@Post('profile/update/avatar')
+	@UseInterceptors(FileInterceptor('file', multerOptions))
+	updateAvatar(@UploadedFile() file: Express.Multer.File) {
+		console.log("update avatar");
+		console.log(file);
+		/*
+		** change url to server one
+		*/
+	}
 
 	@Get('id?:id')
 	findUsersById(@Param('id') id: string) {
