@@ -1,41 +1,46 @@
 <template>
 
-    <div style="height: 100vh; max-height: 100%;" class="d-flex justify-center">
-        
-        <v-card
-         color="secondary"
-		 width="500px"
-		 max-height="800px"
-		 elevation="20"
-        >
-            <v-toolbar
-             color="primary"
-		     class="d-flex justify-center"
-            >
-                <v-toolbar-title
+    <div 
+      style="max-height: 100%;"
+      class="d-flex justify-center"
+    >
+
+    <v-card
+      class="mt-15"
+      color="secondary"
+		  elevation="20"
+      max-height="100%"
+    >
+      <v-toolbar
+        color="primary"
+		    class="d-flex justify-center"
+      >
+        <v-toolbar-title
 				 class="font-weight-black info--text"
 				 style="font-size: 25px"
 				>
-				    LEADERBOARD
+				  LEADERBOARD
 				</v-toolbar-title>
-            </v-toolbar>
+      </v-toolbar>
 
-            <div class="leaderboard" v-if="users.length > 0">
-                <div
-                 :key="user.login"
-                 v-for="(user, index) in sortedUsers"
-                >
-                    <LeaderboardItem :user="user" />
-                    <v-divider
-                     v-if="index < users.length -1"
-                     :key="`${index}-divider`">
-                    </v-divider>
-                </div>
-            </div>
+        <v-simple-table
+          height="50rem"
+          class="leaderboard secondary"
+        >
+          <template v-slot:default>
+            <tbody>
+              <tr
+                v-for="(user, index) in sortedUsers"
+                :key="user.login"
+                class="row-color"
+              >
+                <LeaderboardItem :user="user" :index="index"/>
+              </tr>
+            </tbody>
+          </template>
+        </v-simple-table>
 
-            <p class="message" v-else>Nothing to show</p>
-
-        </v-card>
+    </v-card>
 
     </div>
     
@@ -80,11 +85,46 @@ export default Vue.extend({
                     level: 8.4,
                     image_url: '/avatar.png'
                 },
+                {
+                    login: 'user7',
+                    level: 8.4,
+                    image_url: '/avatar.png'
+                },
+                                {
+                    login: 'user8',
+                    level: 8.4,
+                    image_url: '/avatar.png'
+                },
+                                {
+                    login: 'user9',
+                    level: 8.4,
+                    image_url: '/avatar.png'
+                },
+                {
+                    login: 'user10',
+                    level: 8.4,
+                    image_url: '/avatar.png'
+                },
+                                {
+                    login: 'user10',
+                    level: 8.4,
+                    image_url: '/avatar.png'
+                },
+                                {
+                    login: 'user10',
+                    level: 8.4,
+                    image_url: '/avatar.png'
+                },
+                                {
+                    login: 'user10',
+                    level: 8.4,
+                    image_url: '/avatar.png'
+                },
             ]
 		}
 	},
     computed: {
-        sortedUsers() {
+        sortedUsers: function (): object {
             return [...this.users].sort((a, b) => 
                 a.level === b.level
                     ? a.login.localeCompare(b.login)
@@ -101,14 +141,22 @@ export default Vue.extend({
 
 .leaderboard {
     font-family: Arial, Helvetica, sans-serif;
-    list-style: none;
     margin: auto 0;
     padding: 2rem;
-    width: 30rem;
+    width: 800px;
+    max-height: 100%;
 }
 
 .message {
     padding: 2rem;
     text-align: center;
+}
+
+.row-color {
+  display: table-row;
+}
+
+.row-color:hover {
+  background: rgb(94, 53, 177) !important;
 }
 </style>

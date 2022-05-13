@@ -1,18 +1,19 @@
 <template>
 
-    <div class="leaderboard__item">
+    <tr class="leaderboard__item">
       
-      <v-avatar size="40px" class="mr-5">
+      <td class="leaderboard__index">{{ index + 1}}</td>
+      <v-avatar size="50px" class="m-10 mr-5">
         <img :src="user.image_url" alt="avatar">
       </v-avatar>
-      <span class="leaderboard__user">{{ user.login }}</span>
+      <td class="leaderboard__user">{{ user.login }}</td>
       <v-spacer></v-spacer>
-      <span class="leaderboard__level">Level</span>
-      <span class="leaderboard__level">
+      <td class="leaderboard__text">level</td>
+      <td class="leaderboard__level">
         {{ user.level }} 
-      </span>
+      </td>
 
-    </div>
+    </tr>
     
 </template>
 
@@ -23,9 +24,13 @@ export default {
     name: "LeaderboardItem",
     props: {
         user: {
-            type: Object,
-            required: true,
+          type: Object,
+          required: true,
         },
+        index: {
+          type: Number,
+          required: true,
+        }
     },
 };
 </script>
@@ -39,13 +44,24 @@ export default {
   margin: 0.5rem 0;
   padding: 0.25rem;
 }
+.leaderboard__index {
+  text-align: left;
+  width: 10%;
+  margin-left: 30px
+}
 .leaderboard__user {
   text-align: left;
-  width: 30%;
+  width: 20%;
+  margin-left: 20px
+}
+.leaderboard__text {
+  text-align: right;
+  width: 10%;
 }
 .leaderboard__level {
   text-align: right;
   width: 10%;
+  margin-right: 20px;
 }
 
 </style>
