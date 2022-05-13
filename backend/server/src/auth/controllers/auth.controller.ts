@@ -14,20 +14,6 @@ export class AuthController {
 	@Inject(ConfigService)
 	private readonly config: ConfigService;
 
-	/*@UseGuards(FTAuthGuard)
-	@Get('auth/login')
-	async getLogin(@Req() req: any, @Res() response: Response): Promise<void> {
-		console.log('+++getLogin+++');
-		const token = await this.authService.login(req.user as FTUser);
-
-		const url = new URL(`${req.protocol}:${req.hostname}`);
-		url.port = '8080';
-		url.pathname = 'login';
-		url.searchParams.set('code', token.access_token);
-		console.log(url);
-		response.status(302).redirect(url.href);
-	}*/
-
 	@Get('a')
 	@Redirect('https://api.intra.42.fr/oauth/authorize', 302)
 	getLogin() {
@@ -53,7 +39,7 @@ export class AuthController {
 			response.cookie('access_token', token_client, {
 				httpOnly: true,
 				maxAge: 1000 * 60 * 15,
-				// secure: true,
+				secure: true,
 			});
 		}
 		else {
@@ -61,5 +47,4 @@ export class AuthController {
 			return null;
 		}
 	}
-
 }

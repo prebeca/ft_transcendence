@@ -4,9 +4,9 @@ import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
 import axios, { AxiosRequestConfig, AxiosResponse } from 'axios';
 import { CreateUserDto } from 'src/users/dto/users.dto';
-import { FTUser } from '../interfaces/42User.interface';
 
 const FormData = require('form-data');
+
 
 @Injectable()
 export class AuthService {
@@ -15,7 +15,6 @@ export class AuthService {
     private jwtService: JwtService,
     private createUserDto: CreateUserDto
   ) {}
-
 
 	@Inject(ConfigService)
 	private readonly config: ConfigService;
