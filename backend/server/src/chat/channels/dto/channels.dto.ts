@@ -5,5 +5,5 @@ export class CreateChannelDto {
 	name: string;
 	
 	@IsNotEmpty()
-	public: boolean;
+	scope: string;
 }

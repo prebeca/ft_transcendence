@@ -17,7 +17,7 @@
 				COMPLETE YOUR PROFILE
 				</v-toolbar-title>
 		</v-toolbar>
-    <v-row 
+    <v-row
      class="pt-12 pb-2"
      justify="center"
      align="center">
@@ -36,10 +36,6 @@
         </div>
       </image-input>
     </v-row>
-
-				</div>
-			</image-input>
-		</v-row>
 
 		<v-row
 		 justify="center">
@@ -64,7 +60,7 @@
 				 required
 				 color="info"
 				></v-text-field>
-		</v-row>  
+		</v-row>
 
 		<v-divider></v-divider>
 
@@ -89,6 +85,7 @@ import VueCookies from 'vue-cookies';
 import ImageInput from './ImageInput.vue' ;
 import axios from 'axios';
 Vue.use(VueCookies);
+
 export default Vue.extend ({
 	name: 'app',
 	data () {
@@ -102,18 +99,7 @@ export default Vue.extend ({
 		}
 	},
 	async fetch() {
-		const access_token = this.$cookies.get('access_token');
-		axios.get('http://localhost:3000/profile', {
-			headers: {
-				'Authorization': `Bearer ${access_token}`
-			}
-		})
-		.then((res) => {
-			console.log(res.data)
-		})
-		.catch((error) => {
-			console.error(error)
-		});
+		axios.get('http://localhost:3000/profile', {withCredentials: true} )
 	},
 	components: {
 		ImageInput: ImageInput
@@ -137,10 +123,10 @@ export default Vue.extend ({
 		},
 		logIn() {
 			const { username } = this;
-			
-			this.users[0].username = username;
-			this.users[0].image_url = this.avatar;
-			
+
+			// this.users[0].username = username;
+			// this.users[0].image_url = this.avatar;
+
 		}
 	},
 })

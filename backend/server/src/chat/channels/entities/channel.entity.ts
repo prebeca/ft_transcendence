@@ -1,5 +1,10 @@
-import { User } from 'src/typeorm';
 import { Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
+
+
+export class Message {
+	user_id: bigint;
+	content: string;
+}
 
 @Entity()
 export class Channel {
@@ -13,18 +18,20 @@ export class Channel {
 	name: string;
 
 	@Column()
-	public: boolean;
+	scope: string;
 
-	@Column()
+	@Column({ nullable: true })
 	image_url: string;
 
-	@Column()
+	@Column({ nullable: true })
 	owner: number;
 
-	@Column("bigint", { array: true })
+	@Column("bigint", { nullable: true, array: true })
 	admin_ids: number[];
 
-	@Column("bigint", { array: true })
+	@Column("bigint", { nullable: true, array: true })
 	users_ids: number[];
 
+	@Column("jsonb", { nullable: true, array: true })
+	messages: Message[];
 }
