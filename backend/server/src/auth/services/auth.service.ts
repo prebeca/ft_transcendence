@@ -5,6 +5,7 @@ import { ConfigService } from '@nestjs/config';
 import axios, { AxiosRequestConfig, AxiosResponse } from 'axios';
 import { UserDto } from 'src/users/dto/users.dto';
 import { FTUser } from '../interfaces/42User.interface';
+import {User} from 'src/users/entities/user.entity';
 
 const FormData = require('form-data');
 
@@ -45,11 +46,11 @@ export class AuthService {
     });
     this.createUserDto.login = res2.data.login;
     this.createUserDto.email = res2.data.email;
-    this.createUserDto.image_url = res2.data.image_url;
-    this.createUserDto.username = res2.data.login; //TODO warning if other user change his username to someone else login
+    this.createUserDto.username = res2.data.login;
 
-    var user = await this.usersService.findOne(this.createUserDto.login);
+    var user: User = await this.usersService.findOne(this.createUserDto.login);
     if (!user) {
+
       user = await this.usersService.createUser(this.createUserDto);
       if (user === null)
         return null;

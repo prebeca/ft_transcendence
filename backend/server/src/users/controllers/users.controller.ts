@@ -3,6 +3,7 @@ import {
 	Controller,
 	Get,
 	Req,
+	Res,
 	Param,
 	ParseIntPipe,
 	Post,
@@ -10,16 +11,22 @@ import {
 	ValidationPipe,
 	ParseArrayPipe,
 	UploadedFile,
-	UseInterceptors
+	UseInterceptors,
+	StreamableFile,
+	Response
 } from '@nestjs/common';
 import { UserDto} from '../dto/users.dto';
 import { UsersService } from 'src/users/services/users.service';
 import { UseGuards } from '@nestjs/common';
 import { JwtAuthGuard } from 'src/auth/guards/jwt-auth.guard';
-import { Request } from 'express';
+import { Request} from 'express';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { Express } from 'express';
 import { multerOptions } from 'src/common/UploadOptions';
+import { createReadStream } from 'fs';
+import { join } from 'path';
+import { User } from '../entities/user.entity';
+import { Observable, of } from 'rxjs';
 
 @Controller('users')
 export class UsersController {
@@ -45,12 +52,27 @@ export class UsersController {
 	@UseGuards(JwtAuthGuard)
 	@Post('profile/update/avatar')
 	@UseInterceptors(FileInterceptor('file', multerOptions))
-	updateAvatar(@UploadedFile() file: Express.Multer.File) {
+	async updateAvatar(@UploadedFile() file: Express.Multer.File, @Req() req: Request): Promise<User> {
 		console.log("update avatar");
 		console.log(file);
-		/*
-		** change url to server one
-		*/
+		await this.userService.updateAvatar(file.filename, req.user["userid"]);
+		return await this.userService.findUsersById(req.user["userid"]);
+	}
+
+	@Get('profile/avatar/:filename')
+	async getAvatar(@Response({ passthrough: true}) res, @Param('filename') filename: string): Promise<StreamableFile> {
+		var file;
+		if (filename === undefined) {
+			file = createReadStream('src/avatar/default.png');
+		}
+		else {
+			file = createReadStream('src/avatar/' + filename);
+		}
+		res.set({
+			'Content-Type': 'image/png',
+			'Content-Disposition': 'attachment; filename=' + filename,
+		});
+		return new StreamableFile(file);
 	}
 
 	@Get('id?:id')

@@ -20,8 +20,5 @@ export class UserDto {
 	created_at: number;
 
 	@IsNotEmpty()
-	image_url: string;
-
-	@IsNotEmpty()
 	username: string;
 }
