@@ -43,7 +43,7 @@ export default Vue.extend({
         },
     },
     created() {
-        this.socket = io(process.env.API_SOCKET);
+        this.socket = io(process.env.API_SOCKET_GAME);
         this.socket.on('msgToClient', (msg) => {
             this.receiveMessage(msg);
         });
