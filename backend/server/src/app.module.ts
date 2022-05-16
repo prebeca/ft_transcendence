@@ -38,7 +38,6 @@ import { SocketModule } from './socket/socket.module';
     ChannelsModule,
 	  ScoresModule,
 	  GameModule,
-	  MessagesModule,
 	  SocketModule
   ],
   controllers: [AppController],
