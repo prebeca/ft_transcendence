@@ -46,7 +46,15 @@ export default {
     // https://go.nuxtjs.dev/axios
     '@nuxtjs/axios',
     ['cookie-universal-nuxt', { alias: 'cookiz' }],
+	'nuxt-socket-io',
   ],
+
+  io: {
+    // module options
+    sockets: [
+		{ name: 'chat', url: 'http://localhost:3000' }
+	],
+  },
 
   // Axios module configuration: https://go.nuxtjs.dev/config-axios
   // axios: {

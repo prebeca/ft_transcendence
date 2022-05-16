@@ -26,6 +26,7 @@ import { UsersModule } from './users/users.module';
 import { ScoresModule } from './scores/scores.module';
 import { MessagesModule } from './messages/messages.module';
 import { ChannelsModule } from './chat/channels/channels.module';
+import { SocketModule } from './socket/socket.module';
 
 @Module({
   imports: [
@@ -35,7 +36,8 @@ import { ChannelsModule } from './chat/channels/channels.module';
     UsersModule,
     ChannelsModule,
 	  ScoresModule,
-	  MessagesModule
+	  MessagesModule,
+	  SocketModule
   ],
   controllers: [AppController],
   providers: [AppService],
