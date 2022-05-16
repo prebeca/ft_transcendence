@@ -1,16 +1,7 @@
 <template>
 
     <div style="height: 80vh; max-height: 100%;" class="d-flex flex-column justify-center align-center">
-        <h1>{{ title }}</h1>
-        <form>
-            <input v-model="text" type="text"/>
-            <button type="submit" @click.prevent="sendMessage()">Send</button>
-            </form>
-            <p>
-                <ul>
-                    <li :key='msg' v-for="msg of messages">{{ msg }}</li>
-                </ul>
-            </p>
+        <ChatBox />
     </div>
 
 </template>

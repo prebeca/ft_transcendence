@@ -1,6 +1,6 @@
 <template>
     
-    <v-navigation-drawer absolute permanent expand-on-hover color="secondary">
+    <v-navigation-drawer fixed absolute permanent expand-on-hover color="secondary">
 
         <v-list nav dense class="pt-16">
           <v-list-item to="/home">

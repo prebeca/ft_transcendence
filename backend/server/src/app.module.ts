@@ -9,9 +9,9 @@ import { CatsModule } from './cats/cats.module';
 
 export class AppModule implements NestModule {
   configure(consumer: MiddlewareConsumer) {
-    consumer
-      .apply(LoggerMiddleware)
-      .forRoutes({ path: 'cats', method: RequestMethod.GET });
+	consumer
+	  .apply(LoggerMiddleware)
+	  .forRoutes({ path: 'cats', method: RequestMethod.GET });
   }
 }*/
 import { Module, NestModule, MiddlewareConsumer, RequestMethod } from '@nestjs/common';
@@ -25,6 +25,7 @@ import { AuthModule } from './auth/auth.module';
 import { UsersModule } from './users/users.module';
 import { ScoresModule } from './scores/scores.module';
 import { MessagesModule } from './messages/messages.module';
+import { ChannelsModule } from './chat/channels/channels.module';
 import { GameModule } from './game/game.module';
 import { GameGateway } from './game/game.gateway';
 import { MessageGateway } from './messages/messages.gateway';
@@ -35,6 +36,7 @@ import { MessageGateway } from './messages/messages.gateway';
     TypeOrmModule.forRootAsync({useClass: TypeOrmConfigService}),
     AuthModule,
     UsersModule,
+    ChannelsModule,
 	  ScoresModule,
 	  MessagesModule,
 	  GameModule,
@@ -49,7 +51,7 @@ import { MessageGateway } from './messages/messages.gateway';
 export class AppModule implements NestModule {
 	configure(consumer: MiddlewareConsumer) {
 		consumer
-		.apply(LoggerMiddleware)
-		.forRoutes({path : '*', method: RequestMethod.ALL});
+			.apply(LoggerMiddleware)
+			.forRoutes({ path: '*', method: RequestMethod.ALL });
 	}
- }
+}
