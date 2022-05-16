@@ -20,16 +20,17 @@ export class AuthController {
 		console.log('+++getLogin+++');
 		var state = require('crypto').randomBytes(64).toString('hex');
 		this.states.push(state);
-		return { url: 'https://api.intra.42.fr/oauth/authorize?client_id=' +
-			'ded1c1648dc1695fc3426269408516c8d74bc4c0834510bc6608539ed52d81a1' +
-			'&redirect_uri=' + 'http%3A%2F%2Flocalhost%3A3000%2Fauth%2Flogin' +
-			'&response_type=code&scopepublic&state=' +
-			state
-		};
+		return { url: 'https://api.intra.42.fr/oauth/authorize?client_id=9636f7cfa95d97b39cb1692f878d8d528cdacb742d07235819f04aee71f38232&redirect_uri=http%3A%2F%2F176.144.250.217%3A3000%2Fauth%2Flogin&response_type=code&scopepublic&state=' + state };
+		// return { url: 'https://api.intra.42.fr/oauth/authorize?client_id=' +
+		// 	'ded1c1648dc1695fc3426269408516c8d74bc4c0834510bc6608539ed52d81a1' +
+		// 	'&redirect_uri=' + 'http%3A%2F%2Flocalhost%3A3000%2Fauth%2Flogin' +
+		// 	'&response_type=code&scopepublic&state=' +
+		// 	state
+		// };
 	}
 
 	@Get('login')
-	@Redirect('http://localhost:8080/login', 302)
+	@Redirect(`${process.env.APPLICATION_REDIRECT_URI}/login`, 302)
 	async getCode(@Res({ passthrough: true }) response: Response, @Query('code') code?: string, @Query('state') state?: string){
 		console.log('+++getCode+++');
 		var found = this.states.findIndex(String => String == state);

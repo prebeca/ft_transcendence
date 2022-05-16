@@ -2,7 +2,7 @@ import { ConnectedSocket, MessageBody, OnGatewayConnection, OnGatewayDisconnect,
 import { Server, Socket } from "socket.io";
 
 @WebSocketGateway(42042, {cors: {
-	origin: "http://localhost:8080",
+	origin: process.env.APPLICATION_REDIRECT_URI,
 	credentials: true
 	}
 })

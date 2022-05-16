@@ -43,7 +43,7 @@ export default Vue.extend({
         },
     },
     created() {
-        this.socket = io('http://localhost:42042');
+        this.socket = io(process.env.API_SOCKET);
         this.socket.on('msgToClient', (msg) => {
             this.receiveMessage(msg);
         });

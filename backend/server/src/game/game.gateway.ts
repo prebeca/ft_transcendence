@@ -1,8 +1,8 @@
 import { ConnectedSocket, MessageBody, OnGatewayConnection, OnGatewayDisconnect, SubscribeMessage, WebSocketGateway, WebSocketServer, WsResponse } from "@nestjs/websockets";
 import { Server, Socket } from "socket.io";
 
-@WebSocketGateway(42042, {cors: {
-	origin: "http://localhost:8080",
+@WebSocketGateway(4204, {cors: {
+	origin: process.env.APPLICATION_REDIRECT_URI,
 	credentials: true
 	}
 })

@@ -103,7 +103,7 @@ export default Vue.extend ({
 		}
 	},
 	async fetch() {
-		axios.get('http://localhost:3000/profile', {withCredentials: true} )
+		return axios.get(`${process.env.API_URL}/profile`, {withCredentials: true} )
 	},
 	components: {
 		ImageInput: ImageInput
