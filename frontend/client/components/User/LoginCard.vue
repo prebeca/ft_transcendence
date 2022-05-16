@@ -102,11 +102,8 @@
 </template>
 
 <script lang="ts">
-import Vue from 'vue';
-import VueCookies from 'vue-cookies';
 import ImageInput from './ImageInput.vue' ;
 import axios from 'axios';
-Vue.use(VueCookies);
 
 export default Vue.extend ({
 	name: 'loginCard',
@@ -131,7 +128,8 @@ export default Vue.extend ({
 		}
 	},
 	created: function() {
-		axios.get('http://localhost:3000/users/profile', {withCredentials: true} )
+		axios.get(`${process.env.API_URL}/profile`)
+    // axios.get(`${process.env.API_URL}/profile`, {withCredentials: true} )
 		.then((res) => {
 			console.log(res.data)
 			this.user = res.data;
@@ -175,7 +173,8 @@ export default Vue.extend ({
 			const { username } = this;
 			this.user.username = username;
 			console.log(this.user.username);
-			axios.post('http://localhost:3000/users/profile/update/username', {new_username: this.user.username} , {withCredentials: true} )
+			axios.post(`${process.env.API_URL}/users/profile/update/username`, {new_username: this.user.username})
+      // axios.post(`${process.env.API_URL}/users/profile/update/username`, {new_username: this.user.username} , {withCredentials: true} )
 			.then((res) => {
 				console.log(res)
 			})
@@ -192,7 +191,7 @@ export default Vue.extend ({
 			        'content-type': 'multipart/form-data; boundary=5e6wf59ew5f62ew'
 				}
 			}
-			axios.post('http://localhost:3000/users/profile/update/avatar', formdata, config)
+			axios.post(`${process.env.API_URL}/users/profile/update/avatar`, formdata, config)
 			.then((res) => {
 				console.log(res)
 				this.changeAvatar(res.data.avatar);
@@ -202,7 +201,7 @@ export default Vue.extend ({
 			});
 		},
 		changeAvatar(filename: string) {
-			this.avatar = 'http://localhost:3000/users/profile/avatar/' + filename;
+			this.avatar = `${process.env.API_URL}/users/profile/avatar/` + filename;
 		}
 	},
 });

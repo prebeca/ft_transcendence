@@ -9,6 +9,7 @@ import {User} from 'src/users/entities/user.entity';
 
 const FormData = require('form-data');
 
+
 @Injectable()
 export class AuthService {
   constructor(
@@ -16,7 +17,6 @@ export class AuthService {
     private jwtService: JwtService,
     private createUserDto: UserDto
   ) {}
-
 
 	@Inject(ConfigService)
 	private readonly config: ConfigService;
@@ -42,7 +42,7 @@ export class AuthService {
       res2 = response;
     })
     .catch(function (response) {
-       console.log("Error =>" + response);
+       console.log("Error getUserInfos =>" + response);
     });
     this.createUserDto.login = res2.data.login;
     this.createUserDto.email = res2.data.email;
@@ -66,7 +66,7 @@ export class AuthService {
     formData.append('client_id', this.config.get<string>('APPLICATION_UID'));
     formData.append('client_secret', this.config.get<string>('APPLICATION_SECRET'));
     formData.append('code', code_api);
-    formData.append('redirect_uri', 'http://localhost:3000/auth/login');
+    formData.append('redirect_uri', this.config.get<string>('BASE_URL') + '/auth/login');
     formData.append('state', state_api);
 
     let access_token: string;
@@ -75,7 +75,7 @@ export class AuthService {
       .then(function(response: AxiosResponse){
         res = response;
       }).catch(function (response) {
-        console.log("Error =>" + response);
+        console.log("Error getToken =>" + response);
     });
 
     access_token = res.data.access_token;

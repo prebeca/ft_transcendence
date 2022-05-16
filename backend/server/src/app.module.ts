@@ -26,6 +26,9 @@ import { UsersModule } from './users/users.module';
 import { ScoresModule } from './scores/scores.module';
 import { MessagesModule } from './messages/messages.module';
 import { ChannelsModule } from './chat/channels/channels.module';
+import { GameModule } from './game/game.module';
+import { GameGateway } from './game/game.gateway';
+import { MessageGateway } from './messages/messages.gateway';
 
 @Module({
   imports: [
@@ -35,10 +38,15 @@ import { ChannelsModule } from './chat/channels/channels.module';
     UsersModule,
     ChannelsModule,
 	  ScoresModule,
-	  MessagesModule
+	  MessagesModule,
+	  GameModule,
   ],
   controllers: [AppController],
-  providers: [AppService],
+  providers: [
+    AppService,
+    GameGateway,
+    MessageGateway
+  ],
 })
 export class AppModule implements NestModule {
 	configure(consumer: MiddlewareConsumer) {
