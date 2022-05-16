@@ -18,9 +18,7 @@ export default {
       { hid: "description", name: "description", content: "" },
       { name: "format-detection", content: "telephone=no" },
     ],
-    link: [
-      { rel: 'icon', type: 'image/x-icon', href: '/favicon.ico' }
-    ]
+    link: [{ rel: "icon", type: "image/x-icon", href: "/favicon.ico" }],
   },
 
   env: {
@@ -28,7 +26,6 @@ export default {
     NUXT_PORT: process.env.NUXT_PORT,
     API_URL: process.env.API_URL,
     API_SOCKET_GAME: process.env.API_SOCKET_GAME,
-    API_SOCKET_CHAT: process.env.API_SOCKET_CHAT,
   },
 
   // Global CSS: https://go.nuxtjs.dev/config-css

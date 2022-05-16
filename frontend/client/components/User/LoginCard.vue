@@ -104,12 +104,13 @@
 <script lang="ts">
 import ImageInput from './ImageInput.vue' ;
 import axios from 'axios';
+import Vue from 'vue'
 
 export default Vue.extend ({
 	name: 'loginCard',
 	data() {
 		return {
-			avatar: 'http://localhost:3000/users/profile/avatar/default.png',
+			avatar: `${process.env.API_URL}/users/profile/avatar/default.png`,
 			photo: '',
 			saving: false,
 			saved: false,

@@ -11,7 +11,6 @@
       <v-img src="/42white.png"
        style="height: 130px; width: 70px" ></v-img>
     </v-btn>
-    <button v-on:click="game">Game</button>
   </div>
 
 </template>
@@ -23,21 +22,21 @@ export default ({
   layout: 'empty',
   name: 'IndexPage',
   data: () => ({
-    url: `http://localhost:3000/auth/a`,
-  }),
- //   url: `${process.env.API_URL}/auth/a`,
- //   token: '',
-  //  res0: '',
- // }),
- // methods: {
-//		async log() {
-	//		this.res0 = await fetch(`${process.env.API_URL}/auth/a`).then((res) => res.json());
- //     console.log(this.res0);
-	//	},
-  //  game() {
-  //    this.$router.push("/game");
-  //  }
- // },
+  //   url: `${process.env.API_URL}/auth/a`,
+  // }),
+   url: `${process.env.API_URL}/auth/a`,
+   token: '',
+   res0: '',
+ }),
+ methods: {
+		async log() {
+			this.res0 = await fetch(`${process.env.API_URL}/auth/a`).then((res) => res.json());
+     console.log(this.res0);
+		},
+   game() {
+     this.$router.push("/game");
+   }
+ },
 });
 </script>
 
