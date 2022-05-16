@@ -1,11 +1,11 @@
 <template>
-		<v-card
-		color="secondary"
-		width="500px"
-		max-height="550px"
-		elevation="20"
-		style="border-radius:25px"
-		>
+	<v-card
+	color="secondary"
+	width="800px"
+	max-height="700px"
+	elevation="20"
+	style="border-radius:25px"
+	>
 		<v-toolbar
 		 color="primary"
 		 class="d-flex justify-center"
@@ -14,34 +14,56 @@
 				 class="font-weight-black info--text"
 				 style="font-size: 25px"
 				>
-				COMPLETE YOUR PROFILE
+					COMPLETE YOUR PROFILE
 				</v-toolbar-title>
 		</v-toolbar>
-    <v-row
-     class="pt-12 pb-2"
-     justify="center"
-     align="center">
-      <image-input v-model="avatar">
-        <div slot="activator">
-          <v-avatar size="150px" v-ripple v-if="avatar" class="mb-3">
-            <img :src="avatar.imageURL" alt="avatar">
-          </v-avatar>
-          <v-avatar size="150px" v-ripple v-else-if="users[0]" class="mb-3">
-            <img :src="users[0].image_url" alt="avatar">
-          </v-avatar>
-          <v-avatar size="150px" v-ripple v-else color="deep-purple">
-            <span>hello</span>
-          </v-avatar>
-
-        </div>
-      </image-input>
-    </v-row>
-
+		<v-row
+		class="pt-12 pb-2"
+		justify="center"
+		align="center">
+		<image-input>
+			<div slot="activator">
+			<v-avatar size="150px" v-ripple class="mb-3">
+				<img :src="avatar" alt="avatar">
+			</v-avatar>
+			</div>
+		</image-input>
+		</v-row>
+		<v-row
+		justify="center"
+		align="center">
+			<v-text-field
+			name="photo"
+			outline
+			background-color="blue"
+			color="blue"
+			label="Select image"
+			@click="selectImage"/>
+			<input
+			ref="image"
+			class="hide-input"
+			type="file"
+			accept="image/*"
+			@change="imageSelected">
+		</v-row>
+		<v-row
+			justify="center">
+			<v-btn
+				class="upload-button"
+				color="indigo"
+				@click="saveAvatar">
+				Upload
+				<v-icon
+				right
+				color="white">
+				</v-icon>
+			</v-btn>
+		</v-row>
 		<v-row
 		 justify="center">
 			<v-slide-x-transition>
 				<div v-if="avatar && saved == false">
-					<v-btn text class="secondary" @click="uploadImage" :loading="saving">Save Avatar</v-btn>
+					<v-btn text class="secondary" @click="saveAvatar" :loading="saving">Save Avatar</v-btn>
 				</div>
 			</v-slide-x-transition>
 		</v-row>
@@ -49,17 +71,17 @@
 		<v-row
 		 class="pt-10 pb-10 pa-15"
 		>
-				<v-text-field
-				 v-model="username"
-				 name="username"
-				 label="username"
-				 type="text"
-				 filled
-				 rounded
-				 dense
-				 required
-				 color="info"
-				></v-text-field>
+			<v-text-field
+				v-model="username"
+				name="username"
+				:label="user.username"
+				type="text"
+				filled
+				rounded
+				dense
+				required
+				color="info"
+			></v-text-field>
 		</v-row>
 
 		<v-divider></v-divider>
@@ -70,7 +92,7 @@
 			<v-btn
 				color="accent"
 				text
-				@click="logIn"
+				@click="saveUsername"
 			>
 				Validate
 			</v-btn>
@@ -80,26 +102,43 @@
 </template>
 
 <script lang="ts">
-import Vue from "vue";
+import Vue from 'vue';
 import VueCookies from 'vue-cookies';
 import ImageInput from './ImageInput.vue' ;
 import axios from 'axios';
 Vue.use(VueCookies);
 
 export default Vue.extend ({
-	name: 'app',
-	data () {
+	name: 'loginCard',
+	data() {
 		return {
-			avatar: null,
+			avatar: 'http://localhost:3000/users/profile/avatar/default.png',
+			photo: '',
 			saving: false,
 			saved: false,
 			username: "",
-			registered: false,
-			users: [],
+			user: {
+				id: 0,
+				login: "",
+				email: "",
+				access_token: "",
+				refresh_token: "",
+				scope: "",
+				expires_in: 0,
+				created_at: 0,
+				username: "",
+			},
 		}
 	},
-	async fetch() {
-		axios.get('http://localhost:3000/profile', {withCredentials: true} )
+	created: function() {
+		axios.get('http://localhost:3000/users/profile', {withCredentials: true} )
+		.then((res) => {
+			console.log(res.data)
+			this.user = res.data;
+		})
+		.catch((error) => {
+			console.error(error)
+		});
 	},
 	components: {
 		ImageInput: ImageInput
@@ -113,6 +152,17 @@ export default Vue.extend ({
 		}
 	},
 	methods: {
+		hexToBase64(str: any){
+ 	   		return btoa(String.fromCharCode.apply(null, str.replace(/\r|\n/g, "").replace(/([\da-fA-F]{2}) ?/g, "0x$1 ").replace(/ +$/, "").split(" ")));
+		},
+		selectImage() {
+			this.photo = (this.$refs as HTMLFormElement).image.click()
+		},
+		imageSelected(e: { target: HTMLInputElement; }) {
+			const target = e.target as HTMLInputElement;
+			this.$emit('input', target!.files![0]);
+			this.photo = (this.$refs as HTMLFormElement).image.files[0];
+		},
 		uploadImage() {
 			this.saving = true
 			setTimeout(() => this.savedAvatar(), 1000)
@@ -121,13 +171,39 @@ export default Vue.extend ({
 			this.saving = false
 			this.saved = true
 		},
-		logIn() {
+		async saveUsername() {
 			const { username } = this;
-
-			// this.users[0].username = username;
-			// this.users[0].image_url = this.avatar;
-
+			this.user.username = username;
+			console.log(this.user.username);
+			axios.post('http://localhost:3000/users/profile/update/username', {new_username: this.user.username} , {withCredentials: true} )
+			.then((res) => {
+				console.log(res)
+			})
+			.catch((error) => {
+				console.error(error)
+			});
+		},
+		async saveAvatar() {
+			let formdata = new FormData();
+			formdata.append('file', this.photo);
+			let config = {
+				withCredentials: true,
+				headers: {
+			        'content-type': 'multipart/form-data; boundary=5e6wf59ew5f62ew'
+				}
+			}
+			axios.post('http://localhost:3000/users/profile/update/avatar', formdata, config)
+			.then((res) => {
+				console.log(res)
+				this.changeAvatar(res.data.avatar);
+			})
+			.catch((error) => {
+				console.error(error)
+			});
+		},
+		changeAvatar(filename: string) {
+			this.avatar = 'http://localhost:3000/users/profile/avatar/' + filename;
 		}
 	},
-})
+});
 </script>
