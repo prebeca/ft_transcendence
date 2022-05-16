@@ -29,8 +29,8 @@ export class User {
 	@Column()
 	created_at: number;
 
-	@Column()
-	image_url: string;
+	@Column('text', {default: "empty"})
+	avatar: string;
 
 	@Column({ unique: true })
 	username: string;

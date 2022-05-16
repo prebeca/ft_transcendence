@@ -5,33 +5,25 @@
      style="width: 220px; height: 80px;" 
      color="secondary"
      elevation="20"
-     :href="url">
+     :href ="url"
+     >
       <span class="font-weight-black d-inline pa-1">LOGIN WITH</span>
       <v-img src="/42white.png" 
        style="height: 130px; width: 70px" ></v-img>
-    </v-btn> 
-    <button v-on:click="log">Greet</button>
+    </v-btn>
   </div>
 
 </template>
 
 <script lang="ts">
 import Vue from 'vue';
-
+import axios from 'axios';
 export default ({
   layout: 'empty',
   name: 'IndexPage',
   data: () => ({
     url: `http://localhost:3000/auth/a`,
-    token: '',
-    res0: '',
   }),
-  methods: {
-		async log() {
-			this.res0 = await fetch("http://localhost:3000/auth/a").then((res) => res.json());
-      console.log(this.res0);
-		},
-  },
 });
 </script>
 
