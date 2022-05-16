@@ -25,7 +25,8 @@ export default {
     NUXT_HOST: process.env.NUXT_HOST,
     NUXT_PORT: process.env.NUXT_PORT,
     API_URL: process.env.API_URL,
-    API_SOCKET: process.env.API_SOCKET,
+    API_SOCKET_GAME: process.env.API_SOCKET_GAME,
+    API_SOCKET_CHAT: process.env.API_SOCKET_CHAT,
   },
 
   // Global CSS: https://go.nuxtjs.dev/config-css

@@ -85,10 +85,8 @@
 
 <script lang="ts">
 import Vue from "vue";
-// import VueCookies from 'vue-cookies';
 import ImageInput from './ImageInput.vue' ;
 import axios from 'axios';
-// Vue.use(VueCookies);
 
 export default Vue.extend ({
 	name: 'app',
