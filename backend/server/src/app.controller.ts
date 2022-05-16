@@ -16,10 +16,9 @@ export class AppController {
 	getHello(): string {
 		return this.appService.getHello();
 	}
-
-	@Get('members')
-	getMembers() {
-		return this.appService.getMembers();
+	@UseGuards(JwtAuthGuard)
+	@Get('profile')
+	getProfile(@Req() req: Request) {
+	  return req.user;
 	}
-
 }

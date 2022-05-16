@@ -36,7 +36,7 @@ export class UsersController {
 	getUsers() {
 		return this.userService.getUsers();
 	}
-
+  
 	@UseGuards(JwtAuthGuard)
 	@Get('profile')
 	getProfile(@Req() req: Request) {
@@ -74,11 +74,11 @@ export class UsersController {
 		});
 		return new StreamableFile(file);
 	}
-
-	@Get('id?:id')
-	findUsersById(@Param('id') id: string) {
+  
+  @Get('id/:id')
+	findUsersById(@Param('id') id: number) {
 		console.log(id);
-		//return this.userService.findUsersById(id);
+		return this.userService.findUsersById(id);
 	}
 
 	@Post('create')
