@@ -33,19 +33,19 @@
 
 <script lang="ts">
 
-export default {
-  data: () => ({
-    channels_name: [],
-    channels: [],
-    messages: [],
-  }),
-  async fetch() {
-    console.log("fetching channels...");
-    this.channels = await fetch("http://localhost:3000/channels").then((res) =>
-      res.json()
-    );
+  export default {
+    data: () => ({
+        channels_name: [],
+        channels: [],
+        messages: [],
+    }),
+    async fetch() {
+        console.log("fetching channels...")
+        this.channels = await fetch(`${process.env.API_URL}/channels`).then((res) =>
+            res.json()
+        );
 
-    console.log(this.channels);
+        console.log(this.channels);
 
     for (let i = 0; i < this.channels.length; i++)
       this.channels_name.push(this.channels[i].name);
