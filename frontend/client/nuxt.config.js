@@ -1,15 +1,10 @@
-import colors from 'vuetify/es5/util/colors'
+import colors from "vuetify/es5/util/colors";
+import "dotenv/config";
 
 export default {
 	// Disable server-side rendering: https://go.nuxtjs.dev/ssr-mode
 	ssr: false,
 
-	/*publicRuntimeConfig: {
-		baseURL: 'https://nuxtjs.org'
-	},
-	privateRuntimeConfig: {
-		apiSecret: process.env.API_SECRET
-	},*/
 	env: {
 		API_URL: process.env.API_URL || 'http://localhost:8080',
 		NUXT_PORT: process.env.NUXT_PORT,

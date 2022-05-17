@@ -19,7 +19,7 @@
 		v-model="password"
 			:rules="passwordRules"
 		type="password"
-		label="Password" 
+		label="Password"
 		required
 	></v-text-field>
 
@@ -54,7 +54,7 @@ export default {
 	methods: {
 		async validate() {
 			if (this.$refs.form.validate()) {
-				await fetch(`${process.env.VAR_DU_ENV}/users/create`, {
+				await fetch(`${process.env.API_URL}/users/create`, {
 					method: "POST",
 					headers: {
 						"Content-Type": "application/json",

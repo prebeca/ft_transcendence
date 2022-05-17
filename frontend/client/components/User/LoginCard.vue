@@ -103,7 +103,6 @@
 
 <script lang="ts">
 import Vue from 'vue';
-import VueCookies from 'vue-cookies';
 import ImageInput from './ImageInput.vue' ;
 Vue.use(VueCookies);
 
