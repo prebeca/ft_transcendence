@@ -16,7 +16,7 @@
 </template>
 
 <script lang="ts">
-/*
+
 import Vue from 'vue'
 import socket from 'socket.io'
 import io from 'socket.io-client'
@@ -49,5 +49,5 @@ export default Vue.extend({
             this.receiveMessage(msg);
         });
     }
-})*/
+})
 </script>

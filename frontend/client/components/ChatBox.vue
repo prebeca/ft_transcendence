@@ -32,7 +32,7 @@
 </template>
 
 <script lang="ts">
-/*
+
   export default {
     data: () => ({
         channels_name: [],
@@ -76,5 +76,5 @@
       );
     },
   },
-};*/
+};
 </script>
