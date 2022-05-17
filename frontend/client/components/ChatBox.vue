@@ -65,7 +65,7 @@ export default {
     this.socket = this.$nuxtSocket({
       name: "chat",
     });
-    /* Listen for events: */
+
     this.socket.on("connection", (msg, cb) => {
       console.log("Connection !");
     });

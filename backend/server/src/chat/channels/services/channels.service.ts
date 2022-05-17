@@ -43,9 +43,7 @@ export class ChannelsService {
 		return this.channelRepository.findOne({ where: { name: channel_name } });
 	}
 
-	async addMessageToChannel(id: number, msg: Message): Promise<Channel> {
-		var chan = await this.channelRepository.findOne({ where: { id: id } })
-		chan.messages.push(msg);
-		return chan;
-	}
+	// async addMessageToChannel(id: number, msg: Message) {
+	// 	await this.channelRepository.update({ where: { id: id } }, )
+	// }
 }
