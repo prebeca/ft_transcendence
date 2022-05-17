@@ -12,7 +12,7 @@ import { MulterModule } from '@nestjs/platform-express';
 		MulterModule.register({
 			dest: './avatar',
 		})
-		],
+	],
 	controllers: [UsersController],
 	providers: [UsersService, UserDto],
 	exports: [UsersService, UserDto]

@@ -6,7 +6,7 @@ export default {
 	ssr: false,
 
 	env: {
-		API_URL: process.env.API_URL || 'http://localhost:8080',
+		API_URL: process.env.API_URL,
 		NUXT_PORT: process.env.NUXT_PORT,
 		NUXT_HOST: process.env.NUXT_HOST,
 		API_SOCKET_GAME: process.env.API_SOCKET_GAME,
@@ -56,10 +56,10 @@ export default {
 	],
 
 	// Axios module configuration: https://go.nuxtjs.dev/config-axios
-	 axios: {
+	axios: {
 		baseURL: `${process.env.API_URL}`,
 		credentials: true,
-		withCredentials : true,
+		withCredentials: true,
 	},
 
 	// Vuetify module configuration: https://go.nuxtjs.dev/config-vuetify
