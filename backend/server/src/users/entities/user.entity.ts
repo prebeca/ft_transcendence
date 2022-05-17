@@ -14,25 +14,34 @@ export class User {
 	@Column({ unique: true })
 	email: string;
 
-	@Column({ unique: true })
+	@Column({ unique: true, nullable: true })
 	access_token: string;
 
-	@Column({ unique: true })
+	@Column({ unique: true, nullable: true })
 	refresh_token: string;
 
-	@Column()
+	@Column({ nullable: true })
 	scope: string;
 
-	@Column()
+	@Column({ nullable: true })
 	expires_in: number;
 
-	@Column()
+	@Column({ nullable: true })
 	created_at: number;
 
-	@Column('text', {default: "empty"})
+	@Column('text', { default: "empty" })
 	avatar: string;
 
 	@Column({ unique: true })
 	username: string;
+
+	@Column({ nullable: true })
+	password: string;
+
+	@Column({ default: false })
+	fortytwouser: boolean;
+
+	@Column({ default: false })
+	twofauser: boolean;
 
 }

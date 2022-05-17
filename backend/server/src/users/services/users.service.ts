@@ -67,7 +67,11 @@ export class UsersService {
 		return this.getUsers();
 	}
 
-	async findOne(user_name: string): Promise<User> {
-		return this.userRepository.findOne({ where: { login: user_name } });
+	async findOne(login_user: string): Promise<User> {
+		return this.userRepository.findOne({ where: { login: login_user } });
+	}
+
+	async findOneByEmail(email_user: string): Promise<User> {
+		return this.userRepository.findOne({ where: { email: email_user } });
 	}
 }

@@ -2,7 +2,7 @@ import { Injectable, Inject } from '@nestjs/common';
 import { UsersService } from 'src/users/services/users.service';
 import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
-import axios, { Axios, AxiosRequestConfig, AxiosResponse } from 'axios';
+import axios, { AxiosRequestConfig, AxiosResponse } from 'axios';
 import { UserDto } from 'src/users/dto/users.dto';
 import { User } from 'src/users/entities/user.entity';
 import * as FormData from 'form-data';
@@ -58,7 +58,7 @@ export class AuthService {
 		return result_jwtsign.access_token;
 	}
 
-	async get42APIToken(code_api: string, state_api: string) {
+	async get42APIToken(code_api: string) {
 		const formData = new FormData();
 		let access_token: string;
 		var res: AxiosResponse;
@@ -68,7 +68,6 @@ export class AuthService {
 		formData.append('client_secret', this.config.get<string>('APPLICATION_SECRET'));
 		formData.append('code', code_api);
 		formData.append('redirect_uri', this.config.get<string>('BASE_URL') + '/auth/42callback');
-		formData.append('state', state_api);
 
 		await axios.post('https://api.intra.42.fr/oauth/token', formData, { headers: formData.getHeaders() })
 			.then(function (response: AxiosResponse): void {
@@ -84,6 +83,32 @@ export class AuthService {
 		this.createUserDto.created_at = res.data.created_at;
 		this.createUserDto.expires_in = res.data.expires_in;
 		return this.getUser42Infos(access_token);
+	}
 
+	get42OAuthURL() {
+		return {
+			url: 'https://api.intra.42.fr/oauth/authorize?client_id='
+				+ this.config.get<string>('APPLICATION_UID')
+				+ '&redirect_uri=http%3A%2F%2Flocalhost%3A3000%2Fauth%2F42callback'
+				+ '&response_type=code&scopepublic'
+		};
+	}
+
+	async validateUser(email: string, pass: string): Promise<any> {
+		console.log('email = ' + email + ', password = ' + pass);
+		const user = await this.usersService.findOneByEmail(email);
+		if (user && user.password === pass) {
+			const { password, ...result } = user;
+			return result;
+		}
+		return null;
+	}
+
+	async registerUser(email: string, username: string, pass: string) {
+		this.createUserDto.email = email;
+		this.createUserDto.password = pass;
+		this.createUserDto.username = username;
+		this.createUserDto.login = username;
+		return await this.usersService.createUser(this.createUserDto);
 	}
 }

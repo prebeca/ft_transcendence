@@ -73,7 +73,7 @@
                           x-large block 
                           :disabled="!valid" 
                           color="success" 
-                          @click="validate"
+                          @click="validateLogin"
                         > Login </v-btn>
                     </v-col>
                   </v-row>
@@ -152,7 +152,7 @@
                         block 
                         :disabled="!valid" 
                         color="success" 
-                        @click="validate"
+                        @click="validateRegister"
                       >Register</v-btn>
                     </v-col>
                   </v-row>
@@ -210,8 +210,23 @@ export default Vue.extend ({
     }
   },
   methods: {
-    validate() {
-
+    validateLogin() {
+      this.$axios.post('/auth/login', {email: this.loginEmail, password: this.loginPassword})
+			.then((res) => {
+				console.log(res)
+			})
+			.catch((error) => {
+				console.error(error)
+			});
+    },
+    validateRegister() {
+      this.$axios.post('/auth/register', {username: this.username, email: this.email, password: this.password})
+			.then((res) => {
+				console.log(res)
+			})
+			.catch((error) => {
+				console.error(error)
+			});
     },
   },
 });
