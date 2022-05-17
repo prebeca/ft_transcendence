@@ -67,6 +67,7 @@ export class UsersController {
 		}
 		else {
 			file = createReadStream('src/avatar/' + filename);
+			console.log(file);
 		}
 		res.set({
 			'Content-Type': 'image/png',

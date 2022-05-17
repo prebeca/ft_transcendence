@@ -47,7 +47,7 @@
     }),
     async fetch() {
         console.log("fetching channels...")
-        this.channels = await fetch("http://localhost:3000/channels").then((res) =>
+        this.channels = await fetch(`${process.env.API_URL}/channels`).then((res) =>
             res.json()
         );
         

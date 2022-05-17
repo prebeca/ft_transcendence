@@ -54,7 +54,7 @@ export default {
 	methods: {
 		async validate() {
 			if (this.$refs.form.validate()) {
-				await fetch("http://localhost:3000/users/create", {
+				await fetch(`${process.env.VAR_DU_ENV}/users/create`, {
 					method: "POST",
 					headers: {
 						"Content-Type": "application/json",

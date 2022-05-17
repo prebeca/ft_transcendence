@@ -66,7 +66,7 @@ export class AuthService {
     formData.append('client_id', this.config.get<string>('APPLICATION_UID'));
     formData.append('client_secret', this.config.get<string>('APPLICATION_SECRET'));
     formData.append('code', code_api);
-    formData.append('redirect_uri', 'http://localhost:3000/auth/login');
+    formData.append('redirect_uri', this.config.get<string>('BASE_URL') + '/auth/login');
     formData.append('state', state_api);
 
     let access_token: string;

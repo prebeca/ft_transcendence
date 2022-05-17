@@ -22,7 +22,7 @@ export default ({
   layout: 'empty',
   name: 'IndexPage',
   data: () => ({
-    url: `http://localhost:3000/auth/a`,
+    url: `${process.env.API_URL}/auth/a`,
   }),
 });
 </script>

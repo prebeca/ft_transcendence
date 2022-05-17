@@ -43,30 +43,30 @@ export default  Vue.extend ({
 		}
 	},
 	async fetch() {
-		this.items = await fetch("http://localhost:3000/users").then((res) =>
+		this.items = await fetch(`${process.env.API_URL}/users`).then((res) =>
 			res.json()
 		);
 	},
 	methods: {
 		async refresh() {
-			this.items = await fetch("http://localhost:3000/users").then(
+			this.items = await fetch(`${process.env.API_URL}/users`).then(
 				(res) => res.json()
 			);
 		},
 		async deleteAll() {
-			await fetch("http://localhost:3000/users/deleteall");
-			this.items = await fetch("http://localhost:3000/users").then(
+			await fetch(`${process.env.API_URL}/users/deleteall`);
+			this.items = await fetch(`${process.env.API_URL}/users`).then(
 				(res) => res.json()
 			);
 		},
 		async deleteUser(id: string) {
-			await fetch("http://localhost:3000/users/delete/" + id);
-			this.items = await fetch("http://localhost:3000/users").then(
+			await fetch(`${process.env.API_URL}/users/delete/` + id);
+			this.items = await fetch(`${process.env.API_URL}/users`).then(
 				(res) => res.json()
 			);
 		},
 		async addMembersOfGroup() {
-			await fetch("http://localhost:3000/users/addGroup/", {
+			await fetch(`${process.env.API_URL}/users/addGroup/`, {
 					method: "POST",
 					headers: {
 						"Content-Type": "application/json",
@@ -98,7 +98,7 @@ export default  Vue.extend ({
 					},
 					]),
 			}).then((res) => res.json());
-			this.items = await fetch("http://localhost:3000/users").then(
+			this.items = await fetch(`${process.env.API_URL}/users`).then(
 				(res) => res.json()
 			);
 		}

@@ -105,14 +105,13 @@
 import Vue from 'vue';
 import VueCookies from 'vue-cookies';
 import ImageInput from './ImageInput.vue' ;
-import axios from 'axios';
 Vue.use(VueCookies);
 
 export default Vue.extend ({
 	name: 'loginCard',
 	data() {
 		return {
-			avatar: 'http://localhost:3000/users/profile/avatar/default.png',
+			avatar: '',
 			photo: '',
 			saving: false,
 			saved: false,
@@ -127,14 +126,16 @@ export default Vue.extend ({
 				expires_in: 0,
 				created_at: 0,
 				username: "",
+				avatar: "",
 			},
 		}
 	},
 	created: function() {
-		axios.get('http://localhost:3000/users/profile', {withCredentials: true} )
+		this.$axios.get('/users/profile')
 		.then((res) => {
-			console.log(res.data)
+			console.log(res.data);
 			this.user = res.data;
+			this.changeAvatar(res.data.avatar);
 		})
 		.catch((error) => {
 			console.error(error)
@@ -175,7 +176,7 @@ export default Vue.extend ({
 			const { username } = this;
 			this.user.username = username;
 			console.log(this.user.username);
-			axios.post('http://localhost:3000/users/profile/update/username', {new_username: this.user.username} , {withCredentials: true} )
+			this.$axios.post('/users/profile/update/username', {new_username: this.user.username})
 			.then((res) => {
 				console.log(res)
 			})
@@ -192,7 +193,7 @@ export default Vue.extend ({
 			        'content-type': 'multipart/form-data; boundary=5e6wf59ew5f62ew'
 				}
 			}
-			axios.post('http://localhost:3000/users/profile/update/avatar', formdata, config)
+			this.$axios.post('/users/profile/update/avatar', formdata, config)
 			.then((res) => {
 				console.log(res)
 				this.changeAvatar(res.data.avatar);
@@ -202,7 +203,7 @@ export default Vue.extend ({
 			});
 		},
 		changeAvatar(filename: string) {
-			this.avatar = 'http://localhost:3000/users/profile/avatar/' + filename;
+			this.avatar = `${process.env.API_URL}/users/profile/avatar/` + filename;
 		}
 	},
 });
