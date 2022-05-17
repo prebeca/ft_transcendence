@@ -104,7 +104,6 @@
 <script lang="ts">
 import Vue from 'vue';
 import ImageInput from './ImageInput.vue' ;
-Vue.use(VueCookies);
 
 export default Vue.extend ({
 	name: 'loginCard',

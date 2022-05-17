@@ -32,7 +32,7 @@
 </template>
 
 <script lang="ts">
-
+/*
   export default {
     data: () => ({
         channels_name: [],
@@ -55,7 +55,7 @@
     this.socket = this.$nuxtSocket({
       name: "chat",
     });
-    /* Listen for events: */
+    
     this.socket.on("connection", (msg, cb) => {
       console.log("Connection !");
     });
@@ -65,7 +65,6 @@
   },
   methods: {
     sendMessage() {
-      /* Emit events */
 		console.log("Sending message !");
       this.socket.emit(
         "MessageSend",
@@ -77,5 +76,5 @@
       );
     },
   },
-};
+};*/
 </script>
