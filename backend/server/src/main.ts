@@ -9,11 +9,11 @@ async function bootstrap() {
   const config: ConfigService = app.get(ConfigService);
   app.use(cookieParser());
   app.enableCors({
-	  origin: process.env.APPLICATION_REDIRECT_URI,
-	  credentials: true
+    origin: config.get<string>('APPLICATION_REDIRECT_URI'),
+    credentials: true
   });
   await app.listen(3000, () => {
-	  console.log('[WEB]', config.get<number>('BASE_URL'));
-	});
+    console.log('[WEB]', config.get<number>('BASE_URL'));
+  });
 }
 bootstrap();
