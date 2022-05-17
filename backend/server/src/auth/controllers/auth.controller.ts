@@ -1,4 +1,4 @@
-import { Controller, Get, Res, Req, UseGuards, Redirect, Inject, Query, Post } from '@nestjs/common';
+import { Controller, Get, Res, Redirect, Inject, Query } from '@nestjs/common';
 import { AuthService } from '../services/auth.service';
 import { ConfigService } from '@nestjs/config';
 import { Response } from 'express';
@@ -10,7 +10,7 @@ export class AuthController {
 	@Inject(ConfigService)
 	private readonly config: ConfigService;
 
-	@Get('a')
+	@Get('42login')
 	@Redirect('https://api.intra.42.fr/oauth/authorize', 302)
 	redirect42API() {
 		console.log('---redirect42API---');
@@ -23,13 +23,13 @@ export class AuthController {
 		return {
 			url: 'https://api.intra.42.fr/oauth/authorize?client_id='
 				+ this.config.get<string>('APPLICATION_UID')
-				+ '&redirect_uri=http%3A%2F%2Flocalhost%3A3000%2Fauth%2Flogin'
+				+ '&redirect_uri=http%3A%2F%2Flocalhost%3A3000%2Fauth%2F42callback'
 				+ '&response_type=code&scopepublic&state='
 				+ state
 		};
 	}
 
-	@Get('login')
+	@Get('42callback')
 	@Redirect(`${process.env.APPLICATION_REDIRECT_URI}/login`, 302)
 	async authenticate42User(@Res({ passthrough: true }) response: Response, @Query('code') code: string, @Query('state') state: string) {
 		console.log('---authenticate42User---');
