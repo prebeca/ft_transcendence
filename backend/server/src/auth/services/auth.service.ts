@@ -67,7 +67,7 @@ export class AuthService {
 		formData.append('client_id', this.config.get<string>('APPLICATION_UID'));
 		formData.append('client_secret', this.config.get<string>('APPLICATION_SECRET'));
 		formData.append('code', code_api);
-		formData.append('redirect_uri', this.config.get<string>('BASE_URL') + '/auth/login');
+		formData.append('redirect_uri', this.config.get<string>('BASE_URL') + '/auth/42callback');
 		formData.append('state', state_api);
 
 		await axios.post('https://api.intra.42.fr/oauth/token', formData, { headers: formData.getHeaders() })

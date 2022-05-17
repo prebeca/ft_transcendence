@@ -22,21 +22,8 @@ export default ({
   layout: 'empty',
   name: 'IndexPage',
   data: () => ({
-    url: `${process.env.API_URL}/auth/a`,
+    url: `${process.env.API_URL}/auth/42login`,
   }),
- //   url: `${process.env.API_URL}/auth/a`,
- //   token: '',
-  //  res0: '',
- // }),
- // methods: {
-//		async log() {
-	//		this.res0 = await fetch(`${process.env.API_URL}/auth/a`).then((res) => res.json());
- //     console.log(this.res0);
-	//	},
-  //  game() {
-  //    this.$router.push("/game");
-  //  }
- // },
 });
 </script>
 
