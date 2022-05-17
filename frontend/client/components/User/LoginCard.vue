@@ -4,7 +4,6 @@
 	width="800px"
 	max-height="700px"
 	elevation="20"
-	style="border-radius:25px"
 	>
 		<v-toolbar
 		 color="primary"
@@ -104,7 +103,6 @@
 <script lang="ts">
 import Vue from 'vue';
 import ImageInput from './ImageInput.vue' ;
-Vue.use(VueCookies);
 
 export default Vue.extend ({
 	name: 'loginCard',
