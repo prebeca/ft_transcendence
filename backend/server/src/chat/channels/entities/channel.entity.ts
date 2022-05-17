@@ -2,7 +2,8 @@ import { Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
 
 
 export class Message {
-	user_id: bigint;
+	sender_id: bigint;
+	channel: string;
 	content: string;
 }
 

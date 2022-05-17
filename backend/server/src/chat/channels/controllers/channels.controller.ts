@@ -26,7 +26,7 @@ export class ChannelsController {
 	@Get('id?:id')
 	findChannelsById(@Param('id') id: number) {
 		console.log(id);
-		return this.channelService.findChannelsById(id);
+		return this.channelService.getChannelsById(id);
 	}
 
 	@Post('create')
@@ -51,8 +51,8 @@ export class ChannelsController {
 	}
 
 	@Post('addGroup')
-	addGroup(@Body(new ParseArrayPipe({items: CreateChannelDto}))
-		createChannelDtos: CreateChannelDto[],
+	addGroup(@Body(new ParseArrayPipe({ items: CreateChannelDto }))
+	createChannelDtos: CreateChannelDto[],
 	) {
 		for (const val of createChannelDtos)
 			this.channelService.createChannel(val);

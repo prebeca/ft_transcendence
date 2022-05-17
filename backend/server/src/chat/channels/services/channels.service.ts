@@ -21,8 +21,12 @@ export class ChannelsService {
 		return this.channelRepository.save(newChannel);
 	}
 
-	findChannelsById(id: number): Promise<Channel> {
+	getChannelsById(id: number): Promise<Channel> {
 		return this.channelRepository.findOne(id);
+	}
+
+	getChannelsByName(name: string): Promise<Channel> {
+		return this.channelRepository.findOne({ where: { name: name } });
 	}
 
 	async remove(id: number): Promise<Channel[]> {
@@ -36,11 +40,11 @@ export class ChannelsService {
 	}
 
 	async findOne(channel_name: string): Promise<Channel> {
-		return this.channelRepository.findOne({where: {name: channel_name}});
+		return this.channelRepository.findOne({ where: { name: channel_name } });
 	}
 
 	async addMessageToChannel(id: number, msg: Message): Promise<Channel> {
-		var chan = await this.channelRepository.findOne({where: {id: id}})
+		var chan = await this.channelRepository.findOne({ where: { id: id } })
 		chan.messages.push(msg);
 		return chan;
 	}
