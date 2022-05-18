@@ -1,0 +1,20 @@
+[
+    {
+        "name": "default",
+        "type": "postgres",
+        "host": "pg_container",
+        "port": 5432,
+        "username": "root",
+        "password": "root",
+        "database": "transcendence",
+        "entities": [
+            "dist/**/entity/*.entity{ .ts,.js}"
+        ],
+        "synchronize": true,
+        "migrations": [
+            "dist/migrations/*{.ts,.js}"
+        ],
+        "migrationsTableName": "typeorm_migrations",
+        "migrationsRun": true
+    }
+]
