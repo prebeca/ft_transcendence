@@ -44,4 +44,6 @@ export class User {
 	@Column({ default: false })
 	twofauser: boolean;
 
+	@Column("bigint", { default: {}, array: true })
+	channels: number[];
 }
