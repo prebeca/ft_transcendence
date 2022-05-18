@@ -37,7 +37,8 @@ export class UsersController {
 	@UseGuards(JwtAuthGuard)
 	@Get('profile')
 	getProfile(@Req() req: Request) {
-		return this.userService.findUsersById(req.user[0]);
+		console.log(req.user);
+		return this.userService.findUsersById(req.user["userid"]);
 	}
 
 	@UseGuards(JwtAuthGuard)
@@ -51,8 +52,7 @@ export class UsersController {
 	@UseInterceptors(FileInterceptor('file', multerOptions))
 	async updateAvatar(@UploadedFile() file: Express.Multer.File, @Req() req: Request): Promise<User> {
 		console.log("update avatar");
-		await this.userService.updateAvatar(file.filename, req.user["userid"]);
-		return await this.userService.findUsersById(req.user["userid"]);
+		return await this.userService.updateAvatar(file.filename, req.user["userid"]);
 	}
 
 	@Get('profile/avatar/:filename')

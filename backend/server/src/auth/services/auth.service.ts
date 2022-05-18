@@ -54,7 +54,6 @@ export class AuthService {
 			if (user === null)
 				return null;
 		}
-
 		const result_jwtsign: any = await this.jwtGenerate(res2.data.login, user.id);
 		return result_jwtsign.access_token;
 	}
