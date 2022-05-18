@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { User } from 'src/users/entities/user.entity';
-import { Repository, UpdateResult } from 'typeorm';
+import { Repository, UpdateResult, UsingJoinColumnOnlyOnOneSideAllowedError } from 'typeorm';
 import { UserDto } from 'src/users/dto/users.dto';
 import { getRepository } from "typeorm";
 
@@ -73,5 +73,13 @@ export class UsersService {
 
 	async findOneByEmail(email_user: string): Promise<User> {
 		return this.userRepository.findOne({ where: { email: email_user } });
+	}
+
+	async addChannel(user_id: number, chan_id: number) {
+		let user = await this.userRepository.findOne(user_id);
+		if (user.channels.find((e) => e == chan_id) === undefined) {
+			user.channels.push(chan_id)
+		}
+		this.userRepository.save(user);
 	}
 }

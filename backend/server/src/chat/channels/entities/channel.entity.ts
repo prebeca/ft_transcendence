@@ -2,7 +2,9 @@ import { Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
 
 
 export class Message {
-	user_id: bigint;
+	sender_id: number;
+	channel_id: number;
+	channel_name: string;
 	content: string;
 }
 
@@ -26,12 +28,12 @@ export class Channel {
 	@Column({ nullable: true })
 	owner: number;
 
-	@Column("bigint", { nullable: true, array: true })
+	@Column("bigint", { default: {}, array: true })
 	admin_ids: number[];
 
-	@Column("bigint", { nullable: true, array: true })
+	@Column("bigint", { default: {}, array: true })
 	users_ids: number[];
 
-	@Column("jsonb", { nullable: true, array: true })
+	@Column("jsonb", { default: {}, array: true })
 	messages: Message[];
 }

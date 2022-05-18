@@ -4,6 +4,7 @@ import { Channel } from 'src/typeorm';
 import { Any, Repository } from 'typeorm';
 import { CreateChannelDto } from 'src/chat/channels/dto/channels.dto';
 import { Message } from '../entities/channel.entity';
+import { channel } from 'diagnostics_channel';
 
 @Injectable()
 export class ChannelsService {
@@ -16,13 +17,19 @@ export class ChannelsService {
 	}
 
 	async createChannel(createChannelDto: CreateChannelDto) {
+		if (await this.channelRepository.findOne({ where: { name: createChannelDto.name } }) != null)
+			return;
 		const newChannel = this.channelRepository.create(createChannelDto);
 		console.log(newChannel);
 		return this.channelRepository.save(newChannel);
 	}
 
-	findChannelsById(id: number): Promise<Channel> {
+	getChannelsById(id: number): Promise<Channel> {
 		return this.channelRepository.findOne(id);
+	}
+
+	getChannelsByName(name: string): Promise<Channel> {
+		return this.channelRepository.findOne({ where: { name: name } });
 	}
 
 	async remove(id: number): Promise<Channel[]> {
@@ -36,12 +43,17 @@ export class ChannelsService {
 	}
 
 	async findOne(channel_name: string): Promise<Channel> {
-		return this.channelRepository.findOne({where: {name: channel_name}});
+		return this.channelRepository.findOne({ where: { name: channel_name } });
 	}
 
-	async addMessageToChannel(id: number, msg: Message): Promise<Channel> {
-		var chan = await this.channelRepository.findOne({where: {id: id}})
-		chan.messages.push(msg);
-		return chan;
+	async addUser(channel_id: number, user_id: number) {
+		let channel = await this.channelRepository.findOne(channel_id);
+		if (channel.users_ids.find(e => e == user_id) == undefined)
+			channel.users_ids.push(user_id);
+		this.channelRepository.save(channel);
 	}
+
+	// async addMessageToChannel(id: number, msg: Message) {
+	// 	await this.channelRepository.update({ where: { id: id } }, )
+	// }
 }
