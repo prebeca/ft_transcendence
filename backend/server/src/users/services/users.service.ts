@@ -40,21 +40,31 @@ export class UsersService {
 			.execute();
 	}
 
-	async updateAvatar(filename: string, userid: number) {
+	async updateAvatar(filename: string, userid: number): Promise<User> {
 		console.log("updateAvatar in service (): " + userid);
-		await getRepository(User)
-			.createQueryBuilder("user")
-			.update(User)
-			.set({
-				avatar: filename,
-			})
-			.where("id = :id", { id: userid })
-			.printSql()
-			.execute();
+		if (filename) {
+			const ancient_filename: string = await this.getAvatarUrl(userid);
+			if (ancient_filename === null)
+				return null;
+			await getRepository(User)
+				.createQueryBuilder("user")
+				.update(User)
+				.set({
+					avatar: filename,
+				})
+				.where("id = :id", { id: userid })
+				.printSql()
+				.execute();
+			if (ancient_filename !== 'default.png') {
+				require('fs').unlinkSync('src/avatar/' + ancient_filename);
+			}
+		}
+		return await this.userRepository.findOne(userid);
 	}
 
-	async getAvatarUrl(userid: number): Promise<User> {
-		return await this.userRepository.findOne(userid);
+	async getAvatarUrl(userid: number): Promise<string> {
+		var avatar_url: string = (await this.userRepository.findOne(userid)).avatar;
+		return avatar_url;
 	}
 
 	async remove(id: number): Promise<User[]> {
