@@ -17,7 +17,7 @@
 
 <script lang="ts">
 import Vue from 'vue';
-import axios from 'axios';
+
 export default ({
   layout: 'empty',
   name: 'IndexPage',

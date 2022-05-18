@@ -1,21 +1,58 @@
 <template>
-
-    <div style="height: 80vh; max-height: 100%;" class="d-flex flex-column justify-center align-center">
-        <h1>{{ title }}</h1>
-        <form>
-            <input v-model="text" type="text"/>
-            <button type="submit" @click.prevent="sendMessage()">Send</button>
-            </form>
-            <p>
-                <ul>
-                    <li :key='msg' v-for="msg of messages">{{ msg }}</li>
-                </ul>
-            </p>
-    </div>
-
+  <div class="GameArea">
+    <canvas id="canvas" width="1600" height="1200"></canvas>
+  </div>
 </template>
 
-<script lang="ts">
+<script lang="">
+import Vue from "vue";
+import io from "socket.io-client";
+
+export default Vue.extend({
+  name: "Game",
+  data() {
+    return {
+      socket: {},
+      context: {},
+      position: {
+        x: 0,
+        y: 0,
+      },
+      canvas: {},
+    };
+  },
+  created() {
+    this.socket = io(process.env.API_SOCKET_GAME);
+  },
+  mounted() {
+    this.canvas = document.getElementById("canvas");
+    this.context = this.canvas.getContext("2d");
+    // // Draw field
+    // this.context.fillStyle = "black";
+    // this.context.fillRect(0, 0, this.canvas.width, this.canvas.height);
+    // // Draw middle line
+    // this.context.strokeStyle = "white";
+    // this.context.beginPath();
+    // this.context.moveTo(this.canvas.width / 2, 0);
+    // this.context.lineTo(this.canvas.width / 2, this.canvas.height);
+    // this.context.stroke();
+
+    this.socket.on("position", (data) => {
+      this.position = data;
+      this.context.clearRect(0, 0, this.canvas.width, this.canvas.height);
+      this.context.fillRect(this.position.x, this.position.y, 20, 20);
+    });
+  },
+  methods: {
+    move(direction) {
+      this.socket.emit("move", direction);
+    },
+  },
+});
+</script>
+
+<!--<script lang="ts">
+
 
 import Vue from 'vue'
 import socket from 'socket.io'
@@ -50,4 +87,6 @@ export default Vue.extend({
         });
     }
 })
-</script>
+
+
+</script>-->
