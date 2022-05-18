@@ -8,6 +8,7 @@ import { UsersModule } from 'src/users/users.module';
 import { AuthController } from './controllers/auth.controller';
 import { AuthService } from './services/auth.service';
 import { JwtStrategy } from './strategies/jwt.strategy';
+import { LocalStrategy } from './strategies/local.strategy';
 
 @Module({
 	imports: [
@@ -17,12 +18,12 @@ import { JwtStrategy } from './strategies/jwt.strategy';
 		HttpModule,
 		JwtModule.register({
 			secret: jwtConstants.secret,
-			signOptions: {expiresIn: '1d'},
+			signOptions: { expiresIn: '1d' },
 		}),
 	],
 	controllers: [AuthController],
-	providers: [AuthService, JwtStrategy],
+	providers: [AuthService, JwtStrategy, LocalStrategy],
 	exports: [AuthService],
 })
 
-export class AuthModule {}
+export class AuthModule { }

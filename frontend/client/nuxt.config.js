@@ -44,18 +44,26 @@ export default {
     "@nuxtjs/vuetify",
   ],
 
-  // Modules: https://go.nuxtjs.dev/config-modules
-  modules: [
-    // https://go.nuxtjs.dev/axios
-    "@nuxtjs/axios",
-    ["cookie-universal-nuxt", { alias: "cookiz" }],
-  ],
+	// Modules: https://go.nuxtjs.dev/config-modules
+	modules: [
+		// https://go.nuxtjs.dev/axios
+		'@nuxtjs/axios',
+		['cookie-universal-nuxt', { alias: 'cookiz' }],
+		'nuxt-socket-io',
+	],
 
-  // Axios module configuration: https://go.nuxtjs.dev/config-axios
-  axios: {
-    baseURL: `${process.env.API_URL}`,
-    credentials: true,
-  },
+	io: {
+		// module options
+		sockets: [
+			{ name: 'chat', url: process.env.API_URL }
+		],
+	},
+
+	// Axios module configuration: https://go.nuxtjs.dev/config-axios
+	axios: {
+		baseURL: `${process.env.API_URL}`,
+		credentials: true,
+	},
 
   // Vuetify module configuration: https://go.nuxtjs.dev/config-vuetify
   vuetify: {

@@ -26,7 +26,7 @@ export class ChannelsController {
 	@Get('id?:id')
 	findChannelsById(@Param('id') id: number) {
 		console.log(id);
-		return this.channelService.findChannelsById(id);
+		return this.channelService.getChannelsById(id);
 	}
 
 	@Post('create')
@@ -45,14 +45,22 @@ export class ChannelsController {
 		return this.channelService.removeAll();
 	}
 
-	@Post('deleteall')
-	addMessageToChannel(@Param('id', ParseIntPipe) id: number, msg: Message) {
-		return this.channelService.addMessageToChannel(id, msg);
+	// @Post('deleteall')
+	// addMessageToChannel(@Param('id', ParseIntPipe) id: number, msg: Message) {
+	// 	return this.channelService.addMessageToChannel(id, msg);
+	// }
+
+	@Post('create')
+	createChannel(@Body(new ParseArrayPipe({ items: CreateChannelDto }))
+	createChannelDto: CreateChannelDto,
+	) {
+		this.channelService.createChannel(createChannelDto);
+		return this.channelService.getChannels();
 	}
 
 	@Post('addGroup')
-	addGroup(@Body(new ParseArrayPipe({items: CreateChannelDto}))
-		createChannelDtos: CreateChannelDto[],
+	addGroup(@Body(new ParseArrayPipe({ items: CreateChannelDto }))
+	createChannelDtos: CreateChannelDto[],
 	) {
 		for (const val of createChannelDtos)
 			this.channelService.createChannel(val);

@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { User } from 'src/users/entities/user.entity';
-import { Repository, UpdateResult } from 'typeorm';
+import { Repository, UpdateResult, UsingJoinColumnOnlyOnOneSideAllowedError } from 'typeorm';
 import { UserDto } from 'src/users/dto/users.dto';
 import { getRepository } from "typeorm";
 
@@ -40,21 +40,31 @@ export class UsersService {
 			.execute();
 	}
 
-	async updateAvatar(filename: string, userid: number) {
+	async updateAvatar(filename: string, userid: number): Promise<User> {
 		console.log("updateAvatar in service (): " + userid);
-		await getRepository(User)
-			.createQueryBuilder("user")
-			.update(User)
-			.set({
-				avatar: filename,
-			})
-			.where("id = :id", { id: userid })
-			.printSql()
-			.execute();
+		if (filename) {
+			const ancient_filename: string = await this.getAvatarUrl(userid);
+			if (ancient_filename === null)
+				return null;
+			await getRepository(User)
+				.createQueryBuilder("user")
+				.update(User)
+				.set({
+					avatar: filename,
+				})
+				.where("id = :id", { id: userid })
+				.printSql()
+				.execute();
+			if (ancient_filename !== 'default.png') {
+				require('fs').unlinkSync('src/avatar/' + ancient_filename);
+			}
+		}
+		return await this.userRepository.findOne(userid);
 	}
 
-	async getAvatarUrl(userid: number): Promise<User> {
-		return await this.userRepository.findOne(userid);
+	async getAvatarUrl(userid: number): Promise<string> {
+		var avatar_url: string = (await this.userRepository.findOne(userid)).avatar;
+		return avatar_url;
 	}
 
 	async remove(id: number): Promise<User[]> {
@@ -67,7 +77,19 @@ export class UsersService {
 		return this.getUsers();
 	}
 
-	async findOne(user_name: string): Promise<User> {
-		return this.userRepository.findOne({ where: { login: user_name } });
+	async findOne(login_user: string): Promise<User> {
+		return this.userRepository.findOne({ where: { login: login_user } });
+	}
+
+	async findOneByEmail(email_user: string): Promise<User> {
+		return this.userRepository.findOne({ where: { email: email_user } });
+	}
+
+	async addChannel(user_id: number, chan_id: number) {
+		let user = await this.userRepository.findOne(user_id);
+		if (user.channels.find((e) => e == chan_id) === undefined) {
+			user.channels.push(chan_id)
+		}
+		this.userRepository.save(user);
 	}
 }

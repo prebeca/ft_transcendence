@@ -4,7 +4,6 @@
 	width="800px"
 	max-height="700px"
 	elevation="20"
-	style="border-radius:25px"
 	>
 		<v-toolbar
 		 color="primary"
