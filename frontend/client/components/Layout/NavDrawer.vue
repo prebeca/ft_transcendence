@@ -1,5 +1,5 @@
 <template>
-    
+
     <v-navigation-drawer fixed absolute permanent expand-on-hover color="secondary">
 
         <v-list nav dense class="pt-16">
