@@ -45,9 +45,17 @@ export class ChannelsController {
 		return this.channelService.removeAll();
 	}
 
-	@Post('deleteall')
-	addMessageToChannel(@Param('id', ParseIntPipe) id: number, msg: Message) {
-		return this.channelService.addMessageToChannel(id, msg);
+	// @Post('deleteall')
+	// addMessageToChannel(@Param('id', ParseIntPipe) id: number, msg: Message) {
+	// 	return this.channelService.addMessageToChannel(id, msg);
+	// }
+
+	@Post('create')
+	createChannel(@Body(new ParseArrayPipe({ items: CreateChannelDto }))
+	createChannelDto: CreateChannelDto,
+	) {
+		this.channelService.createChannel(createChannelDto);
+		return this.channelService.getChannels();
 	}
 
 	@Post('addGroup')

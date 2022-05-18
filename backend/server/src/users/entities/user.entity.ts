@@ -29,10 +29,12 @@ export class User {
 	@Column()
 	created_at: number;
 
-	@Column('text', {default: "empty"})
+	@Column('text', { default: "empty" })
 	avatar: string;
 
 	@Column({ unique: true })
 	username: string;
 
+	@Column("bigint", { default: {}, array: true })
+	channels: number[];
 }

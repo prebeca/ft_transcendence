@@ -49,47 +49,68 @@ export default {
     message: "",
     channel: "",
   }),
+
   async fetch() {
+    await fetch(`${process.env.API_URL}/channels/create`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        name: "General",
+        scope: "public",
+      }),
+    });
+
     console.log("fetching channels...");
     this.channels = await fetch(`${process.env.API_URL}/channels`).then((res) =>
       res.json()
     );
 
-    console.log(this.channels);
-
     for (let i = 0; i < this.channels.length; i++)
       this.channels_name.push(this.channels[i].name);
-    console.log(this.channels_name);
   },
-  mounted() {
-    this.socket = this.$nuxtSocket({
-      name: "chat",
-    });
 
-    this.socket.on("connection", (msg, cb) => {
+  mounted() {
+    this.socket = this.$nuxtSocket({ name: "chat" });
+
+    this.socket.on("connect", (msg, cb) => {
       console.log("Connection !");
     });
+
     this.socket.on("NewMessage", (msg, cb) => {
       console.log("New message received !");
-      console.log(msg);
       this.messages.push(msg);
     });
   },
   methods: {
     sendMessage() {
       /* Emit events */
-      console.log("Sending message !");
-      console.log(this.message);
+      if (this.message.length == 0) return;
+      if (this.channels.length == 0) return;
+      if (this.channel.length == 0) return;
+
+      this.socket.emit(
+        "JoinChan",
+        {
+          sender_id: 1,
+          channel_id: this.channels.find((e) => e.name === this.channel).id,
+          channel_name: this.channel,
+        },
+        (resp) => {}
+      );
       this.socket.emit(
         "MessageSend",
         {
           sender_id: 1,
           channel: this.channel,
+          channel_id: this.channels.find((e) => e.name === this.channel).id,
           content: this.message,
         },
         (resp) => {}
       );
-      this.$refs.textArea.clear;
+      this.message = "";
+      console.log("Message sent !");
     },
   },
 };
