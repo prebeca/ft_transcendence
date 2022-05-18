@@ -6,6 +6,7 @@ import axios, { AxiosRequestConfig, AxiosResponse } from 'axios';
 import { UserDto } from 'src/users/dto/users.dto';
 import { User } from 'src/users/entities/user.entity';
 import * as FormData from 'form-data';
+import { Response } from 'express';
 
 
 @Injectable()

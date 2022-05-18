@@ -29,7 +29,7 @@ export class User {
 	@Column({ nullable: true })
 	created_at: number;
 
-	@Column('text', { default: "empty" })
+	@Column('text', { default: "default.png" })
 	avatar: string;
 
 	@Column({ unique: true })
