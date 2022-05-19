@@ -60,19 +60,29 @@ export class UsersController {
 	@Get('profile/avatar/:filename')
 	async getAvatar(@Response({ passthrough: true }) res, @Param('filename') filename: string): Promise<StreamableFile> {
 		var file: ReadStream;
-
-		if (filename === undefined) {
-			file = createReadStream('src/avatar/default.png');
+		var path_avatar = 'src/avatar/';
+		const fs = require('fs');
+		if (filename !== undefined) {
+			path_avatar += filename;
+			if (fs.existsSync(path_avatar)) {
+				file = createReadStream(path_avatar);
+				res.set({
+					'Content-Type': 'image/png',
+					'Content-Disposition': 'attachment; filename=' + filename,
+				});
+				return new StreamableFile(file);
+			}
 		}
-		else {
-			file = createReadStream('src/avatar/' + filename);
-			console.log(file);
+		path_avatar = 'src/avatar/default.png';
+		if (fs.existsSync(path_avatar)) {
+			file = createReadStream(path_avatar);
+			res.set({
+				'Content-Type': 'image/png',
+				'Content-Disposition': 'attachment; filename=' + filename,
+			});
+			return new StreamableFile(file);
 		}
-		res.set({
-			'Content-Type': 'image/png',
-			'Content-Disposition': 'attachment; filename=' + filename,
-		});
-		return new StreamableFile(file);
+		return null;
 	}
 
 	@UseGuards(JwtAuthGuard)

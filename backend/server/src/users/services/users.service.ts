@@ -15,7 +15,6 @@ export class UsersService {
 
 	async createUser(userDto: UserDto) {
 		const newUser = this.userRepository.create(userDto);
-		newUser.avatar = "default.png";
 		return await this.userRepository.save(newUser);
 	}
 
@@ -23,6 +22,7 @@ export class UsersService {
 		return this.userRepository.findOne(id);
 	}
 
+	//	async getUpdateQueryBuilder()
 	async updateUsersById(userid: number, userDto: UserDto): Promise<User> {
 		return this.userRepository.save({ userDto, id: userid });
 	}
@@ -43,6 +43,7 @@ export class UsersService {
 	async updateAvatar(filename: string, userid: number): Promise<User> {
 		console.log("updateAvatar in service (): " + userid);
 		if (filename) {
+			const fs = require('fs');
 			const ancient_filename: string = await this.getAvatarUrl(userid);
 			if (ancient_filename === null)
 				return null;
@@ -56,10 +57,28 @@ export class UsersService {
 				.printSql()
 				.execute();
 			if (ancient_filename !== 'default.png') {
-				require('fs').unlinkSync('src/avatar/' + ancient_filename);
+
+				if (fs.existsSync('src/avatar/' + ancient_filename)) {
+					fs.unlinkSync('src/avatar/' + ancient_filename);
+				}
 			}
 		}
 		return await this.userRepository.findOne(userid);
+	}
+
+	async updateTwoFAUser(userid: number, istwofa: boolean): Promise<boolean> {
+		const ret: UpdateResult = await getRepository(User)
+			.createQueryBuilder("user")
+			.update(User)
+			.set({
+				twofauser: istwofa,
+			})
+			.where("id = :id", { id: userid })
+			.printSql()
+			.execute();
+		if (ret)
+			return istwofa;
+		return !istwofa; //no good if not checked on frontend
 	}
 
 	async getAvatarUrl(userid: number): Promise<string> {
