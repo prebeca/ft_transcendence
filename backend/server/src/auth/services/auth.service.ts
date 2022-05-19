@@ -93,20 +93,24 @@ export class AuthService {
 		};
 	}
 
+	async validatePassword(user: User, pass: string): Promise<boolean> {
+		return await bcrypt.compare(pass, user.password);
+	}
+
 	async validateUser(email: string, pass: string): Promise<any> {
 		console.log('email = ' + email + ', password = ' + pass);
-		const user = await this.usersService.findOneByEmail(email);
+		const user: User = await this.usersService.findOneByEmail(email);
 		console.log(user);
 		if (user) {
-			const isMatch = await bcrypt.compare(pass, user.password);
-			console.log(isMatch);
-			if (isMatch) {
+			const passIsCorrect = await this.validatePassword(user, pass);
+			if (passIsCorrect) {
 				const { password, ...result } = user;
-				return result;
+				return user;
 			}
 			return null;
 		}
-		return null;
+		else
+			return null;
 	}
 
 	async registerUser(email: string, username: string, pass: string) {

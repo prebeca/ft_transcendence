@@ -46,7 +46,8 @@ export class UserData1652873596846 implements MigrationInterface {
     }
 
     public async down(queryRunner: QueryRunner): Promise<void> {
-        queryRunner.query('DELETE * FROM user;');
+        const productRepo = queryRunner.connection.getRepository(User);
+        productRepo.clear();
     }
 
 }
