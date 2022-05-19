@@ -24,10 +24,12 @@ import { Express } from 'express';
 import { multerOptions } from 'src/common/UploadOptions';
 import { createReadStream, ReadStream } from 'fs';
 import { User } from '../entities/user.entity';
+import { ChannelsService } from 'src/chat/channels/services/channels.service';
+import { Channel } from 'src/typeorm';
 
 @Controller('users')
 export class UsersController {
-	constructor(private readonly userService: UsersService) { }
+	constructor(private readonly userService: UsersService, private readonly channelService: ChannelsService) { }
 
 	@Get()
 	getUsers() {
@@ -71,6 +73,14 @@ export class UsersController {
 			'Content-Disposition': 'attachment; filename=' + filename,
 		});
 		return new StreamableFile(file);
+	}
+
+	@UseGuards(JwtAuthGuard)
+	@Get('channels')
+	async getChannels(@Req() req: Request) {
+		// console.log(req.user);
+		const channels: number[] = (await this.userService.findUsersById(req.user["userid"])).channels;
+		return await this.channelService.getChannelsById(channels);
 	}
 
 	@Get('id/:id')
