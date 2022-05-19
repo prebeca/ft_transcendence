@@ -17,15 +17,16 @@
 </template>
 
 <script lang="ts">
+import Vue from 'vue';
 
-export default {
+export default Vue.extend ({
   name: 'DefaultLayout',
   data () {
     return {
-      
     }
   }
-}
+})
+
 </script>
 
 <style scoped>

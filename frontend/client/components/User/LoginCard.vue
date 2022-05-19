@@ -130,8 +130,6 @@ export default Vue.extend ({
 				counter_min: value => value.length >= 5 || 'Min 5 characters',
 				required: value => !!value || 'Required',
 			},
-			errorMessages: '',
-			formHasErrors: false,
 		}
 	},
 	created: function() {
