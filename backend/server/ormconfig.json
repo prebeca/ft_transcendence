@@ -1,6 +1,5 @@
 [
     {
-        "name": "default",
         "type": "postgres",
         "host": "pg_container",
         "port": 5432,
@@ -8,7 +7,7 @@
         "password": "root",
         "database": "transcendence",
         "entities": [
-            "dist/**/entity/*.entity{ .ts,.js}"
+            "dist/**/entities/*.entity{ .ts,.js}"
         ],
         "synchronize": true,
         "migrations": [
