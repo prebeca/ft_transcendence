@@ -1,93 +1,94 @@
 <template>
 	<v-card
-	color="secondary"
-	width="800px"
-	max-height="700px"
-	elevation="20"
+		color="secondary"
+		width="800px"
+		max-height="700px"
+		elevation="20"
 	>
 		<v-toolbar
-		 color="primary"
-		 class="d-flex justify-center"
+		 	color="primary"
+		 	class="d-flex justify-center"
 		>
-				<v-toolbar-title
-				 class="font-weight-black info--text"
-				 style="font-size: 25px"
-				>
-					COMPLETE YOUR PROFILE
-				</v-toolbar-title>
+			<v-toolbar-title
+				class="font-weight-black info--text"
+				style="font-size: 25px"
+			>
+				COMPLETE YOUR PROFILE
+			</v-toolbar-title>
 		</v-toolbar>
+
 		<v-row
-		class="pt-12 pb-2"
-		justify="center"
-		align="center">
-		<image-input>
-			<div slot="activator">
-			<v-avatar size="150px" v-ripple class="mb-3">
-				<img :src="avatar" alt="avatar">
-			</v-avatar>
-			</div>
-		</image-input>
+			class="pt-12 pb-2"
+			justify="center"
+			align="center"
+		>
+          <v-avatar 
+		  	size="180px" 
+			class="mb-3"
+		>
+            <img :src="avatar" alt="avatar">
+          </v-avatar>
 		</v-row>
-		<v-row
-		justify="center"
-		align="center">
-			<v-text-field
-			name="photo"
-			outline
-			background-color="blue"
-			color="blue"
-			label="Select image"
-			@click="selectImage"/>
+
+		<v-row justify="center">
 			<input
-			ref="image"
-			class="hide-input"
-			type="file"
-			accept="image/*"
-			@change="imageSelected">
-		</v-row>
-		<v-row
-			justify="center">
+				ref="image"
+				type="file"
+				accept="image/*"
+				@change="imageSelected"
+				style="display: none"
+			>
 			<v-btn
-				class="upload-button"
-				color="indigo"
-				@click="saveAvatar">
-				Upload
-				<v-icon
-				right
-				color="white">
-				</v-icon>
+				color="info"
+				@click="selectImage"
+				text
+			>
+				SELECT AN IMAGE 
 			</v-btn>
 		</v-row>
+
 		<v-row
-		 justify="center">
+			justify="center"
+			class="pt-5"
+		>
 			<v-slide-x-transition>
-				<div v-if="avatar && saved == false">
-					<v-btn text class="secondary" @click="saveAvatar" :loading="saving">Save Avatar</v-btn>
+				<div v-if="avatar && saving == true">
+					<v-btn
+						class="upload-button info--text"
+						color="primary"
+						@click="saveAvatar"
+					>
+						UPLOAD
+					</v-btn>
 				</div>
 			</v-slide-x-transition>
 		</v-row>
 
 		<v-row
-		 class="pt-10 pb-10 pa-15"
+		 class="pt-5 pb-10 pa-15"
 		>
 			<v-text-field
-				v-model="username"
+				v-model="user.username"
 				name="username"
-				:label="user.username"
+				label="Username"
 				type="text"
 				filled
 				rounded
-				dense
+				outlined
 				required
 				color="info"
+				clearable
+				maxlength="15"
+				counter
+				:rules="[rules.required, rules.counter_max, rules.counter_min]"
 			></v-text-field>
 		</v-row>
 
 		<v-divider></v-divider>
 
 		<v-card-actions
-		 class="d-flex justify-center align-center pa-3"
-		 >
+		 	class="d-flex justify-center align-center pa-3"
+		>
 			<v-btn
 				color="accent"
 				text
@@ -110,9 +111,8 @@ export default Vue.extend ({
 		return {
 			avatar: '',
 			photo: '',
+			username: '',
 			saving: false,
-			saved: false,
-			username: "",
 			user: {
 				id: 0,
 				login: "",
@@ -125,6 +125,13 @@ export default Vue.extend ({
 				username: "",
 				avatar: "",
 			},
+			rules: {
+				counter_max: value => value.length <= 15 || 'Max 15 characters',
+				counter_min: value => value.length >= 5 || 'Min 5 characters',
+				required: value => !!value || 'Required',
+			},
+			errorMessages: '',
+			formHasErrors: false,
 		}
 	},
 	created: function() {
@@ -138,17 +145,6 @@ export default Vue.extend ({
 			console.error(error)
 		});
 	},
-	components: {
-		ImageInput: ImageInput
-	},
-	watch:{
-		avatar: {
-			handler: function() {
-				this.saved = false
-			},
-			deep: true
-		}
-	},
 	methods: {
 		hexToBase64(str: any){
  	   		return btoa(String.fromCharCode.apply(null, str.replace(/\r|\n/g, "").replace(/([\da-fA-F]{2}) ?/g, "0x$1 ").replace(/ +$/, "").split(" ")));
@@ -160,14 +156,7 @@ export default Vue.extend ({
 			const target = e.target as HTMLInputElement;
 			this.$emit('input', target!.files![0]);
 			this.photo = (this.$refs as HTMLFormElement).image.files[0];
-		},
-		uploadImage() {
-			this.saving = true
-			setTimeout(() => this.savedAvatar(), 1000)
-		},
-		savedAvatar() {
-			this.saving = false
-			this.saved = true
+			this.saving = true;
 		},
 		async saveUsername() {
 			const { username } = this;
@@ -180,8 +169,10 @@ export default Vue.extend ({
 			.catch((error) => {
 				console.error(error)
 			});
+			this.$router.push('/home');
 		},
 		async saveAvatar() {
+			this.saving = false;
 			let formdata = new FormData();
 			formdata.append('file', this.photo);
 			let config = {
