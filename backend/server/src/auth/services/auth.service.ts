@@ -6,8 +6,7 @@ import axios, { AxiosRequestConfig, AxiosResponse } from 'axios';
 import { UserDto } from 'src/users/dto/users.dto';
 import { User } from 'src/users/entities/user.entity';
 import * as FormData from 'form-data';
-import { Response } from 'express';
-
+import * as bcrypt from 'bcrypt';
 
 @Injectable()
 export class AuthService {
@@ -97,16 +96,26 @@ export class AuthService {
 	async validateUser(email: string, pass: string): Promise<any> {
 		console.log('email = ' + email + ', password = ' + pass);
 		const user = await this.usersService.findOneByEmail(email);
-		if (user && user.password === pass) {
-			const { password, ...result } = user;
-			return result;
+		console.log(user);
+		if (user) {
+			const isMatch = await bcrypt.compare(pass, user.password);
+			console.log(isMatch);
+			if (isMatch) {
+				const { password, ...result } = user;
+				return result;
+			}
+			return null;
 		}
 		return null;
 	}
 
 	async registerUser(email: string, username: string, pass: string) {
+		console.log('email = ' + email + ', password = ' + pass);
+		const salt_pass = await bcrypt.genSalt();
+		const hash_pass = await bcrypt.hash(pass, salt_pass);
 		this.createUserDto.email = email;
-		this.createUserDto.password = pass;
+		this.createUserDto.salt = salt_pass;
+		this.createUserDto.password = hash_pass;
 		this.createUserDto.username = username;
 		this.createUserDto.login = username;
 		return await this.usersService.createUser(this.createUserDto);
