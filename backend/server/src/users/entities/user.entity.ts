@@ -38,11 +38,17 @@ export class User {
 	@Column({ nullable: true })
 	password: string;
 
+	@Column({ nullable: true })
+	salt: string;
+
 	@Column({ default: false })
 	fortytwouser: boolean;
 
 	@Column({ default: false })
 	twofauser: boolean;
+
+	@Column({ nullable: true })
+	twofaSecret: string
 
 	@Column("bigint", { default: {}, array: true })
 	channels: number[];

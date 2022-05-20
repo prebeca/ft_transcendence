@@ -10,8 +10,8 @@
 
             <template v-slot:activator="{ on }">
                 <v-btn icon x-large v-on="on">
-                    <v-avatar size="45">
-                        <v-img src="/avatar.png"></v-img>
+                    <v-avatar>
+                        <v-img :src="avatar"></v-img>
                     </v-avatar>
                 </v-btn>
             </template>
@@ -25,20 +25,31 @@
 </template>
 
 <script lang="ts">
+import Vue from 'vue';
 
-import  Vue from "vue"
-
-export default {
-
-    name: 'DefaultLayout',
-    
+export default Vue.extend ({
+    name: 'NavBar',
     data () {
-        return {
-            title: 'The Pong Game',
-            user: {
-                username: 'Username',
-      },
-        }
+      return {
+            title: 'PONG GAME',
+            avatar: '',
+      }
     },
-}
+    created: function() {
+		this.$axios.get('/users/profile')
+		.then((res) => {
+			console.log(res.data);
+			this.user = res.data;
+            this.changeAvatar(res.data.avatar);
+		})
+		.catch((error) => {
+			console.error(error)
+		});
+	},
+    methods: {
+        changeAvatar(filename: string) {
+			this.avatar = `${process.env.API_URL}/users/profile/avatar/` + filename;
+	    }
+    }
+})
 </script>

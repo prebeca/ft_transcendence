@@ -24,10 +24,12 @@ import { Express } from 'express';
 import { multerOptions } from 'src/common/UploadOptions';
 import { createReadStream, ReadStream } from 'fs';
 import { User } from '../entities/user.entity';
+import { ChannelsService } from 'src/chat/channels/services/channels.service';
+import { Channel } from 'src/typeorm';
 
 @Controller('users')
 export class UsersController {
-	constructor(private readonly userService: UsersService) { }
+	constructor(private readonly userService: UsersService, private readonly channelService: ChannelsService) { }
 
 	@Get()
 	getUsers() {
@@ -58,19 +60,37 @@ export class UsersController {
 	@Get('profile/avatar/:filename')
 	async getAvatar(@Response({ passthrough: true }) res, @Param('filename') filename: string): Promise<StreamableFile> {
 		var file: ReadStream;
+		var path_avatar = 'src/avatar/';
+		const fs = require('fs');
+		if (filename !== undefined) {
+			path_avatar += filename;
+			if (fs.existsSync(path_avatar)) {
+				file = createReadStream(path_avatar);
+				res.set({
+					'Content-Type': 'image/png',
+					'Content-Disposition': 'attachment; filename=' + filename,
+				});
+				return new StreamableFile(file);
+			}
+		}
+		path_avatar = 'src/avatar/default.png';
+		if (fs.existsSync(path_avatar)) {
+			file = createReadStream(path_avatar);
+			res.set({
+				'Content-Type': 'image/png',
+				'Content-Disposition': 'attachment; filename=' + filename,
+			});
+			return new StreamableFile(file);
+		}
+		return null;
+	}
 
-		if (filename === undefined) {
-			file = createReadStream('src/avatar/default.png');
-		}
-		else {
-			file = createReadStream('src/avatar/' + filename);
-			console.log(file);
-		}
-		res.set({
-			'Content-Type': 'image/png',
-			'Content-Disposition': 'attachment; filename=' + filename,
-		});
-		return new StreamableFile(file);
+	@UseGuards(JwtAuthGuard)
+	@Get('channels')
+	async getChannels(@Req() req: Request) {
+		// console.log(req.user);
+		const channels: number[] = (await this.userService.findUsersById(req.user["userid"])).channels;
+		return await this.channelService.getChannelsById(channels);
 	}
 
 	@Get('id/:id')

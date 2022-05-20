@@ -9,28 +9,38 @@ import { SocketService } from './socket.service';
 
 @WebSocketGateway({ cors: true })
 export class SocketGateway {
-	constructor(private readonly socketService: SocketService) { }
-	private readonly channelService: ChannelsService
+	constructor(private readonly socketService: SocketService, private readonly channelService: ChannelsService) { }
 
 	@WebSocketServer()
 	server: Server;
 
 
 	@SubscribeMessage('JoinChan')
-	async joinChannel(@MessageBody() data: Message, @ConnectedSocket() client: Socket,): Promise<Message> {
+	async joinChannel(@MessageBody() data: Message, @ConnectedSocket() client: Socket,) {
 		console.log("Joining channel !")
 		console.log(data)
-		client.join(data.channel_id.toString())
-		this.socketService.joinChannel(data.channel_id, data.sender_id)
-		return data;
+		await this.channelService.addMessageToChannel(data.channel_id, data);
+		await client.join(data.channel_id.toString())
+		this.socketService.joinChannel(data.channel_id, data.user_id)
+		this.server.to(data.channel_id.toString()).emit('NewMessage', data);
 	}
 
 	@SubscribeMessage('MessageSend')
-	async handleMsgDistrib(@MessageBody() data: Message, @ConnectedSocket() client: Socket,): Promise<Message> {
+	async handleMsgDistrib(@MessageBody() data: Message, @ConnectedSocket() client: Socket,) {
 		console.log("Handle message distribution !")
 		console.log(data)
-		this.server.to(data.channel_id.toString()).emit('NewMessage', data);
-		return data;
+		if (data.type == "cmd") {
+			// TODO handle cmd
+			// this.server.to(data.channel_id.toString()).emit('NewMessage');
+			let answer: Message;
+			if (data.content.toLowerCase() == "/clear")
+				answer = await this.channelService.clearChat(data.channel_id);
+			this.server.to(answer.channel_id.toString()).emit('NewMessage', answer);
+		}
+		else {
+			await this.channelService.addMessageToChannel(data.channel_id, data);
+			this.server.to(data.channel_id.toString()).emit('NewMessage');
+		}
 	}
 
 }
