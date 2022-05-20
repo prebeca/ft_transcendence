@@ -1,27 +1,8 @@
 import { ContextType, Logger } from "@nestjs/common";
 import { ConnectedSocket, MessageBody, OnGatewayConnection, OnGatewayDisconnect, SubscribeMessage, WebSocketGateway, WebSocketServer, WsResponse } from "@nestjs/websockets";
 import { Server, Socket } from "socket.io";
-import  PadI  from "./pad.interface"
 
-// let pad1 = {
-// 	x: 0,
-// 	y: 0,
-// 	width: 10,
-// 	height: 100,
-// };
-
-let pad2: {
-	x: number,
-	y: number,
-	width: 10,
-	height: 100,
-};
-let ball: {
-	x: number,
-	y: number,
-	r: 5,
-	speed: 1,
-};
+const padHeight = 68;
 
 @WebSocketGateway(42042, {cors: {
 	origin: process.env.APPLICATION_REDIRECT_URI,
@@ -33,8 +14,12 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
 	@WebSocketServer() server: Server;
 	private logger: Logger = new Logger("gameGateway");
 
-
-	pad1: PadI;
+	pad1y: number;
+	pad2y: number;
+	ballx: number;
+	bally: number;
+	canvasx: number;
+	canvasy: number;
 
 
 	afterInit(server: Server) {
@@ -61,24 +46,42 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
 	// 	this.server.emit("pad2", pad2);
 	// }
 
-
-
-
 	@SubscribeMessage('initPads')
-	initPads(client: Socket, width: number, height: number) {
-		this.pad1.x = 0;
-		this.pad1.y = height / 2 - this.pad1.height / 2;
-		pad2.x = width - pad2.width;
-		pad2.y = height / 2 - pad2.height / 2;
-		ball.x = width / 2;
-		ball.y = height / 2;
-		this.server.emit("drawPad", this.pad1);
-		this.server.emit("drawPad", pad2);
-		this.server.emit("drawBall", ball);
-		console.log("iciiiiiiiiiiiiiiiiiiiiiiii");
+	initPads(client: Socket, data: any) {
+		this.canvasx = data.width;
+		this.canvasy = data.height;
+		this.pad1y = data.height / 2 - padHeight / 2;
+		this.pad2y = data.height / 2 - padHeight / 2;
+		this.ballx = data.width / 2;
+		this.bally = data.height / 2;
+		this.server.emit("drawPad", 1, this.pad1y);
+		this.server.emit("drawPad", 2, this.pad2y);
+		this.server.emit("drawBall", this.ballx, this.bally);
 	}
 
+	@SubscribeMessage('ArrowUp')
+	// padUp(client: Socket, pos: number) {
+	padUp(client: Socket) {
+		// console.log("pad1y avant = "+this.pad1y);
+		if (this.pad1y > 10)
+			this.pad1y -= 10;
+		else
+			this.pad1y = 0;
+		// console.log("pad1y apres = "+this.pad1y);
+		this.server.emit("drawPad", 1, this.pad1y);
+	}
 
+	@SubscribeMessage('ArrowDown')
+	// padUp(client: Socket, pos: number) {
+	padDown(client: Socket) {
+		// console.log("pad1y avant = "+this.pad1y);
+		if (this.pad1y < this.canvasy - padHeight)
+			this.pad1y += 10;
+		else
+			this.pad1y = this.canvasy - padHeight;
+		// console.log("pad1y apres = "+this.pad1y);
+		this.server.emit("drawPad", 1, this.pad1y);
+	}
 
 	// @SubscribeMessage('msgToServer')
 	// handleMessage(client: Socket, message: string): void {
