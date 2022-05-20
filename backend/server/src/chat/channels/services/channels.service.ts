@@ -16,6 +16,10 @@ export class ChannelsService {
 		return this.channelRepository.find();
 	}
 
+	async getMessages(id: number) {
+		return (await this.channelRepository.findOne(id)).messages;
+	}
+
 	async createChannel(createChannelDto: CreateChannelDto) {
 		if (await this.channelRepository.findOne({ where: { name: createChannelDto.name } }) != null)
 			return;
@@ -24,8 +28,15 @@ export class ChannelsService {
 		return this.channelRepository.save(newChannel);
 	}
 
-	getChannelsById(id: number): Promise<Channel> {
-		return this.channelRepository.findOne(id);
+	async getChannelsById(ids: number[]): Promise<Channel[]> {
+		let channels: Channel[] = [];
+		for (let i = 0; i < ids.length; ++i) {
+			let channel = await this.channelRepository.findOne(ids[i]);
+			if (channel != undefined)
+				channels.push(channel)
+		}
+		// console.log(channels);
+		return channels;
 	}
 
 	getChannelsByName(name: string): Promise<Channel> {
@@ -50,10 +61,32 @@ export class ChannelsService {
 		let channel = await this.channelRepository.findOne(channel_id);
 		if (channel.users_ids.find(e => e == user_id) == undefined)
 			channel.users_ids.push(user_id);
-		this.channelRepository.save(channel);
+		await this.channelRepository.save(channel);
 	}
 
-	// async addMessageToChannel(id: number, msg: Message) {
-	// 	await this.channelRepository.update({ where: { id: id } }, )
-	// }
+	async addMessageToChannel(id: number, msg: Message) {
+		let channel = await this.channelRepository.findOne(id);
+		try {
+			channel.messages.push(msg);
+			await this.channelRepository.save(channel);
+		} catch (error) {
+			console.log(error);
+		}
+	}
+
+	async clearChat(id: number): Promise<Message> {
+		let channel = await this.channelRepository.findOne(id);
+		let nb_msg = channel.messages.length;
+		channel.messages = [];
+		await this.channelRepository.save(channel);
+		return ({
+			type: "info",
+			user_id: 0,
+			username: "Clear",
+			channel_id: id,
+			channel_name: channel.name,
+			content: nb_msg + " messages cleared !",
+		})
+	}
+
 }

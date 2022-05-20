@@ -8,7 +8,7 @@ import {
 	UsePipes,
 	ValidationPipe,
 	ParseArrayPipe,
-	Headers
+	Headers,
 } from '@nestjs/common';
 import { CreateChannelDto } from '../dto/channels.dto';
 import { Message } from '../entities/channel.entity';
@@ -23,10 +23,21 @@ export class ChannelsController {
 		return this.channelService.getChannels();
 	}
 
-	@Get('id?:id')
-	findChannelsById(@Param('id') id: number) {
-		console.log(id);
-		return this.channelService.getChannelsById(id);
+	@Get('messages/:id')
+	async getMessages(@Param('id') id: number) {
+		return await this.channelService.getMessages(id);
+	}
+
+	// @Get('id?:id')
+	// findChannelsById(@Param('id') id: number) {
+	// 	console.log(id);
+	// 	return this.channelService.getChannelsById(id);
+	// }
+
+	@Get('ids?:ids')
+	getChannelsById(@Param('ids') ids: number[]) {
+		// console.log(ids[0]);
+		return this.channelService.getChannelsById(ids);
 	}
 
 	@Post('create')
