@@ -106,6 +106,8 @@ export class UsersService {
 
 	async addChannel(user_id: number, chan_id: number) {
 		let user = await this.userRepository.findOne(user_id);
+		if (user == null)
+			return
 		if (user.channels.find((e) => e == chan_id) === undefined) {
 			user.channels.push(chan_id)
 		}
