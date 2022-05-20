@@ -1,9 +1,11 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, StreamableFile } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { User } from 'src/users/entities/user.entity';
 import { Repository, UpdateResult, UsingJoinColumnOnlyOnOneSideAllowedError } from 'typeorm';
 import { UserDto } from 'src/users/dto/users.dto';
 import { getRepository } from "typeorm";
+import { createReadStream } from 'fs';
+import { ReadStream } from 'typeorm/platform/PlatformTools';
 
 @Injectable()
 export class UsersService {
@@ -86,9 +88,23 @@ export class UsersService {
 		return avatar_url;
 	}
 
-	async remove(id: number): Promise<User[]> {
-		await this.userRepository.delete(id);
-		return this.getUsers();
+	async getAvatar(filename: string): Promise<StreamableFile> {
+		var file: ReadStream;
+		var path_avatar = 'src/avatar/';
+		const fs = require('fs');
+		if (filename !== undefined) {
+			path_avatar += filename;
+			if (fs.existsSync(path_avatar)) {
+				file = createReadStream(path_avatar);
+				return new StreamableFile(file);
+			}
+		}
+		path_avatar = 'src/avatar/default.png';
+		if (fs.existsSync(path_avatar)) {
+			file = createReadStream(path_avatar);
+			return new StreamableFile(file);
+		}
+		return null;
 	}
 
 	async removeAll(): Promise<User[]> {

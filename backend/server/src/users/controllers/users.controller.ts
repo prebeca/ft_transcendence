@@ -57,28 +57,13 @@ export class UsersController {
 
 	@Get('profile/avatar/:filename')
 	async getAvatar(@Response({ passthrough: true }) res, @Param('filename') filename: string): Promise<StreamableFile> {
-		var file: ReadStream;
-		var path_avatar = 'src/avatar/';
-		const fs = require('fs');
-		if (filename !== undefined) {
-			path_avatar += filename;
-			if (fs.existsSync(path_avatar)) {
-				file = createReadStream(path_avatar);
-				res.set({
-					'Content-Type': 'image/png',
-					'Content-Disposition': 'attachment; filename=' + filename,
-				});
-				return new StreamableFile(file);
-			}
-		}
-		path_avatar = 'src/avatar/default.png';
-		if (fs.existsSync(path_avatar)) {
-			file = createReadStream(path_avatar);
+		const file: StreamableFile = await this.userService.getAvatar(filename);
+		if (file) {
 			res.set({
 				'Content-Type': 'image/png',
 				'Content-Disposition': 'attachment; filename=' + filename,
 			});
-			return new StreamableFile(file);
+			return file;
 		}
 		return null;
 	}
@@ -93,11 +78,6 @@ export class UsersController {
 	@UsePipes(ValidationPipe)
 	createUsers(@Body() userDto: UserDto) {
 		return this.userService.createUser(userDto);
-	}
-
-	@Get('delete/:id')
-	deleteUsersById(@Param('id', ParseIntPipe) id: number) {
-		return this.userService.remove(id);
 	}
 
 	@Get('deleteall')
