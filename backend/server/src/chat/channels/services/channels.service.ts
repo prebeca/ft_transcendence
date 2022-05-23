@@ -22,10 +22,17 @@ export class ChannelsService {
 
 	async createChannel(createChannelDto: CreateChannelDto) {
 		if (await this.channelRepository.findOne({ where: { name: createChannelDto.name } }) != null)
-			return;
-		const newChannel = this.channelRepository.create(createChannelDto);
-		console.log(newChannel);
+			return null;
+		let newChannel = this.channelRepository.create(createChannelDto);
+		console.log("create channel " + newChannel.name)
 		return this.channelRepository.save(newChannel);
+	}
+
+	async updateChannel(channel: Channel) {
+		if (await this.channelRepository.findOne(channel.id) == null)
+			return null;
+		console.log("update channel " + channel.name)
+		return this.channelRepository.save(channel);
 	}
 
 	async getChannelsById(ids: number[]): Promise<Channel[]> {
@@ -35,7 +42,6 @@ export class ChannelsService {
 			if (channel != undefined)
 				channels.push(channel)
 		}
-		// console.log(channels);
 		return channels;
 	}
 
@@ -59,7 +65,9 @@ export class ChannelsService {
 
 	async addUser(channel_id: number, user_id: number) {
 		let channel = await this.channelRepository.findOne(channel_id);
-		if (channel.users_ids.find(e => e == user_id) == undefined)
+		if (channel == null)
+			return;
+		if (channel.users_ids.find(e => e == user_id) === undefined)
 			channel.users_ids.push(user_id);
 		await this.channelRepository.save(channel);
 	}
