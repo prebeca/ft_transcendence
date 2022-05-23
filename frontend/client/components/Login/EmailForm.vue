@@ -214,7 +214,7 @@ export default Vue.extend ({
       this.$axios.post('/auth/login', {email: this.loginEmail, password: this.loginPassword})
 			.then((res) => {
 				console.log(res);
-        this.$router.push("login");
+        this.$router.push("/home");
 			})
 			.catch((error) => {
 				console.error(error)
