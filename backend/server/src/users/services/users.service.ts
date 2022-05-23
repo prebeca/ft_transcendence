@@ -1,9 +1,8 @@
 import { Injectable, InternalServerErrorException, StreamableFile, UnauthorizedException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { User } from 'src/users/entities/user.entity';
-import { Repository, UpdateResult, UsingJoinColumnOnlyOnOneSideAllowedError } from 'typeorm';
+import { Repository } from 'typeorm';
 import { UserDto } from 'src/users/dto/users.dto';
-import { getRepository } from "typeorm";
 import { createReadStream } from 'fs';
 import { ReadStream } from 'typeorm/platform/PlatformTools';
 import { UpdateUserDto } from '../dto/updateUser.dto';

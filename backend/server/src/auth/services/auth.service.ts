@@ -22,7 +22,7 @@ export class AuthService {
 	@Inject(ConfigService)
 	private readonly config: ConfigService;
 
-	async jwtGenerate(userlogin: string, userid: number) {
+	async jwtGenerate(userlogin: string, userid: number): Promise<{ access_token: string }> {
 		const payload = { username: userlogin, id: userid };
 		return {
 			access_token: this.jwtService.sign(payload),
@@ -68,7 +68,6 @@ export class AuthService {
 
 		var user: User = await this.usersService.findOne(this.createUserDto.login);
 		if (!user) {
-
 			user = this.usersService.createUser(this.createUserDto);
 			if (user === null)
 				return null;
@@ -110,7 +109,7 @@ export class AuthService {
 		return this.getUser42Infos(access_token);
 	}
 
-	get42OAuthURL() {
+	get42OAuthURL(): { url: string } {
 		return {
 			url: 'https://api.intra.42.fr/oauth/authorize?client_id='
 				+ this.config.get<string>('APPLICATION_UID')
@@ -139,7 +138,7 @@ export class AuthService {
 			return null;
 	}
 
-	async registerUser(registerUser: RegisterInterface) {
+	async registerUser(registerUser: RegisterInterface): Promise<User> {
 		console.log('email = ' + registerUser.email + ', password = ' + registerUser.password);
 		try {
 			const salt_pass = await bcrypt.genSalt();
