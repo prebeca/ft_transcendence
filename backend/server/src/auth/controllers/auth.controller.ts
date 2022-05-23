@@ -22,7 +22,7 @@ export class AuthController {
 	}
 
 	@Get('42callback')
-	@Redirect(`${process.env.APPLICATION_REDIRECT_URI}/login`, 302)
+	@Redirect(`${process.env.APPLICATION_REDIRECT_URI}/login/complete-profile`, 302)
 	async authenticate42User(@Res({ passthrough: true }) response: Response, @Query('code') code: string) {
 		console.log('---authenticate42User---');
 

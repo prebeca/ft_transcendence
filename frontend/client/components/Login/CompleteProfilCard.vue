@@ -69,7 +69,6 @@
 
 <script lang="ts">
 import Vue from "vue";
-import ImageInput from "./ImageInput.vue";
 
 export default Vue.extend({
   name: "loginCard",
