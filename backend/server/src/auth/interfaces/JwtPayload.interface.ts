@@ -1,4 +1,8 @@
 export interface JwtPayload {
-    isTwoFactorEnable?: boolean
-    isTwoFaAuthenticated?: boolean
+	id: number
+	username: string
+	iat: number
+	exp: number
+	isTwoFactorEnable?: boolean
+	isTwoFaAuthenticated?: boolean
 }

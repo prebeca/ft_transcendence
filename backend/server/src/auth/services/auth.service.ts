@@ -7,6 +7,9 @@ import { UserDto } from 'src/users/dto/users.dto';
 import { User } from 'src/users/entities/user.entity';
 import * as FormData from 'form-data';
 import * as bcrypt from 'bcrypt';
+import { Response } from 'express';
+import { LoginInterface } from '../interfaces/login.interface';
+import { RegisterInterface } from '../interfaces/register.interface';
 
 @Injectable()
 export class AuthService {
@@ -20,7 +23,7 @@ export class AuthService {
 	private readonly config: ConfigService;
 
 	async jwtGenerate(userlogin: string, userid: number) {
-		const payload = { username: userlogin, sub: userid };
+		const payload = { username: userlogin, id: userid };
 		return {
 			access_token: this.jwtService.sign(payload),
 		};
@@ -49,12 +52,27 @@ export class AuthService {
 		var user: User = await this.usersService.findOne(this.createUserDto.login);
 		if (!user) {
 
-			user = await this.usersService.createUser(this.createUserDto);
+			user = this.usersService.createUser(this.createUserDto);
 			if (user === null)
 				return null;
 		}
 		const result_jwtsign: any = await this.jwtGenerate(res2.data.login, user.id);
 		return result_jwtsign.access_token;
+	}
+
+	async createCookie(response: Response, is42: boolean, code: string, req?: any): Promise<Response> {
+		const token_client: string = is42 ?
+			await this.get42APIToken(code) :
+			(await this.jwtGenerate(req.user["login"], req.user["id"])).access_token;
+		if (!token_client)
+			return null;
+		response.cookie('access_token', token_client, {
+			httpOnly: true,
+			path: '/',
+			maxAge: 1000 * 60 * 15,
+			/* secure: true, -> only for localhost AND https */
+		});
+		return response;
 	}
 
 	async get42APIToken(code_api: string) {
@@ -97,15 +115,16 @@ export class AuthService {
 		return await bcrypt.compare(pass, user.password);
 	}
 
-	async validateUser(email: string, pass: string): Promise<any> {
-		console.log('email = ' + email + ', password = ' + pass);
-		const user: User = await this.usersService.findOneByEmail(email);
+	async validateUser(loginPayload: LoginInterface): Promise<any> {
+		console.log('email = ' + loginPayload.email + ', password = ' + loginPayload.password);
+		const user: User = await this.usersService.findOneByEmail(loginPayload.email);
 		//console.log(user);
 		if (user) {
-			const passIsCorrect = await this.validatePassword(user, pass);
+			const passIsCorrect = await this.validatePassword(user, loginPayload.password);
 			console.log("The password is " + (passIsCorrect ? "correct" : "false"));
 			if (passIsCorrect) {
 				const { password, ...result } = user;
+				console.log(user);
 				return user;
 			}
 			return null;
@@ -114,15 +133,15 @@ export class AuthService {
 			return null;
 	}
 
-	async registerUser(email: string, username: string, pass: string) {
-		console.log('email = ' + email + ', password = ' + pass);
+	async registerUser(registerUser: RegisterInterface) {
+		console.log('email = ' + registerUser.email + ', password = ' + registerUser.password);
 		const salt_pass = await bcrypt.genSalt();
-		const hash_pass = await bcrypt.hash(pass, salt_pass);
-		this.createUserDto.email = email;
+		const hash_pass = await bcrypt.hash(registerUser.password, salt_pass);
+		this.createUserDto.email = registerUser.email;
 		this.createUserDto.salt = salt_pass;
 		this.createUserDto.password = hash_pass;
-		this.createUserDto.username = username;
-		this.createUserDto.login = username;
-		return await this.usersService.createUser(this.createUserDto);
+		this.createUserDto.username = registerUser.username;
+		this.createUserDto.login = registerUser.username;
+		return this.usersService.createUser(this.createUserDto);
 	}
 }

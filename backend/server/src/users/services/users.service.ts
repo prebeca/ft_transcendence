@@ -1,4 +1,4 @@
-import { Injectable, InternalServerErrorException, StreamableFile } from '@nestjs/common';
+import { Injectable, InternalServerErrorException, StreamableFile, UnauthorizedException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { User } from 'src/users/entities/user.entity';
 import { Repository, UpdateResult, UsingJoinColumnOnlyOnOneSideAllowedError } from 'typeorm';
@@ -40,8 +40,9 @@ export class UsersService {
 		}
 	}
 
-	async updateUsername(userid: number, new_username: string) {
-		console.log("updateUsername in service (): " + userid);
+	async updateUsername(user: User, new_username: string) {
+		if (!new_username)
+			throw new UnauthorizedException("Fill in the new username please");
 		try {
 			const a = await getRepository(User)
 				.createQueryBuilder("user")
@@ -49,7 +50,7 @@ export class UsersService {
 				.set({
 					username: new_username,
 				})
-				.where("id = :id", { id: userid })
+				.where("id = :id", { id: user.id })
 				.printSql()
 				.execute();
 		}

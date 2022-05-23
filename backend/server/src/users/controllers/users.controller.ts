@@ -4,11 +4,9 @@ import {
 	Get,
 	Req,
 	Param,
-	ParseIntPipe,
 	Post,
 	UsePipes,
 	ValidationPipe,
-	ParseArrayPipe,
 	UploadedFile,
 	UseInterceptors,
 	StreamableFile,
@@ -22,7 +20,6 @@ import { Request } from 'express';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { Express } from 'express';
 import { multerOptions } from 'src/common/UploadOptions';
-import { createReadStream, ReadStream } from 'fs';
 import { User } from '../entities/user.entity';
 import { ChannelsService } from 'src/chat/channels/services/channels.service';
 import { Channel } from 'src/typeorm';
@@ -39,14 +36,19 @@ export class UsersController {
 	@UseGuards(JwtAuthGuard)
 	@Get('profile')
 	getProfile(@Req() req: Request) {
-		console.log(req.user);
-		return this.userService.findUsersById(req.user["userid"]);
+		const user: User = { ... (req.user as User) };
+		if (!user)
+			return null;
+		return user; // does not need to do it actually, jwtStrategy already returns the user
 	}
 
 	@UseGuards(JwtAuthGuard)
 	@Post('profile/update/username')
-	updateProfile(@Req() req: Request) {
-		return this.userService.updateUsername(req.user["userid"], req.body["new_username"]);
+	updateUsername(@Req() req: Request) {
+		const user: User = { ... (req.user as User) };
+		if (!user)
+			return null;
+		return this.userService.updateUsername(user, req.body["new_username"]);
 	}
 
 	@UseGuards(JwtAuthGuard)
@@ -73,15 +75,8 @@ export class UsersController {
 	@UseGuards(JwtAuthGuard)
 	@Get('channels')
 	async getChannels(@Req() req: Request) {
-		// console.log(req.user);
 		const channels: number[] = (await this.userService.findUsersById(req.user["userid"])).channels;
 		return await this.channelService.getChannelsById(channels);
-	}
-
-	@Get('id/:id')
-	findUsersById(@Param('id') id: number) {
-		console.log(id);
-		return this.userService.findUsersById(id);
 	}
 
 	@Post('create')
@@ -93,12 +88,5 @@ export class UsersController {
 	@Get('deleteall')
 	deleteUsers() {
 		return this.userService.removeAll();
-	}
-
-	@Post('addGroup')
-	addGroup(@Body(new ParseArrayPipe({ items: UserDto })) createUserDtos: UserDto[]) {
-		for (const val of createUserDtos)
-			this.userService.createUser(val);
-		return this.userService.getUsers();
 	}
 }

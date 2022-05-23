@@ -7,7 +7,7 @@ import { Request } from 'express';
 
 @Controller()
 export class AppController {
-	constructor(private readonly appService: AppService) {}
+	constructor(private readonly appService: AppService) { }
 
 	@Inject(ConfigService)
 	private readonly config: ConfigService;
@@ -15,10 +15,5 @@ export class AppController {
 	@Get()
 	getHello(): string {
 		return this.appService.getHello();
-	}
-	@UseGuards(JwtAuthGuard)
-	@Get('profile')
-	getProfile(@Req() req: Request) {
-	  return req.user;
 	}
 }
