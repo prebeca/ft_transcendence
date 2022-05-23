@@ -70,7 +70,7 @@ export class UsersController {
 	@UseGuards(JwtAuthGuard)
 	@Get('channels')
 	async getChannels(@Req() req: Request): Promise<Channel[]> {
-		const channels: number[] = (await this.userService.findUsersById(req.user["userid"])).channels;
+		const channels: number[] = (await this.userService.findUsersById(req.user["id"])).channels;
 		return await this.channelService.getChannelsById(channels);
 	}
 

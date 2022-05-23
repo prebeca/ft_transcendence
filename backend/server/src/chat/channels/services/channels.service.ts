@@ -5,11 +5,12 @@ import { Any, Repository } from 'typeorm';
 import { CreateChannelDto } from 'src/chat/channels/dto/channels.dto';
 import { Message } from '../entities/channel.entity';
 import { channel } from 'diagnostics_channel';
+import { UsersService } from 'src/users/services/users.service';
 
 @Injectable()
 export class ChannelsService {
 	constructor(
-		@InjectRepository(Channel) private readonly channelRepository: Repository<Channel>,
+		@InjectRepository(Channel) private readonly channelRepository: Repository<Channel>, private readonly userService: UsersService
 	) { }
 
 	getChannels(): Promise<Channel[]> {
@@ -23,9 +24,8 @@ export class ChannelsService {
 	async createChannel(createChannelDto: CreateChannelDto) {
 		if (await this.channelRepository.findOne({ where: { name: createChannelDto.name } }) != null)
 			return null;
-		let newChannel = this.channelRepository.create(createChannelDto);
-		console.log("create channel " + newChannel.name)
-		return this.channelRepository.save(newChannel);
+		let channel = this.channelRepository.create(createChannelDto);
+		return await this.channelRepository.save(channel);
 	}
 
 	async updateChannel(channel: Channel) {
@@ -45,10 +45,6 @@ export class ChannelsService {
 		return channels;
 	}
 
-	getChannelsByName(name: string): Promise<Channel> {
-		return this.channelRepository.findOne({ where: { name: name } });
-	}
-
 	async remove(id: number): Promise<Channel[]> {
 		await this.channelRepository.delete(id);
 		return this.getChannels();
@@ -59,8 +55,30 @@ export class ChannelsService {
 		return this.getChannels();
 	}
 
-	async findOne(channel_name: string): Promise<Channel> {
+	async findOneByName(channel_name: string): Promise<Channel> {
 		return this.channelRepository.findOne({ where: { name: channel_name } });
+	}
+
+	async findOneById(id: number): Promise<Channel> {
+		return this.channelRepository.findOne(id);
+	}
+
+	async addInvite(channel_id: number, user_id: number) {
+		let channel: Channel = await this.channelRepository.findOne(channel_id);
+		let index: number = channel.invited_ids.findIndex(e => e == user_id);
+		if (index != -1)
+			return
+		channel.invited_ids.push(user_id);
+		this.channelRepository.save(channel);
+	}
+
+	async removeInvite(channel_id: number, user_id: number) {
+		let channel: Channel = await this.channelRepository.findOne(channel_id);
+		let index: number = channel.invited_ids.findIndex(e => e == user_id);
+		if (index == -1)
+			return
+		channel.invited_ids.splice(index, 1);
+		this.channelRepository.save(channel);
 	}
 
 	async addUser(channel_id: number, user_id: number) {
@@ -95,6 +113,25 @@ export class ChannelsService {
 			channel_name: channel.name,
 			content: nb_msg + " messages cleared !",
 		})
+	}
+
+	async joinChannel(data: Message): Promise<string> {
+		const channel: Channel = await this.findOneById(data.channel_id);
+
+		if (channel.users_ids.find(e => e == data.user_id) != undefined) {
+			return ("Error: already in channel");
+		}
+		if (channel.scope == "protected" && channel.password != data.content) {
+			return ("Error: bad password");
+		}
+		if (channel.scope == "private" && channel.invited_ids.find((e: number) => e == data.user_id) == undefined) {
+			return ("Error: not invited");
+		}
+
+		await this.addUser(data.channel_id, data.user_id)					// add user to channel members
+		await this.userService.addChannel(data.user_id, data.channel_id)	// add channel to the user's channels list
+		await this.removeInvite(data.channel_id, data.user_id);
+		return ("Success: joined channel " + channel.name);
 	}
 
 }

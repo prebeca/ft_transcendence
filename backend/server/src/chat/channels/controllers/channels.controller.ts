@@ -11,6 +11,7 @@ import {
 	Headers,
 	Req,
 	UseGuards,
+	InternalServerErrorException,
 } from '@nestjs/common';
 import { Request } from 'express';
 import { JwtAuthGuard } from 'src/auth/guards/jwt-auth.guard';
@@ -21,7 +22,7 @@ import { ChannelsService } from '../services/channels.service';
 
 @Controller('channels')
 export class ChannelsController {
-	constructor(private readonly channelService: ChannelsService, private readonly usersService: UsersService) { }
+	constructor(private readonly channelService: ChannelsService, private readonly userService: UsersService) { }
 
 	@Get()
 	getChannels() {
@@ -38,12 +39,6 @@ export class ChannelsController {
 		return this.channelService.getChannelsById(ids);
 	}
 
-	// @Post('create')
-	// @UsePipes(ValidationPipe)
-	// createChannels(@Body() createChannelDto: CreateChannelDto) {
-	// 	return this.channelService.createChannel(createChannelDto);
-	// }
-
 	@Get('delete/:id')
 	deleteChannelsById(@Param('id', ParseIntPipe) id: number) {
 		return this.channelService.remove(id);
@@ -54,41 +49,35 @@ export class ChannelsController {
 		return this.channelService.removeAll();
 	}
 
-	// @Post('deleteall')
-	// addMessageToChannel(@Param('id', ParseIntPipe) id: number, msg: Message) {
-	// 	return this.channelService.addMessageToChannel(id, msg);
-	// }
-
-	// @Post('create')
-	// createChannel(@Body(new ParseArrayPipe({ items: CreateChannelDto }))
-	// createChannelDto: CreateChannelDto,
-	// ) {
-	// 	this.channelService.createChannel(createChannelDto);
-	// 	return this.channelService.getChannels();
-	// }
+	@UseGuards(JwtAuthGuard)
+	@Post('join')
+	async joinChannel(@Req() req: Request, @Body() data: Message): Promise<string> {
+		if (req.user["id"] != data.user_id)
+			throw new InternalServerErrorException("User id does not match");
+		return this.channelService.joinChannel(data);
+	}
 
 	@UseGuards(JwtAuthGuard)
 	@Post('create')
 	async createChannel(@Req() req: Request, @Body() createChannelDto: CreateChannelDto) {
-		let channel: Channel = await this.channelService.createChannel(createChannelDto);
+		let channel: Channel = await this.channelService.createChannel(createChannelDto,);
 		if (channel == null) {
-			console.log("ERROR: channels/create: channel = " + channel + " (channel name already in use)");
-			return
+			return ("ERROR: channels/create: channel = " + createChannelDto.name + " (channel name already in use)")
 		}
-		console.log("created new channel : " + channel);
-		channel.owner = req.user["userid"];
-		channel.admin_ids.push(req.user["userid"]);
-		this.channelService.addUser(channel.id, req.user["userid"])
-		this.usersService.addChannel(req.user["userid"], channel.id);
-		return this.channelService.updateChannel(channel);
+		let owner = req.user["id"];
+		channel.owner = owner;
+		channel.admin_ids.push(owner);
+		channel.users_ids.push(owner);
+		await this.userService.addChannel(owner, channel.id);
+		return await this.channelService.updateChannel(channel);
 	}
 
-	@Post('addGroup')
-	addGroup(@Body(new ParseArrayPipe({ items: CreateChannelDto }))
-	createChannelDtos: CreateChannelDto[],
-	) {
-		for (const val of createChannelDtos)
-			this.channelService.createChannel(val);
-		return this.channelService.getChannels();
-	}
+	// @Post('addGroup')
+	// addGroup(@Body(new ParseArrayPipe({ items: CreateChannelDto }))
+	// createChannelDtos: CreateChannelDto[],
+	// ) {
+	// 	for (const val of createChannelDtos)
+	// 		this.channelService.createChannel(val);
+	// 	return this.channelService.getChannels();
+	// }
 }

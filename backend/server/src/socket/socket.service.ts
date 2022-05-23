@@ -1,6 +1,6 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Scope, UseGuards } from '@nestjs/common';
 import { Server, Socket } from 'socket.io';
-import { Message } from 'src/chat/channels/entities/channel.entity';
+import { Message, Channel } from 'src/chat/channels/entities/channel.entity';
 import { ChannelsService } from 'src/chat/channels/services/channels.service';
 import { UsersService } from 'src/users/services/users.service';
 
@@ -8,14 +8,13 @@ import { UsersService } from 'src/users/services/users.service';
 export class SocketService {
 	constructor(private readonly channelService: ChannelsService, private readonly userService: UsersService) { }
 
-	async joinChannel(data: Message, client: Socket, server: Server) {
+	async joinChannel(data: Message, client: Socket) {
+		console.log("room joined")
 		await client.join(data.channel_id.toString())							// join socket room
-		await this.channelService.addUser(data.channel_id, data.user_id)		// add user to channel members
-		await this.userService.addChannel(data.user_id, data.channel_id)		// add channel to the user's channels list
 	}
 
 	async handleMsgDistrib(data: Message, client: Socket, server: Server) {
-		if (data.type == "cmd") {
+		if (data.content[0] == '/') {
 			// TODO handle cmd
 			let answer: Message;
 			if (data.content.toLowerCase() == "/clear")
