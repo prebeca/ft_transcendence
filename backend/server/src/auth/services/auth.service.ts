@@ -1,4 +1,4 @@
-import { Injectable, Inject } from '@nestjs/common';
+import { Injectable, Inject, InternalServerErrorException } from '@nestjs/common';
 import { UsersService } from 'src/users/services/users.service';
 import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
@@ -27,6 +27,23 @@ export class AuthService {
 		return {
 			access_token: this.jwtService.sign(payload),
 		};
+	}
+
+	async createCookie(response: Response, is42: boolean, code: string, req?: any): Promise<Response> {
+		const token_client: string = is42 ?
+			await this.get42APIToken(code) :
+			(await this.jwtGenerate(req.user["login"], req.user["id"])).access_token;
+
+		if (!token_client)
+			return null;
+
+		response.cookie('access_token', token_client, {
+			httpOnly: true,
+			path: '/',
+			maxAge: 1000 * 60 * 15,
+			/* secure: true, -> only for localhost AND https */
+		});
+		return response;
 	}
 
 	async getUser42Infos(access_token: string): Promise<string> {
@@ -60,22 +77,8 @@ export class AuthService {
 		return result_jwtsign.access_token;
 	}
 
-	async createCookie(response: Response, is42: boolean, code: string, req?: any): Promise<Response> {
-		const token_client: string = is42 ?
-			await this.get42APIToken(code) :
-			(await this.jwtGenerate(req.user["login"], req.user["id"])).access_token;
-		if (!token_client)
-			return null;
-		response.cookie('access_token', token_client, {
-			httpOnly: true,
-			path: '/',
-			maxAge: 1000 * 60 * 15,
-			/* secure: true, -> only for localhost AND https */
-		});
-		return response;
-	}
 
-	async get42APIToken(code_api: string) {
+	async get42APIToken(code_api: string): Promise<string> {
 		const formData = new FormData();
 		let access_token: string;
 		var res: AxiosResponse;
@@ -86,11 +89,16 @@ export class AuthService {
 		formData.append('code', code_api);
 		formData.append('redirect_uri', this.config.get<string>('BASE_URL') + '/auth/42callback');
 
-		await axios.post('https://api.intra.42.fr/oauth/token', formData, { headers: formData.getHeaders() })
+		await axios
+			.post('https://api.intra.42.fr/oauth/token', formData, {
+				headers: formData.getHeaders()
+			})
 			.then(function (response: AxiosResponse): void {
 				res = response;
-			}).catch(function (response: AxiosResponse): void {
+			})
+			.catch(function (response: AxiosResponse): void {
 				console.log("Error getToken =>" + response);
+				return null;
 			});
 
 		access_token = res.data.access_token;
@@ -115,17 +123,15 @@ export class AuthService {
 		return await bcrypt.compare(pass, user.password);
 	}
 
-	async validateUser(loginPayload: LoginInterface): Promise<any> {
+	async validateUser(loginPayload: LoginInterface): Promise<User> {
 		console.log('email = ' + loginPayload.email + ', password = ' + loginPayload.password);
 		const user: User = await this.usersService.findOneByEmail(loginPayload.email);
-		//console.log(user);
 		if (user) {
 			const passIsCorrect = await this.validatePassword(user, loginPayload.password);
 			console.log("The password is " + (passIsCorrect ? "correct" : "false"));
 			if (passIsCorrect) {
-				const { password, ...result } = user;
-				console.log(user);
-				return user;
+				const { password, salt, ...result } = user;
+				return (result as User);
 			}
 			return null;
 		}
@@ -135,13 +141,17 @@ export class AuthService {
 
 	async registerUser(registerUser: RegisterInterface) {
 		console.log('email = ' + registerUser.email + ', password = ' + registerUser.password);
-		const salt_pass = await bcrypt.genSalt();
-		const hash_pass = await bcrypt.hash(registerUser.password, salt_pass);
-		this.createUserDto.email = registerUser.email;
-		this.createUserDto.salt = salt_pass;
-		this.createUserDto.password = hash_pass;
-		this.createUserDto.username = registerUser.username;
-		this.createUserDto.login = registerUser.username;
+		try {
+			const salt_pass = await bcrypt.genSalt();
+			const hash_pass = await bcrypt.hash(registerUser.password, salt_pass);
+			this.createUserDto.email = registerUser.email;
+			this.createUserDto.salt = salt_pass;
+			this.createUserDto.password = hash_pass;
+			this.createUserDto.username = registerUser.username;
+			this.createUserDto.login = registerUser.username;
+		} catch (error) {
+			throw new InternalServerErrorException("Password hashing failed");
+		}
 		return this.usersService.createUser(this.createUserDto);
 	}
 }

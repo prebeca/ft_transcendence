@@ -12,24 +12,32 @@ export class UsersService {
 	constructor(@InjectRepository(User) private readonly userRepository: Repository<User>) { }
 
 	async getUsers(): Promise<User[]> {
-		return this.userRepository.find();
+		try {
+			return this.userRepository.find();
+		} catch (error) {
+			throw new InternalServerErrorException("Query to find every users failed");
+		}
 	}
 
 	createUser(userDto: UserDto): User {
 		try {
-			const user: User = this.userRepository.create(userDto);
-			return user;
-		}
-		catch (error) {
+			return this.userRepository.create(userDto);
+		} catch (error) {
 			throw new InternalServerErrorException("Creation of user failed");
 		}
 	}
 
 	async findUsersById(id: number): Promise<User> {
-		return this.userRepository.findOne(id);
+		try {
+			const { password, salt, ...user } = await this.userRepository.findOne(id);
+			if (!(user as User))
+				return null;
+			return user as User;
+		} catch (error) {
+			throw new InternalServerErrorException("Query to find user failed");
+		}
 	}
 
-	//	async getUpdateQueryBuilder()
 	async updateUsersById(userid: number, userDto: UserDto): Promise<User> {
 		try {
 			const user: User = await this.userRepository.save({ userDto, id: userid });
@@ -40,11 +48,11 @@ export class UsersService {
 		}
 	}
 
-	async updateUsername(user: User, new_username: string) {
+	async updateUsername(user: User, new_username: string): Promise<void> {
 		if (!new_username)
 			throw new UnauthorizedException("Fill in the new username please");
 		try {
-			const a = await getRepository(User)
+			await getRepository(User)
 				.createQueryBuilder("user")
 				.update(User)
 				.set({
@@ -59,11 +67,11 @@ export class UsersService {
 		}
 	}
 
-	async updateAvatar(filename: string, userid: number): Promise<User> {
-		console.log("updateAvatar in service (): " + userid);
+	async updateAvatar(user: User, filename: string): Promise<User> {
+		console.log("updateAvatar in service (): " + user.id);
 		if (filename) {
 			const fs = require('fs');
-			const ancient_filename: string = await this.getAvatarUrl(userid);
+			const ancient_filename: string = await this.getAvatarUrl(user.id);
 			if (ancient_filename === null)
 				return null;
 			try {
@@ -73,79 +81,100 @@ export class UsersService {
 					.set({
 						avatar: filename,
 					})
-					.where("id = :id", { id: userid })
+					.where("id = :id", { id: user.id })
 					.printSql()
 					.execute();
 			} catch (error) {
 				throw new InternalServerErrorException("Update of avatar does not work");
 			}
 			if (ancient_filename !== 'default.png') {
-
-				if (fs.existsSync('src/avatar/' + ancient_filename)) {
-					fs.unlinkSync('src/avatar/' + ancient_filename);
+				try {
+					if (fs.existsSync('src/avatar/' + ancient_filename)) {
+						fs.unlinkSync('src/avatar/' + ancient_filename);
+					}
+				} catch (error) {
+					throw new InternalServerErrorException("Deletion of old avatar failed");
 				}
 			}
 		}
-		return await this.userRepository.findOne(userid);
+		return await this.userRepository.findOne(user.id);
 	}
 
-	async updateTwoFAUser(userid: number, istwofa: boolean): Promise<boolean> {
+	async updateTwoFAUser(user: User, istwofa: boolean): Promise<User> {
 		try {
-			const ret: UpdateResult = await getRepository(User)
+			await getRepository(User)
 				.createQueryBuilder("user")
 				.update(User)
 				.set({
 					twofauser: istwofa,
 				})
-				.where("id = :id", { id: userid })
+				.where("id = :id", { id: user.id })
 				.printSql()
 				.execute();
-			if (ret)
-				return istwofa;
 		} catch (error) {
 			throw new InternalServerErrorException("Update TwoFAUser not work");
 		}
-		return !istwofa; //no good if not checked on frontend
+		return await this.userRepository.findOne(user.id);
 	}
 
 	async getAvatarUrl(userid: number): Promise<string> {
-		var avatar_url: string = (await this.userRepository.findOne(userid)).avatar;
-		return avatar_url;
+		try {
+			return (await this.userRepository.findOne(userid)).avatar;
+		} catch (error) {
+			throw new InternalServerErrorException("Query to search for avatar failed");
+		}
 	}
 
 	async getAvatar(filename: string): Promise<StreamableFile> {
 		var file: ReadStream;
 		var path_avatar = 'src/avatar/';
 		const fs = require('fs');
-		if (filename !== undefined) {
-			path_avatar += filename;
+		try {
+
+			if (filename !== undefined) {
+				path_avatar += filename;
+				if (fs.existsSync(path_avatar)) {
+					file = createReadStream(path_avatar);
+					return new StreamableFile(file);
+				}
+			}
+			path_avatar = 'src/avatar/default.png';
 			if (fs.existsSync(path_avatar)) {
 				file = createReadStream(path_avatar);
 				return new StreamableFile(file);
 			}
+			return null;
+		} catch (error) {
+			throw new InternalServerErrorException("Creation of StreamableFile(" + filename + ") failed");
 		}
-		path_avatar = 'src/avatar/default.png';
-		if (fs.existsSync(path_avatar)) {
-			file = createReadStream(path_avatar);
-			return new StreamableFile(file);
-		}
-		return null;
 	}
 
 	async removeAll(): Promise<User[]> {
-		await this.userRepository.clear();
-		return this.getUsers();
+		try {
+			await this.userRepository.clear();
+			return this.getUsers();
+		} catch (error) {
+			throw new InternalServerErrorException("Deletion of every users failed");
+		}
 	}
 
 	async findOne(login_user: string): Promise<User> {
-		return this.userRepository.findOne({ where: { login: login_user } });
+		try {
+			return this.userRepository.findOne({ where: { login: login_user } });
+		} catch (error) {
+			throw new InternalServerErrorException("Query to search for user with login: " + login_user + " failed");
+		}
 	}
 
 	async findOneByEmail(email_user: string): Promise<User> {
-		return this.userRepository.findOne({ where: { email: email_user } });
+		try {
+			return this.userRepository.findOne({ where: { email: email_user } });
+		} catch (error) {
+			throw new InternalServerErrorException("Query to search for user with email: " + email_user + " failed");
+		}
 	}
 
-	async addChannel(user_id: number, chan_id: number) {
+	async addChannel(user_id: number, chan_id: number): Promise<void> {
 		let user = await this.userRepository.findOne(user_id);
 		if (user == null)
 			return

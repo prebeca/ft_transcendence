@@ -89,6 +89,9 @@
      justify="center"
     >
         <v-checkbox
+		 v-model="user.twofauser"
+		ref="istwofa"
+		 name="istwofa"
          label="Use two-factor authentification"
          color="info"
         ></v-checkbox>
@@ -123,9 +126,11 @@ export default Vue.extend ({
 			photo: '',
 			username: '',
 			saving: false,
+			istwofa: '',
 			user: {
 				username: "",
 				avatar: "",
+				twofauser: false,
 			},
 			rules: {
 				counter_max: value => value.length <= 15 || 'Max 15 characters',
@@ -139,12 +144,22 @@ export default Vue.extend ({
 			console.log(res.data);
 			this.user = res.data;
 			this.changeAvatar(res.data.avatar);
+			
 		})
 		.catch((error) => {
 			console.error(error)
 		});
 	},
 	methods: {
+		/*selectIsTwoFa(){
+			this.istwofa = (this.$refs as HTMLFormElement).istwofa;
+			if (this.user.twofauser){
+				this.istwofa.aria-checked = true
+			}
+			else{
+				this.istwofa.aria-checked = false
+			}
+		},*/
 		hexToBase64(str: any){
  	   		return btoa(String.fromCharCode.apply(null, str.replace(/\r|\n/g, "").replace(/([\da-fA-F]{2}) ?/g, "0x$1 ").replace(/ +$/, "").split(" ")));
 		},
@@ -158,8 +173,8 @@ export default Vue.extend ({
 			this.saving = true;
 		},
 		async saveUsername() {
-			const { username } = this;
-			this.user.username = username;
+			 const { username } = this;
+      		console.log(this.user.username);
 			console.log(this.user.username);
 			this.$axios.post('/users/profile/update/username', {new_username: this.user.username})
 			.then((res) => {

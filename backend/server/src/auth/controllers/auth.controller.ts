@@ -1,7 +1,7 @@
-import { Controller, Get, Res, Redirect, Inject, Query, Post, Request, Req, UnauthorizedException, ValidationPipe, UsePipes, Body } from '@nestjs/common';
+import { Controller, Get, Res, Redirect, Inject, Query, Post, Req, UnauthorizedException, ValidationPipe, UsePipes, Body } from '@nestjs/common';
 import { AuthService } from '../services/auth.service';
 import { ConfigService } from '@nestjs/config';
-import { Response } from 'express';
+import { Response, Request } from 'express';
 import { UseGuards } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 import { RegisterAuthDto } from '../dto/register-auth.dto';
@@ -27,7 +27,7 @@ export class AuthController {
 	async authenticate42User(@Res({ passthrough: true }) response: Response, @Query('code') code: string) {
 		response = await this.authService.createCookie(response, true, code, null);
 		if (!response)
-			throw new UnauthorizedException();
+			throw new UnauthorizedException("JWT Generation error");
 	}
 
 
@@ -41,9 +41,10 @@ export class AuthController {
 
 	@UseGuards(AuthGuard('local'))
 	@Post('login')
-	async login(@Res({ passthrough: true }) response: Response, @Request() req) {
+	async login(@Res({ passthrough: true }) response: Response, @Req() req: Request) {
+		console.log(req.user);
 		response = await this.authService.createCookie(response, false, null, req);
 		if (!response)
-			throw new UnauthorizedException();
+			throw new UnauthorizedException("JWT Generation error");
 	}
 }
