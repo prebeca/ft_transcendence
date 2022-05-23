@@ -6,6 +6,7 @@ import { UserDto } from 'src/users/dto/users.dto';
 import { getRepository } from "typeorm";
 import { createReadStream } from 'fs';
 import { ReadStream } from 'typeorm/platform/PlatformTools';
+import { UpdateUserDto } from '../dto/updateUser.dto';
 
 @Injectable()
 export class UsersService {
@@ -38,13 +39,13 @@ export class UsersService {
 		}
 	}
 
-	async updateUsersById(userid: number, userDto: UserDto): Promise<User> {
+	async updateUsersById(user: User, updatedto: UpdateUserDto): Promise<User> {
 		try {
-			const user: User = await this.userRepository.save({ userDto, id: userid });
-			return user;
+			const same_user: User = { ...user, ...updatedto };
+			return await this.userRepository.save(same_user);
 		}
 		catch (error) {
-			throw new InternalServerErrorException("updateUsersById error");
+			throw new InternalServerErrorException("update of user failed");
 		}
 	}
 
@@ -52,15 +53,7 @@ export class UsersService {
 		if (!new_username)
 			throw new UnauthorizedException("Fill in the new username please");
 		try {
-			await getRepository(User)
-				.createQueryBuilder("user")
-				.update(User)
-				.set({
-					username: new_username,
-				})
-				.where("id = :id", { id: user.id })
-				.printSql()
-				.execute();
+			await this.updateUsersById(user, { username: new_username, avatar: user.avatar, twofauser: user.twofauser })
 		}
 		catch (error) {
 			throw new InternalServerErrorException("Update username does not work");
@@ -75,15 +68,7 @@ export class UsersService {
 			if (ancient_filename === null)
 				return null;
 			try {
-				await getRepository(User)
-					.createQueryBuilder("user")
-					.update(User)
-					.set({
-						avatar: filename,
-					})
-					.where("id = :id", { id: user.id })
-					.printSql()
-					.execute();
+				await this.updateUsersById(user, { username: user.username, avatar: filename, twofauser: user.twofauser });
 			} catch (error) {
 				throw new InternalServerErrorException("Update of avatar does not work");
 			}
@@ -102,15 +87,7 @@ export class UsersService {
 
 	async updateTwoFAUser(user: User, istwofa: boolean): Promise<User> {
 		try {
-			await getRepository(User)
-				.createQueryBuilder("user")
-				.update(User)
-				.set({
-					twofauser: istwofa,
-				})
-				.where("id = :id", { id: user.id })
-				.printSql()
-				.execute();
+			await this.updateUsersById(user, { username: user.username, avatar: user.avatar, twofauser: istwofa });
 		} catch (error) {
 			throw new InternalServerErrorException("Update TwoFAUser not work");
 		}
