@@ -1,4 +1,4 @@
-import { Injectable, StreamableFile } from '@nestjs/common';
+import { Injectable, InternalServerErrorException, StreamableFile } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { User } from 'src/users/entities/user.entity';
 import { Repository, UpdateResult, UsingJoinColumnOnlyOnOneSideAllowedError } from 'typeorm';
@@ -15,9 +15,14 @@ export class UsersService {
 		return this.userRepository.find();
 	}
 
-	async createUser(userDto: UserDto) {
-		const newUser = this.userRepository.create(userDto);
-		return await this.userRepository.save(newUser);
+	createUser(userDto: UserDto): User {
+		try {
+			const user: User = this.userRepository.create(userDto);
+			return user;
+		}
+		catch (error) {
+			throw new InternalServerErrorException("Creation of user failed");
+		}
 	}
 
 	async findUsersById(id: number): Promise<User> {
@@ -26,20 +31,31 @@ export class UsersService {
 
 	//	async getUpdateQueryBuilder()
 	async updateUsersById(userid: number, userDto: UserDto): Promise<User> {
-		return this.userRepository.save({ userDto, id: userid });
+		try {
+			const user: User = await this.userRepository.save({ userDto, id: userid });
+			return user;
+		}
+		catch (error) {
+			throw new InternalServerErrorException("updateUsersById error");
+		}
 	}
 
 	async updateUsername(userid: number, new_username: string) {
 		console.log("updateUsername in service (): " + userid);
-		const a = await getRepository(User)
-			.createQueryBuilder("user")
-			.update(User)
-			.set({
-				username: new_username,
-			})
-			.where("id = :id", { id: userid })
-			.printSql()
-			.execute();
+		try {
+			const a = await getRepository(User)
+				.createQueryBuilder("user")
+				.update(User)
+				.set({
+					username: new_username,
+				})
+				.where("id = :id", { id: userid })
+				.printSql()
+				.execute();
+		}
+		catch (error) {
+			throw new InternalServerErrorException("Update username does not work");
+		}
 	}
 
 	async updateAvatar(filename: string, userid: number): Promise<User> {
@@ -49,15 +65,19 @@ export class UsersService {
 			const ancient_filename: string = await this.getAvatarUrl(userid);
 			if (ancient_filename === null)
 				return null;
-			await getRepository(User)
-				.createQueryBuilder("user")
-				.update(User)
-				.set({
-					avatar: filename,
-				})
-				.where("id = :id", { id: userid })
-				.printSql()
-				.execute();
+			try {
+				await getRepository(User)
+					.createQueryBuilder("user")
+					.update(User)
+					.set({
+						avatar: filename,
+					})
+					.where("id = :id", { id: userid })
+					.printSql()
+					.execute();
+			} catch (error) {
+				throw new InternalServerErrorException("Update of avatar does not work");
+			}
 			if (ancient_filename !== 'default.png') {
 
 				if (fs.existsSync('src/avatar/' + ancient_filename)) {
@@ -69,17 +89,21 @@ export class UsersService {
 	}
 
 	async updateTwoFAUser(userid: number, istwofa: boolean): Promise<boolean> {
-		const ret: UpdateResult = await getRepository(User)
-			.createQueryBuilder("user")
-			.update(User)
-			.set({
-				twofauser: istwofa,
-			})
-			.where("id = :id", { id: userid })
-			.printSql()
-			.execute();
-		if (ret)
-			return istwofa;
+		try {
+			const ret: UpdateResult = await getRepository(User)
+				.createQueryBuilder("user")
+				.update(User)
+				.set({
+					twofauser: istwofa,
+				})
+				.where("id = :id", { id: userid })
+				.printSql()
+				.execute();
+			if (ret)
+				return istwofa;
+		} catch (error) {
+			throw new InternalServerErrorException("Update TwoFAUser not work");
+		}
 		return !istwofa; //no good if not checked on frontend
 	}
 
@@ -125,6 +149,10 @@ export class UsersService {
 		if (user.channels.find((e) => e == chan_id) === undefined) {
 			user.channels.push(chan_id)
 		}
-		this.userRepository.save(user);
+		try {
+			this.userRepository.save(user);
+		} catch (error) {
+			throw new InternalServerErrorException("addChannel does not work");
+		}
 	}
 }
