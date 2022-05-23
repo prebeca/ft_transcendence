@@ -1,89 +1,62 @@
 <template>
-    <v-card
-      color="secondary"
-      width="500px"
-      max-height="650px"
-      elevation="20"
-    >
-    <v-toolbar
-      color="primary"
-      class="d-flex justify-center"
-    >
-        <v-toolbar-title
-         class="font-weight-black info--text"
-         style="font-size: 25px"
-        >
-            EDIT YOUR PROFILE
-        </v-toolbar-title>
+  <v-card color="secondary" width="500px" max-height="700px" elevation="20">
+    <v-toolbar color="primary" class="d-flex justify-center">
+      <v-toolbar-title
+        class="font-weight-black info--text"
+        style="font-size: 25px"
+      >
+        EDIT YOUR PROFILE
+      </v-toolbar-title>
     </v-toolbar>
 
-		<v-row
-			class="pt-12 pb-2"
-			justify="center"
-			align="center"
-		>
-      <v-avatar 
-		  	size="180px" 
-			  class="mb-3"
-		  >
-        <img :src="avatar" alt="avatar">
+    <v-row class="pt-12 pb-2" justify="center" align="center">
+      <v-avatar size="180px" class="mb-3">
+        <img :src="avatar" alt="avatar" />
       </v-avatar>
-		</v-row>
+    </v-row>
 
-		<v-row justify="center">
-			<input
-				ref="image"
-				type="file"
-				accept="image/*"
-				@change="imageSelected"
-				style="display: none"
-			>
-			<v-btn
-				color="info"
-				@click="selectImage"
-				text
-			>
-				SELECT AN IMAGE 
-			</v-btn>
-		</v-row>
+    <v-row justify="center">
+      <input
+        ref="image"
+        type="file"
+        accept="image/*"
+        @change="imageSelected"
+        style="display: none"
+      />
+      <v-btn color="info" @click="selectImage" text> SELECT AN IMAGE </v-btn>
+    </v-row>
 
-		<v-row
-			justify="center"
-			class="py-5"
-		>
-			<v-slide-x-transition>
-				<div v-if="avatar && saving == true">
-					<v-btn
-						class="upload-button info--text"
-						color="primary"
-						@click="saveAvatar"
-					>
-						UPLOAD
-					</v-btn>
-				</div>
-			</v-slide-x-transition>
-		</v-row>
+    <v-row justify="center" class="py-5">
+      <v-slide-x-transition>
+        <div v-if="avatar && saving == true">
+          <v-btn
+            class="upload-button info--text"
+            color="primary"
+            @click="saveAvatar"
+          >
+            UPLOAD
+          </v-btn>
+        </div>
+      </v-slide-x-transition>
+    </v-row>
 
-		<v-row
-		 class="py-5 pa-15"
-		>
-			<v-text-field
-				v-model="user.username"
-				name="username"
-				label="Change your username"
-				type="text"
-				filled
-				rounded
-				outlined
-				required
-				color="info"
-				clearable
-				maxlength="15"
-				counter
-				:rules="[rules.counter_max, rules.counter_min]"
-			></v-text-field>
-		</v-row>
-
+    <v-row class="py-5 pa-15">
+      <v-text-field
+        v-model="user.username"
+        name="username"
+        label="Change your username"
+        type="text"
+        filled
+        rounded
+        outlined
+        required
+        color="info"
+        clearable
+        maxlength="15"
+        counter
+        :rules="[rules.counter_max, rules.counter_min]"
+      ></v-text-field>
+    </v-row>
     <v-row
      class="pb-6"
      justify="center"
@@ -99,24 +72,14 @@
 
     <v-divider></v-divider>
 
-    <v-card-actions
-     class="d-flex justify-center align-center pa-3"
-     >
-      <v-btn
-        color="accent"
-        text
-        @click="saveUsername"
-      >
-        Validate
-      </v-btn>
+    <v-card-actions class="d-flex justify-center align-center pa-3">
+      <v-btn color="accent" text @click="saveUsername"> Validate </v-btn>
     </v-card-actions>
   </v-card>
-
 </template>
 
 <script lang="ts">
-import Vue from 'vue';
-import ImageInput from './ImageInput.vue' ;
+import Vue from "vue";
 
 export default Vue.extend ({
 	name: 'loginCard',
@@ -151,15 +114,6 @@ export default Vue.extend ({
 		});
 	},
 	methods: {
-		/*selectIsTwoFa(){
-			this.istwofa = (this.$refs as HTMLFormElement).istwofa;
-			if (this.user.twofauser){
-				this.istwofa.aria-checked = true
-			}
-			else{
-				this.istwofa.aria-checked = false
-			}
-		},*/
 		hexToBase64(str: any){
  	   		return btoa(String.fromCharCode.apply(null, str.replace(/\r|\n/g, "").replace(/([\da-fA-F]{2}) ?/g, "0x$1 ").replace(/ +$/, "").split(" ")));
 		},

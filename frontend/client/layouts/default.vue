@@ -49,6 +49,7 @@ export default Vue.extend({
       title: "PONG GAME",
       drawer: false,
       avatar: "",
+      cacheKey: +new Date(),
       items: [
         {
           title: "Home",
