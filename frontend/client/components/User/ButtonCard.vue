@@ -1,37 +1,19 @@
 <template>
   <v-card
-    class="mx-auto"
     color="secondary"
-    max-width="1400px"
-    max-height="350px"
+    width="230px"
+    height="320px"
     elevation="20"
+    class="d-flex flex-column align-center justify-center"
     outlined
   >
-    <v-list-item>
+    <v-avatar size="200px" tile class="mt-3">
+      <img :src="user.avatar" alt="avatar" />
+    </v-avatar>
 
-      <v-avatar size="200px" tile class="mt-4">
-        <img :src="user.avatar" alt="avatar" />
-      </v-avatar>
-      <v-list-item-content style="justify-items: start">
-        <v-list-item-title class="text-h4 ml-4">
-          {{ user.username }}
-        </v-list-item-title>
-        <div class="text-overline ml-4">
-          <v-badge
-            inline
-            left
-            color="success"
-          >online</v-badge>
-        </div>
+    <v-card-actions v-if="isUser === false">       
 
-        <v-list-item-subtitle></v-list-item-subtitle>
-      </v-list-item-content>
-      
-    </v-list-item>
-
-    <v-card-actions v-if="isUser === false" class="d-flex flex-column align-start ml-2" >       
-
-        <div class="my-2">
+        <div class="pt-2">
           <div>
             <v-btn color="success" width="200px" v-if="!isFriend && !requestSent && !requestReceived" @click="sendRequest" :loading="loading1">
               Send Friend Request
@@ -47,7 +29,7 @@
             </v-btn>
           </div>
 
-          <div class="mt-3">
+          <div class="pt-2">
             <v-btn color="accent" width="200px" v-if="!isBlocked" @click="blockUser" :loading="loading2">
               Block User
             </v-btn>
@@ -59,7 +41,7 @@
           
     </v-card-actions>
 
-    <v-card-actions v-else class="ml-2 my-1">
+    <v-card-actions v-else>
       <v-btn color="primary" width="200px">
         EDIT YOUR PROFILE
       </v-btn>
@@ -73,7 +55,7 @@
 import Vue from "vue";
 
 export default Vue.extend({
-  name: "UserCard",
+  name: "ButtonCard",
   data() {
     return {
       isUser: false,

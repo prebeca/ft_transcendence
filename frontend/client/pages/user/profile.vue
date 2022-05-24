@@ -5,7 +5,7 @@
   >
 
     <div>
-        <UserProfileCard />
+        <UserButtonCard />
     </div>
 
     <!-- <div class="mt-2">
