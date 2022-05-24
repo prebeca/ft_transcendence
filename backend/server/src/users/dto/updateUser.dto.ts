@@ -2,9 +2,11 @@ import { IsNotEmpty } from "class-validator";
 
 export class UpdateUserDto {
 
-	username: string;
+	username?: string;
 
-	avatar: string;
+	avatar?: string;
 
-	twofauser: boolean;
+	twofauser?: boolean;
+
+	twofasecret?: string;
 }
