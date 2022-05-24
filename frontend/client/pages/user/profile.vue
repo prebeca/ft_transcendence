@@ -1,23 +1,17 @@
 <template>
   <div
-    style="height: 80vh; max-height: 100%"
-    class="d-flex flex-column justify-center align-center"
+    style="height: 100vh; max-height: 100%"
+    class="mt-15"
   >
-    <v-row>
-      <v-col>
-        <div>
-          <UserProfileCard />
-        </div>
 
-        <div class="mt-2">
-          <UserMatchHistory />
-        </div>
-      </v-col>
+    <div>
+        <UserProfileCard />
+    </div>
 
-      <v-col class="ml-2">
-        <UserFriendsCard />
-      </v-col>
-    </v-row>
+    <!-- <div class="mt-2">
+        <UserMatchHistory />
+    </div> -->
+
   </div>
 </template>
 
