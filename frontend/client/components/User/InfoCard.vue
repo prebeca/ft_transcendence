@@ -1,23 +1,29 @@
 <template>
-  <v-card
-    class="mx-auto"
-    color="secondary"
-    width="1000px"
-    height="300px"
-    outlined
-  >
-  </v-card>
+    <v-card
+        class="mx-auto"
+        color="secondary"
+        width="770px"
+        height="320px"
+        outlined
+    >
+        <v-card-title
+            class="pa-5"
+        >
+            {{ user.username }}
+        </v-card-title>
+
+    </v-card>
 </template>
 
 <script lang="ts">
 import Vue from "vue";
 
 export default Vue.extend({
-  name: "MatchHistoryCard",
+  name: "InfoCard",
   data() {
     return {
+      isUser: false,
       user: {
-        avatar: "",
         username: "",
       },
     };
@@ -28,17 +34,10 @@ export default Vue.extend({
       .then((res) => {
         console.log(res.data);
         this.user = res.data;
-        this.changeAvatar(res.data.avatar);
       })
       .catch((error) => {
         console.error(error);
       });
-  },
-  methods: {
-    changeAvatar(filename: string) {
-      this.user.avatar =
-        `${process.env.API_URL}/users/profile/avatar/` + filename;
-    },
   },
 });
 </script>

@@ -1,16 +1,12 @@
 <template>
   <div
-    style="height: 100vh; max-height: 100%"
-    class="mt-15"
   >
 
-    <div>
-        <UserButtonCard />
-    </div>
+    <div class="d-flex flex-nowrap">
+      <UserButtonCard />
 
-    <!-- <div class="mt-2">
-        <UserMatchHistory />
-    </div> -->
+      <UserInfoCard />
+    </div>
 
   </div>
 </template>

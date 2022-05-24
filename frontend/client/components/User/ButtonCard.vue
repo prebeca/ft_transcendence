@@ -3,7 +3,6 @@
     color="secondary"
     width="230px"
     height="320px"
-    elevation="20"
     class="d-flex flex-column align-center justify-center"
     outlined
   >
@@ -67,7 +66,6 @@ export default Vue.extend({
       loading2: false,
       user: {
         avatar: "",
-        username: "",
       },
     };
   },
