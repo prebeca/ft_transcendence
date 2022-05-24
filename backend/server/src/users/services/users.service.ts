@@ -19,9 +19,11 @@ export class UsersService {
 		}
 	}
 
-	createUser(userDto: UserDto): User {
+	async createUser(userDto: UserDto): Promise<User> {
+		console.log(userDto);
 		try {
-			return this.userRepository.create(userDto);
+			const newuser: User = this.userRepository.create(userDto);
+			return this.userRepository.save(newuser);
 		} catch (error) {
 			throw new InternalServerErrorException("Creation of user failed");
 		}

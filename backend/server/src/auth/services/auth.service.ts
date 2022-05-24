@@ -30,6 +30,7 @@ export class AuthService {
 	}
 
 	async createCookie(response: Response, is42: boolean, code: string, req?: any): Promise<Response> {
+		console.log(is42);
 		const token_client: string = is42 ?
 			await this.get42APIToken(code) :
 			(await this.jwtGenerate(req.user["login"], req.user["id"])).access_token;
@@ -67,8 +68,9 @@ export class AuthService {
 		this.createUserDto.username = res2.data.login;
 
 		var user: User = await this.usersService.findOne(this.createUserDto.login);
+		console.log(user);
 		if (!user) {
-			user = this.usersService.createUser(this.createUserDto);
+			user = await this.usersService.createUser(this.createUserDto);
 			if (user === null)
 				return null;
 		}
@@ -106,7 +108,7 @@ export class AuthService {
 		this.createUserDto.scope = res.data.scope;
 		this.createUserDto.created_at = res.data.created_at;
 		this.createUserDto.expires_in = res.data.expires_in;
-		return this.getUser42Infos(access_token);
+		return await this.getUser42Infos(access_token);
 	}
 
 	get42OAuthURL(): { url: string } {
