@@ -28,8 +28,7 @@ export class TwoFactorAuthService {
 		const app_name = process.env.TWO_FACTOR_AUTHENTICATION_APP_NAME;
 		const otpAuthUrl = authenticator.keyuri(user.email, app_name, secret);
 
-		await this.userService.updateUsersById(user, {});
-		//await this.userService.update({ email: user.email }, { twofaSecret: secret });
+		await this.userService.updateSecret2FA(user, secret);
 		console.log('secret twofa generated = ' + secret);
 		return {
 			secret,
@@ -37,34 +36,36 @@ export class TwoFactorAuthService {
 		}
 	}
 
-	public async qrCodeStreamPipe(stream: Response, otpPathUrl: string) {
+	public async qrCodeStreamPipe(stream: Response, otpPathUrl: string): Promise<any> {
 		return toFileStream(stream, otpPathUrl);
 	}
 
-	public async activationOfTwoFa(user: User, status: boolean) {
-		await this.userService.updateUsersById(user, {});
-		/*return await this.userRepository.update({ email: email }, {
-			twofauser: status
-		});*/
+	public async activationOfTwoFa(user: User, status: boolean): Promise<void> {
+		await this.userService.updateTwoFAUser(user, status);
 	}
 
-	public async verifyTwoFaCode(code: string, user: User) {
+	public async verifyTwoFaCode(code: string, user: User): Promise<boolean> {
 		return authenticator.verify({
 			token: code,
 			secret: user.twofasecret
 		});
 	}
 
-	async signIn(user: User, isTwoFaAuthenticated: boolean): Promise<{ accessToken: string }> {
-		const data = {
-			isTwoFaAuthenticated,
-			isTwoFactorEnable: user.twofauser,
-			email: user.email,
-		}
-		const accessToken = (await this.authService.jwtGenerate({ email: user.email, id: user.id, isTwoFactorEnable: user.twofauser })).access_token;
+	async signIn(user: User, isTwoFaAuthenticated: boolean, response: Response): Promise<void> {
+		const accessToken: string = (await this.authService.jwtGenerate(
+			{
+				email: user.email,
+				id: user.id,
+				isTwoFactorEnable: user.twofauser,
+				isTwoFaAuthenticated: true
+			}
+		)).access_token;
 
-		return {
-			accessToken,
-		};
+		response.cookie('access_token', accessToken, {
+			httpOnly: true,
+			path: '/',
+			maxAge: 1000 * 60 * 15,
+			/* secure: true, -> only for localhost AND https */
+		});
 	}
 } 

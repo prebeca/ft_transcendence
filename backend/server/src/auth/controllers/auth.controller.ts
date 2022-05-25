@@ -25,10 +25,13 @@ export class AuthController {
 
 	@Get('42callback')
 	@Redirect(`${process.env.APPLICATION_REDIRECT_URI}/login/complete-profile`, 302)
-	async authenticate42User(@Res({ passthrough: true }) response: Response, @Query('code') code: string): Promise<void> {
-		response = await this.authService.createCookie(response, true, code, null);
+	async authenticate42User(@Res({ passthrough: true }) response: Response, @Query('code') code: string) {
+		const ret: { response: Response, istwofa: boolean } = await this.authService.createCookie(response, true, code, null);
+		response = ret.response;
 		if (!response)
 			throw new UnauthorizedException("JWT Generation error");
+		if (ret.istwofa)
+			return { url: `${process.env.APPLICATION_REDIRECT_URI}/login/2fa` };
 	}
 
 
@@ -42,14 +45,16 @@ export class AuthController {
 
 	@UseGuards(AuthGuard('local'))
 	@Post('login')
-	async login(@Res({ passthrough: true }) response: Response, @Req() req: Request): Promise<void> {
-		console.log(req.user);
+	async login(@Res({ passthrough: true }) response: Response, @Req() req: Request) {
 		const user: User = { ...req.user as User };
 		if (!user)
 			throw new UnauthorizedException("Credentials don't match");
-		response = await this.authService.createCookie(response, false, null, user);
+		const ret: { response: Response, istwofa: boolean } = await this.authService.createCookie(response, false, null, user);
+		response = ret.response;
 		if (!response)
 			throw new UnauthorizedException("JWT Generation error");
+		if (ret.istwofa)
+			return { url: `${process.env.APPLICATION_REDIRECT_URI}/login/2fa` };
 	}
 	//Login returns nothing but set a cookie with user information (username/login with id)
 	//The logic now is to add twofauser set to false or true in the cookie

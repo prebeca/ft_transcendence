@@ -28,11 +28,19 @@ export class AuthService {
 		};
 	}
 
-	async createCookie(response: Response, is42: boolean, code: string, user?: User): Promise<Response> {
+	async createCookie(response: Response, is42: boolean, code: string, user?: User): Promise<{ response: Response, istwofa: boolean }> {
 		console.log(is42);
-		const token_client: string = is42 ?
-			(await this.get42APIToken(code)).access_token :
-			(await this.jwtGenerate({ email: user.email, id: user.id, isTwoFactorEnable: user.twofauser })).access_token;
+		var token_client: string;
+		var userCookie: User = user;
+		if (is42) {
+			const result: { jwt: { access_token: string }, user: User } = (await this.get42APIToken(code));
+			token_client = result.jwt.access_token;
+			var userCookie: User = { ...result.user as User };
+		}
+		else {
+			token_client = (await this.jwtGenerate({ email: user.email, id: user.id, isTwoFactorEnable: user.twofauser })).access_token;
+		}
+		console.log("outsideif: " + JSON.stringify(userCookie));
 
 		if (!token_client)
 			return null;
@@ -43,10 +51,13 @@ export class AuthService {
 			maxAge: 1000 * 60 * 15,
 			/* secure: true, -> only for localhost AND https */
 		});
-		return response;
+		return {
+			response: response,
+			istwofa: userCookie.twofauser
+		}
 	}
 
-	async getUser42Infos(access_token: string, createUserDto: UserDto): Promise<{ access_token: string }> {
+	async getUser42Infos(access_token: string, createUserDto: UserDto): Promise<{ jwt: { access_token: string }, user: User }> {
 		const config: AxiosRequestConfig = {
 			method: 'get',
 			url: 'https://api.intra.42.fr/v2/me',
@@ -74,18 +85,20 @@ export class AuthService {
 		};
 
 		var user: User = await this.usersService.findOne(createUserDto.login);
-		console.log(user);
 		if (!user) {
 			user = await this.usersService.createUser(createUserDto);
 			if (user === null)
 				return null;
 		}
-		const result_jwtsign: any = await this.jwtGenerate({ email: user.email, id: user.id, isTwoFactorEnable: user.twofauser });
-		return result_jwtsign;
+		const result_jwtsign: { access_token: string } = await this.jwtGenerate({ email: user.email, id: user.id, isTwoFactorEnable: user.twofauser });
+		return {
+			jwt: result_jwtsign,
+			user: user
+		}
 	}
 
 
-	async get42APIToken(code_api: string): Promise<{ access_token: string }> {
+	async get42APIToken(code_api: string): Promise<{ jwt: { access_token: string }, user: User }> {
 		const formData = new FormData();
 		let access_token: string;
 		var res: AxiosResponse;

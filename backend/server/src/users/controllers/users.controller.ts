@@ -13,6 +13,7 @@ import { multerOptions } from 'src/common/UploadOptions';
 import { User } from '../entities/user.entity';
 import { ChannelsService } from 'src/chat/channels/services/channels.service';
 import { Channel } from 'src/typeorm';
+import { JwtTwoFactorAuthGuard } from 'src/auth/guards/jwt-twofa.guard';
 
 @Controller('users')
 export class UsersController {
@@ -26,7 +27,7 @@ export class UsersController {
 		return await this.userService.getUsers();
 	}
 
-	@UseGuards(JwtAuthGuard)
+	@UseGuards(JwtTwoFactorAuthGuard)
 	@Get('profile')
 	getProfile(@Req() req: Request): User {
 		const user: User = { ... (req.user as User) };
@@ -35,7 +36,16 @@ export class UsersController {
 		return user;
 	}
 
-	@UseGuards(JwtAuthGuard)
+	@UseGuards(JwtTwoFactorAuthGuard)
+	@Post('profile/update/userinfos')
+	async updateUserinfo(@Req() req: Request): Promise<void> {
+		const user: User = { ... (req.user as User) };
+		if (!user)
+			return null;
+		return await this.userService.updateUserinfo(user, req.body["new_username"]);
+	}
+
+	@UseGuards(JwtTwoFactorAuthGuard)
 	@Post('profile/update/username')
 	async updateUsername(@Req() req: Request): Promise<void> {
 		const user: User = { ... (req.user as User) };
@@ -44,7 +54,7 @@ export class UsersController {
 		return await this.userService.updateUsername(user, req.body["new_username"]);
 	}
 
-	@UseGuards(JwtAuthGuard)
+	@UseGuards(JwtTwoFactorAuthGuard)
 	@Post('profile/update/avatar')
 	@UseInterceptors(FileInterceptor('file', multerOptions))
 	async updateAvatar(@UploadedFile() file: Express.Multer.File, @Req() req: Request): Promise<User> {

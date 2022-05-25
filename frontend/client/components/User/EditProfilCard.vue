@@ -62,18 +62,18 @@
      justify="center"
     >
         <v-checkbox
-		 v-model="user.twofauser"
-		ref="istwofa"
-		 name="istwofa"
-         label="Use two-factor authentification"
-         color="info"
+		 	v-model="user.twofauser"
+			ref="istwofa"
+		 	name="istwofa"
+         	label="Use two-factor authentification"
+        	color="info"
         ></v-checkbox>
     </v-row> 
 
     <v-divider></v-divider>
 
     <v-card-actions class="d-flex justify-center align-center pa-3">
-      <v-btn color="accent" text @click="saveUsername"> Validate </v-btn>
+      <v-btn color="accent" text @click="saveUserinfo"> Validate </v-btn>
     </v-card-actions>
   </v-card>
 </template>
@@ -126,10 +126,19 @@ export default Vue.extend ({
 			this.photo = (this.$refs as HTMLFormElement).image.files[0];
 			this.saving = true;
 		},
+		async saveUserinfo() {
+			this.$axios.post('/users/profile/update/userinfos', {new_username: this.user.username, istwofa: this.user.twofauser})
+			.then((res) => {
+				console.log(res)
+			})
+			.catch((error) => {
+				console.error(error)
+			});
+			this.$router.push('/home');
+		},
 		async saveUsername() {
-			 const { username } = this;
+			 /*const { username } = this;*/
       		console.log(this.user.username);
-			console.log(this.user.username);
 			this.$axios.post('/users/profile/update/username', {new_username: this.user.username})
 			.then((res) => {
 				console.log(res)

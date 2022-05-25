@@ -30,13 +30,9 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
 		if (!payload)
 			throw new UnauthorizedException("No credentials cookie found");
 		const user: User = await this.userService.findUsersById(payload.id);
+		console.log(JSON.stringify(user));
 		if (!user)
 			throw new UnauthorizedException("No match for current session");
-		if (!user.twofauser) {
-			return user;
-		}
-		if (payload.isTwoFaAuthenticated) {
-			return user;
-		}
+		return user;
 	}
 }

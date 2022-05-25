@@ -33,7 +33,7 @@ export class JwtTwoFaStrategy extends PassportStrategy(Strategy, 'jwt-twofa') {
 			throw new UnauthorizedException("user not found")
 		}
 
-		if (user.twofauser) {
+		if (!user.twofauser) {
 			return user;
 		}
 		if (payload.isTwoFaAuthenticated) {

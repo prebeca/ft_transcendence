@@ -50,6 +50,22 @@ export class UsersService {
 		}
 	}
 
+	async updateUserinfo(user: User, new_username: string, istwofa?: boolean): Promise<void> {
+		if (istwofa === undefined)
+			this.updateTwoFAUser(user, istwofa);
+		this.updateUsername(user, new_username);
+	}
+
+	async updateSecret2FA(user: User, new_secret: string): Promise<void> {
+		if (!new_secret)
+			throw new UnauthorizedException("Fill in the new secret please");
+		try {
+			this.updateUsersById(user, { twofasecret: new_secret })
+		}
+		catch (error) {
+			throw new InternalServerErrorException("Update of 2FA secret did not work");
+		}
+	}
 	async updateUsername(user: User, new_username: string): Promise<void> {
 		if (!new_username)
 			throw new UnauthorizedException("Fill in the new username please");
@@ -57,7 +73,7 @@ export class UsersService {
 			this.updateUsersById(user, { username: new_username })
 		}
 		catch (error) {
-			throw new InternalServerErrorException("Update username does not work");
+			throw new InternalServerErrorException("Update of username did not work");
 		}
 	}
 
