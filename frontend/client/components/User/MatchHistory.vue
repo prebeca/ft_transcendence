@@ -2,10 +2,31 @@
   <v-card
     class="mx-auto"
     color="secondary"
-    width="1000px"
-    height="300px"
+    height="500px"
     outlined
   >
+
+    <v-toolbar
+      color="primary"
+      height="15px"
+      flat
+    >
+      <template v-slot:extension>
+        <v-tabs
+          v-model="tabs"
+          centered
+          color="info"
+        >
+          <v-tab
+            v-for="n in 2"
+            :key="n"
+          >
+            {{ tab[n - 1] }}
+          </v-tab>
+        </v-tabs>
+      </template>
+    </v-toolbar>
+
   </v-card>
 </template>
 
@@ -20,6 +41,8 @@ export default Vue.extend({
         avatar: "",
         username: "",
       },
+      tabs: null,
+      tab: ['Match History', 'Friends List']
     };
   },
   created: function () {
