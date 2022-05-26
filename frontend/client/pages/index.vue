@@ -24,11 +24,11 @@
 </template>
 
 <script lang="ts">
-import Vue from "vue";
-import axios from "axios";
-export default {
-  layout: "empty",
-  name: "IndexPage",
+import Vue from 'vue';
+
+export default ({
+  layout: 'empty',
+  name: 'IndexPage',
   data: () => ({
     url: `${process.env.API_URL}/auth/42login`,
   }),
