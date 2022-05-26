@@ -1,4 +1,4 @@
-import { Injectable, Inject, InternalServerErrorException } from '@nestjs/common';
+import { Injectable, Inject, InternalServerErrorException, UnauthorizedException } from '@nestjs/common';
 import { UsersService } from 'src/users/services/users.service';
 import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
@@ -10,29 +10,37 @@ import * as bcrypt from 'bcrypt';
 import { Response } from 'express';
 import { LoginInterface } from '../interfaces/login.interface';
 import { RegisterInterface } from '../interfaces/register.interface';
+import { JwtPayload } from '../interfaces/JwtPayload.interface';
 
 @Injectable()
 export class AuthService {
 	constructor(
 		private usersService: UsersService,
-		private jwtService: JwtService,
-		private createUserDto: UserDto
+		private jwtService: JwtService
 	) { }
 
 	@Inject(ConfigService)
 	private readonly config: ConfigService;
 
-	async jwtGenerate(userlogin: string, userid: number) {
-		const payload = { username: userlogin, id: userid };
+	async jwtGenerate(payload: JwtPayload): Promise<{ access_token: string }> {
 		return {
 			access_token: this.jwtService.sign(payload),
 		};
 	}
 
-	async createCookie(response: Response, is42: boolean, code: string, req?: any): Promise<Response> {
-		const token_client: string = is42 ?
-			await this.get42APIToken(code) :
-			(await this.jwtGenerate(req.user["login"], req.user["id"])).access_token;
+	async createCookie(response: Response, is42: boolean, code: string, user?: User): Promise<{ response: Response, istwofa: boolean }> {
+		console.log(is42);
+		var token_client: string;
+		var userCookie: User = user;
+		if (is42) {
+			const result: { jwt: { access_token: string }, user: User } = (await this.get42APIToken(code));
+			token_client = result.jwt.access_token;
+			var userCookie: User = { ...result.user as User };
+		}
+		else {
+			token_client = (await this.jwtGenerate({ email: user.email, id: user.id, isTwoFactorEnable: user.twofauser })).access_token;
+		}
+		console.log("outsideif: " + JSON.stringify(userCookie));
 
 		if (!token_client)
 			return null;
@@ -43,10 +51,13 @@ export class AuthService {
 			maxAge: 1000 * 60 * 15,
 			/* secure: true, -> only for localhost AND https */
 		});
-		return response;
+		return {
+			response: response,
+			istwofa: userCookie.twofauser
+		}
 	}
 
-	async getUser42Infos(access_token: string): Promise<string> {
+	async getUser42Infos(access_token: string, createUserDto: UserDto): Promise<{ jwt: { access_token: string }, user: User }> {
 		const config: AxiosRequestConfig = {
 			method: 'get',
 			url: 'https://api.intra.42.fr/v2/me',
@@ -54,31 +65,40 @@ export class AuthService {
 				'Authorization': 'Bearer ' + access_token
 			},
 		}
-		let res2: AxiosResponse;
-		await axios(config)
+		let res2: AxiosResponse = await axios(config)
 			.then(function (response: AxiosResponse) {
-				res2 = response;
+				return response;
 			})
 			.catch(function (response) {
 				console.log("Error getUserInfos =>" + response);
+				return null;
 			});
-		this.createUserDto.login = res2.data.login;
-		this.createUserDto.email = res2.data.email;
-		this.createUserDto.username = res2.data.login;
 
-		var user: User = await this.usersService.findOne(this.createUserDto.login);
+		if (!res2)
+			throw new InternalServerErrorException("Call to 42API failed");
+
+		createUserDto = {
+			...createUserDto,
+			login: res2.data.login,
+			email: res2.data.email,
+			username: res2.data.username
+		};
+
+		var user: User = await this.usersService.findOne(createUserDto.login);
 		if (!user) {
-
-			user = this.usersService.createUser(this.createUserDto);
+			user = await this.usersService.createUser(createUserDto);
 			if (user === null)
 				return null;
 		}
-		const result_jwtsign: any = await this.jwtGenerate(res2.data.login, user.id);
-		return result_jwtsign.access_token;
+		const result_jwtsign: { access_token: string } = await this.jwtGenerate({ email: user.email, id: user.id, isTwoFactorEnable: user.twofauser });
+		return {
+			jwt: result_jwtsign,
+			user: user
+		}
 	}
 
 
-	async get42APIToken(code_api: string): Promise<string> {
+	async get42APIToken(code_api: string): Promise<{ jwt: { access_token: string }, user: User }> {
 		const formData = new FormData();
 		let access_token: string;
 		var res: AxiosResponse;
@@ -102,15 +122,20 @@ export class AuthService {
 			});
 
 		access_token = res.data.access_token;
-		this.createUserDto.access_token = res.data.access_token;
-		this.createUserDto.refresh_token = res.data.refresh_token;
-		this.createUserDto.scope = res.data.scope;
-		this.createUserDto.created_at = res.data.created_at;
-		this.createUserDto.expires_in = res.data.expires_in;
-		return this.getUser42Infos(access_token);
+		var createUserDto = new UserDto();
+		createUserDto = {
+			...createUserDto,
+			access_token: res.data.access_token,
+			refresh_token: res.data.access_token,
+			scope: res.data.scope,
+			fortytwouser: true,
+			created_at: res.data.created_at,
+			expires_in: res.data.expires_in
+		};
+		return await this.getUser42Infos(access_token, createUserDto);
 	}
 
-	get42OAuthURL() {
+	get42OAuthURL(): { url: string } {
 		return {
 			url: 'https://api.intra.42.fr/oauth/authorize?client_id='
 				+ this.config.get<string>('APPLICATION_UID')
@@ -133,25 +158,48 @@ export class AuthService {
 				const { password, salt, ...result } = user;
 				return (result as User);
 			}
-			return null;
+			else
+				throw new UnauthorizedException("Password is not correct");
 		}
-		else
-			return null;
+		throw new UnauthorizedException("User does not exist");
 	}
 
-	async registerUser(registerUser: RegisterInterface) {
+	async registerUser(registerUser: RegisterInterface): Promise<User> {
 		console.log('email = ' + registerUser.email + ', password = ' + registerUser.password);
 		try {
 			const salt_pass = await bcrypt.genSalt();
 			const hash_pass = await bcrypt.hash(registerUser.password, salt_pass);
-			this.createUserDto.email = registerUser.email;
-			this.createUserDto.salt = salt_pass;
-			this.createUserDto.password = hash_pass;
-			this.createUserDto.username = registerUser.username;
-			this.createUserDto.login = registerUser.username;
+			const createUserDto: UserDto = {
+				email: registerUser.email,
+				salt: salt_pass,
+				password: hash_pass,
+				username: registerUser.username,
+				login: registerUser.username
+			}
+			return this.usersService.createUser(createUserDto);
 		} catch (error) {
 			throw new InternalServerErrorException("Password hashing failed");
 		}
-		return this.usersService.createUser(this.createUserDto);
 	}
+	/*
+		async signIn(signInCredentialsDto: SignInCredentialsDto): Promise<{ accessToken: string, refreshToken?: string, user?: JwtPayload }> {
+			const resp: User = await this.userRepository.validateUserPassword(signInCredentialsDto);
+				
+			if (!resp) {
+				throw new UnauthorizedException('Invalid credentials');
+			}
+		
+			const accessToken = await this.jwtGenerate(resp.username, resp.id, resp.twofauser);
+		
+			if (resp.twofauser) {
+				return {
+					accessToken
+				}
+			}
+
+			return {
+				accessToken,
+				user: resp
+			}
+		 }*/
 }

@@ -9,6 +9,9 @@ import { AuthController } from './controllers/auth.controller';
 import { AuthService } from './services/auth.service';
 import { JwtStrategy } from './strategies/jwt.strategy';
 import { LocalStrategy } from './strategies/local.strategy';
+import { JwtTwoFaStrategy } from './strategies/jwt-twofa.strategy';
+import { TwoFactorAuthService } from './services/twofa.service';
+import { TwoFactorAuthController } from './controllers/twofa.controller';
 
 @Module({
 	imports: [
@@ -21,9 +24,9 @@ import { LocalStrategy } from './strategies/local.strategy';
 			signOptions: { expiresIn: '1d' },
 		}),
 	],
-	controllers: [AuthController],
-	providers: [AuthService, JwtStrategy, LocalStrategy],
-	exports: [AuthService],
+	controllers: [AuthController, TwoFactorAuthController],
+	providers: [AuthService, TwoFactorAuthService, JwtStrategy, JwtTwoFaStrategy, LocalStrategy],
+	exports: [AuthService, JwtStrategy, JwtTwoFaStrategy],
 })
 
 export class AuthModule { }

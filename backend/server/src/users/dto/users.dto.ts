@@ -9,20 +9,22 @@ export class UserDto {
 	@IsEmail()
 	email: string;
 
-	access_token: string;
+	access_token?: string;
 
-	refresh_token: string;
+	refresh_token?: string;
 
-	scope: string;
+	scope?: string;
 
-	expires_in: number;
+	expires_in?: number;
 
-	created_at: number;
+	created_at?: number;
 
 	@IsNotEmpty()
 	username: string;
 
-	password: string;
+	password?: string;
 
-	salt: string;
+	salt?: string;
+
+	fortytwouser?: boolean;
 }

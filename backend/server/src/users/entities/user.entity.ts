@@ -48,7 +48,7 @@ export class User {
 	twofauser: boolean;
 
 	@Column({ nullable: true })
-	twofaSecret: string
+	twofasecret: string
 
 	@Column("bigint", { default: {}, array: true })
 	channels: number[];

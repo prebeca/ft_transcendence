@@ -1,5 +1,5 @@
 import { PassportStrategy } from '@nestjs/passport';
-import { ExtractJwt, Strategy } from 'passport-jwt';
+import { Strategy } from 'passport-jwt';
 import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { jwtConstants } from '../constants';
 import { Request } from 'express';
@@ -25,10 +25,14 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
 		});
 	}
 
-	async validate(payload: JwtPayload): Promise<any> {
+	async validate(payload: JwtPayload): Promise<User> {
+		console.log("payload: " + JSON.stringify(payload));
+		if (!payload)
+			throw new UnauthorizedException("No credentials cookie found");
 		const user: User = await this.userService.findUsersById(payload.id);
+		console.log(JSON.stringify(user));
 		if (!user)
-			throw new UnauthorizedException();
+			throw new UnauthorizedException("No match for current session");
 		return user;
 	}
 }

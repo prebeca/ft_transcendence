@@ -1,9 +1,8 @@
 import { Injectable, InternalServerErrorException, StreamableFile, UnauthorizedException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { User } from 'src/users/entities/user.entity';
-import { Repository, UpdateResult, UsingJoinColumnOnlyOnOneSideAllowedError } from 'typeorm';
+import { Repository } from 'typeorm';
 import { UserDto } from 'src/users/dto/users.dto';
-import { getRepository } from "typeorm";
 import { createReadStream } from 'fs';
 import { ReadStream } from 'typeorm/platform/PlatformTools';
 import { UpdateUserDto } from '../dto/updateUser.dto';
@@ -20,9 +19,11 @@ export class UsersService {
 		}
 	}
 
-	createUser(userDto: UserDto): User {
+	async createUser(userDto: UserDto): Promise<User> {
+		console.log(userDto);
 		try {
-			return this.userRepository.create(userDto);
+			const newuser: User = this.userRepository.create(userDto);
+			return this.userRepository.save(newuser);
 		} catch (error) {
 			throw new InternalServerErrorException("Creation of user failed");
 		}
@@ -49,14 +50,30 @@ export class UsersService {
 		}
 	}
 
+	async updateUserinfo(user: User, new_username: string, istwofa?: boolean): Promise<void> {
+		if (istwofa === undefined)
+			this.updateTwoFAUser(user, istwofa);
+		this.updateUsername(user, new_username);
+	}
+
+	async updateSecret2FA(user: User, new_secret: string): Promise<void> {
+		if (!new_secret)
+			throw new UnauthorizedException("Fill in the new secret please");
+		try {
+			this.updateUsersById(user, { twofasecret: new_secret })
+		}
+		catch (error) {
+			throw new InternalServerErrorException("Update of 2FA secret did not work");
+		}
+	}
 	async updateUsername(user: User, new_username: string): Promise<void> {
 		if (!new_username)
 			throw new UnauthorizedException("Fill in the new username please");
 		try {
-			await this.updateUsersById(user, { username: new_username, avatar: user.avatar, twofauser: user.twofauser })
+			this.updateUsersById(user, { username: new_username })
 		}
 		catch (error) {
-			throw new InternalServerErrorException("Update username does not work");
+			throw new InternalServerErrorException("Update of username did not work");
 		}
 	}
 
@@ -68,7 +85,7 @@ export class UsersService {
 			if (ancient_filename === null)
 				return null;
 			try {
-				await this.updateUsersById(user, { username: user.username, avatar: filename, twofauser: user.twofauser });
+				await this.updateUsersById(user, { avatar: filename });
 			} catch (error) {
 				throw new InternalServerErrorException("Update of avatar does not work");
 			}
@@ -87,11 +104,19 @@ export class UsersService {
 
 	async updateTwoFAUser(user: User, istwofa: boolean): Promise<User> {
 		try {
-			await this.updateUsersById(user, { username: user.username, avatar: user.avatar, twofauser: istwofa });
+			await this.updateUsersById(user, { twofauser: istwofa });
 		} catch (error) {
 			throw new InternalServerErrorException("Update TwoFAUser not work");
 		}
 		return await this.userRepository.findOne(user.id);
+	}
+
+	async updateTwoFASecret(user: User, twofasecret: string): Promise<User> {
+		try {
+			return this.updateUsersById(user, { twofasecret: twofasecret });
+		} catch (error) {
+			throw new InternalServerErrorException("Update of twofasecret failed");
+		}
 	}
 
 	async getAvatarUrl(userid: number): Promise<string> {
