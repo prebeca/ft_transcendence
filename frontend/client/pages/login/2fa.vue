@@ -52,7 +52,9 @@ export default Vue.extend({
           code: this.code,
         })
         .then((res) => {
-          console.log("code validated: " + res);
+          if (res.data === true) {
+            this.$router.push("/home");
+          }
         })
         .catch((error) => {
           console.error("error: " + error);

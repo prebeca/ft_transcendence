@@ -57,18 +57,15 @@
         :rules="[rules.counter_max, rules.counter_min]"
       ></v-text-field>
     </v-row>
-    <v-row
-     class="pb-6"
-     justify="center"
-    >
-        <v-checkbox
-		 	v-model="user.twofauser"
-			ref="istwofa"
-		 	name="istwofa"
-         	label="Use two-factor authentification"
-        	color="info"
-        ></v-checkbox>
-    </v-row> 
+    <v-row class="pb-6" justify="center">
+      <v-checkbox
+        v-model="user.twofauser"
+        ref="istwofa"
+        name="istwofa"
+        label="Use two-factor authentification"
+        color="info"
+      ></v-checkbox>
+    </v-row>
 
     <v-divider></v-divider>
 
@@ -81,95 +78,113 @@
 <script lang="ts">
 import Vue from "vue";
 
-export default Vue.extend ({
-	name: 'loginCard',
-	data() {
-		return {
-			avatar: '',
-			photo: '',
-			username: '',
-			saving: false,
-			istwofa: '',
-			user: {
-				username: "",
-				avatar: "",
-				twofauser: false,
-			},
-			rules: {
-				counter_max: value => value.length <= 15 || 'Max 15 characters',
-				counter_min: value => value.length >= 5 || 'Min 5 characters',
-			},
-		}
-	},
-	created: function() {
-		this.$axios.get('/users/profile')
-		.then((res) => {
-			console.log(res.data);
-			this.user = res.data;
-			this.changeAvatar(res.data.avatar);
-			
-		})
-		.catch((error) => {
-			console.error(error)
-		});
-	},
-	methods: {
-		hexToBase64(str: any){
- 	   		return btoa(String.fromCharCode.apply(null, str.replace(/\r|\n/g, "").replace(/([\da-fA-F]{2}) ?/g, "0x$1 ").replace(/ +$/, "").split(" ")));
-		},
-		selectImage() {
-			this.photo = (this.$refs as HTMLFormElement).image.click()
-		},
-		imageSelected(e: { target: HTMLInputElement; }) {
-			const target = e.target as HTMLInputElement;
-			this.$emit('input', target!.files![0]);
-			this.photo = (this.$refs as HTMLFormElement).image.files[0];
-			this.saving = true;
-		},
-		async saveUserinfo() {
-			this.$axios.post('/users/profile/update/userinfos', {new_username: this.user.username, istwofa: this.user.twofauser})
-			.then((res) => {
-				console.log(res)
-			})
-			.catch((error) => {
-				console.error(error)
-			});
-			this.$router.push('/home');
-		},
-		async saveUsername() {
-			 /*const { username } = this;*/
-      		console.log(this.user.username);
-			this.$axios.post('/users/profile/update/username', {new_username: this.user.username})
-			.then((res) => {
-				console.log(res)
-			})
-			.catch((error) => {
-				console.error(error)
-			});
-			this.$router.push('/home');
-		},
-		async saveAvatar() {
-			this.saving = false;
-			let formdata = new FormData();
-			formdata.append('file', this.photo);
-			let config = {
-				withCredentials: true,
-				headers: {
-			        'content-type': 'multipart/form-data; boundary=5e6wf59ew5f62ew'
-				}
-			}
-			this.$axios.post('/users/profile/update/avatar', formdata, config)
-			.then((res) => {
-				console.log(res)
-				this.changeAvatar(res.data.avatar);
-			})
-			.catch((error) => {
-				console.error(error)
-			});
-		},
-		changeAvatar(filename: string) {
-			this.avatar = `${process.env.API_URL}/users/profile/avatar/` + filename;
-		}
-	},
+export default Vue.extend({
+  name: "loginCard",
+  data() {
+    return {
+      avatar: "",
+      photo: "",
+      username: "",
+      saving: false,
+      istwofa: "",
+      user: {
+        username: "",
+        avatar: "",
+        twofauser: false,
+      },
+      rules: {
+        counter_max: (value) => value.length <= 15 || "Max 15 characters",
+        counter_min: (value) => value.length >= 5 || "Min 5 characters",
+      },
+    };
+  },
+  created: function () {
+    this.$axios
+      .get("/users/profile")
+      .then((res) => {
+        console.log(res.data);
+        this.user = res.data;
+        this.changeAvatar(res.data.avatar);
+      })
+      .catch((error) => {
+        console.error(error);
+      });
+  },
+  methods: {
+    hexToBase64(str: any) {
+      return btoa(
+        String.fromCharCode.apply(
+          null,
+          str
+            .replace(/\r|\n/g, "")
+            .replace(/([\da-fA-F]{2}) ?/g, "0x$1 ")
+            .replace(/ +$/, "")
+            .split(" ")
+        )
+      );
+    },
+    selectImage() {
+      this.photo = (this.$refs as HTMLFormElement).image.click();
+    },
+    imageSelected(e: { target: HTMLInputElement }) {
+      const target = e.target as HTMLInputElement;
+      this.$emit("input", target!.files![0]);
+      this.photo = (this.$refs as HTMLFormElement).image.files[0];
+      this.saving = true;
+    },
+    async saveUserinfo() {
+      this.$axios
+        .post("/users/profile/update/userinfos", {
+          new_username: this.user.username,
+          istwofa: this.user.twofauser,
+        })
+        .then((res) => {
+          if (res.data === true) {
+            this.$router.push("/user/qr-2fa");
+          }
+        })
+        .catch((error) => {
+          console.error(error);
+        });
+      this.$router.push("/home");
+    },
+    async saveUsername() {
+      console.log(this.user.username);
+      this.$axios
+        .post("/users/profile/update/username", {
+          new_username: this.user.username,
+        })
+        .then((res) => {
+          console.log(res);
+        })
+        .catch((error) => {
+          console.error(error);
+        });
+      this.$router.push("/home");
+    },
+    async saveAvatar() {
+      this.saving = false;
+      let formdata = new FormData();
+      formdata.append("file", this.photo);
+      let config = {
+        withCredentials: true,
+        headers: {
+          "content-type": "multipart/form-data; boundary=5e6wf59ew5f62ew",
+        },
+      };
+      this.$axios
+        .post("/users/profile/update/avatar", formdata, config)
+        .then((res) => {
+          console.log(res);
+          this.changeAvatar(res.data.avatar);
+        })
+        .catch((error) => {
+          console.error(error);
+        });
+    },
+    changeAvatar(filename: string) {
+      this.avatar = `${process.env.API_URL}/users/profile/avatar/` + filename;
+    },
+  },
 });
 </script>

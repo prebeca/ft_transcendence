@@ -38,11 +38,15 @@ export class UsersController {
 
 	@UseGuards(JwtTwoFactorAuthGuard)
 	@Post('profile/update/userinfos')
-	async updateUserinfo(@Req() req: Request): Promise<void> {
+	async updateUserinfo(@Req() req: Request): Promise<boolean> {
 		const user: User = { ... (req.user as User) };
 		if (!user)
 			return null;
-		return await this.userService.updateUserinfo(user, req.body["new_username"]);
+		await this.userService.updateUserinfo(user, req.body["new_username"]);
+		if (req.body["istwofa"] === true) {
+			return true;
+		}
+		return false;
 	}
 
 	@UseGuards(JwtTwoFactorAuthGuard)
