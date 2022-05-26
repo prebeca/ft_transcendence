@@ -18,9 +18,18 @@ export default interface GameI {
 	ballx: number,
 	bally: number,
 	ballr: number,
+	ballDir: {
+		x: number,
+		y: number,
+	},
 	ballSpeed: number,
 
-	ratiox: number;
-	ratioy: number;
+	ratiox: number,
+	ratioy: number,
+
+	score1: number,
+	score2: number,
+
+	status: string,
 
 }
