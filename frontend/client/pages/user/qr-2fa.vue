@@ -23,16 +23,44 @@ export default Vue.extend({
     };
   },
   created: async function () {
-    let qr_img = "data:image/png;base64,";
-    await this.$axios
-      .post("/2fa/generate-qr")
-      .then((res: any) => {
-        qr_img += res.data;
+    /* let qr_img = "data:image/png;base64,";
+		await this.$axios
+			.post("/2fa/generate-qr")
+			.then((response) => {
+				qr_img += response.data;
+			})
+			.catch((error) => {
+				console.error(error);
+			});
+		this.qr_code = qr_img;*/
+    fetch("http://localhost:3000/2fa/generate-qr", {
+      method: "POST",
+      credentials: "include",
+    })
+      .then((response: Response) => response.body)
+      .then((body: any) => {
+        const reader = body.getReader();
+        return new ReadableStream({
+          start(controller) {
+            return pump();
+            function pump() {
+              return reader.read().then(({ done, value }) => {
+                if (done) {
+                  controller.close();
+                  return;
+                }
+                controller.enqueue(value);
+                return pump();
+              });
+            }
+          },
+        });
       })
-      .catch((error) => {
-        console.error(error);
-      });
-    this.qr_code = qr_img;
+      .then((stream) => new Response(stream))
+      .then((response) => response.blob())
+      .then((blob) => URL.createObjectURL(blob))
+      .then((url) => console.log((this.qr_code = url)))
+      .catch((err) => console.error(err));
   },
   methods: {
     async validate() {

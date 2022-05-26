@@ -45,29 +45,15 @@ export class AuthController {
 
 	@UseGuards(AuthGuard('local'))
 	@Post('login')
-	async login(@Res({ passthrough: true }) response: Response, @Req() req: Request) {
+	async login(@Res({ passthrough: true }) response: Response, @Req() req: Request): Promise<boolean> {
 		const user: User = { ...req.user as User };
 		if (!user)
 			throw new UnauthorizedException("Credentials don't match");
 		const ret: { response: Response, istwofa: boolean } = await this.authService.createCookie(response, false, null, user);
+		console.log(ret.istwofa);
 		response = ret.response;
 		if (!response)
 			throw new UnauthorizedException("JWT Generation error");
-		if (ret.istwofa)
-			return { url: `${process.env.APPLICATION_REDIRECT_URI}/login/2fa` };
+		return ret.istwofa;
 	}
-	//Login returns nothing but set a cookie with user information (username/login with id)
-	//The logic now is to add twofauser set to false or true in the cookie
-	//THEN, in every route, check if the user is a twofauser and if the secret was already entered,
-	//if the user is not a twofauser proceed, if the code is false, throw a new UnauthorizedException()
-	//
-
-
-	/*
-	@Post('/signin')
-	signIn(
-		@Body(ValidationPipe) signinCredentialsDto: SignInCredentialsDto
-	): Promise<{ accessToken: string, refreshToken?: string, user?: JwtPayload }>{
-		return this.authService.signIn(signinCredentialsDto);
-	}*/
 }
