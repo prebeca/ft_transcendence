@@ -17,7 +17,6 @@
         </p>
       </li>
     </v-card>
-    <br />
     <v-row>
       <v-col cols="9">
         <v-textarea
@@ -28,6 +27,7 @@
           rows="2"
           row-height="15"
           v-model="message"
+          v-on:keyup.enter="sendMessage"
         ></v-textarea>
       </v-col>
       <v-col cols="1">
@@ -61,23 +61,66 @@ export default {
     await this.$axios
       .get("/users/profile")
       .then((res) => {
-        // console.log(res.data);
         this.user = res.data;
       })
       .catch((error) => {
         console.error(error);
       });
 
-    await fetch(`${process.env.API_URL}/channels/create`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        name: "General",
-        scope: "public",
-      }),
-    });
+    await this.$axios
+      .post(
+        "/channels/create",
+        {
+          name: "General",
+          scope: "public",
+        },
+        {
+          "Content-Type": "application/json",
+        }
+      )
+      .then((res) => {
+        console.log(res.data);
+      })
+      .catch((error) => {
+        console.error(error);
+      });
+
+    await this.$axios
+      .post(
+        "/channels/create",
+        {
+          name: "MyProtectedChannel",
+          scope: "protected",
+          password: "password",
+        },
+        {
+          "Content-Type": "application/json",
+        }
+      )
+      .then((res) => {
+        console.log(res.data);
+      })
+      .catch((error) => {
+        console.error(error);
+      });
+
+    await this.$axios
+      .post(
+        "/channels/create",
+        {
+          name: "MyPrivateChannel",
+          scope: "private",
+        },
+        {
+          "Content-Type": "application/json",
+        }
+      )
+      .then((res) => {
+        console.log(res.data);
+      })
+      .catch((error) => {
+        console.error(error);
+      });
 
     await this.$axios
       .get("/users/channels")
@@ -94,7 +137,7 @@ export default {
     this.socket = this.$nuxtSocket({ name: "chat" });
 
     this.socket.on("connect", async (msg, cb) => {
-      console.log("Connection !");
+      //   console.log("Connection !");
       await this.joinChannels();
     });
 
@@ -112,27 +155,26 @@ export default {
   methods: {
     async joinChannels() {
       for (let i = 0; i < this.channels.length; ++i) {
-        await this.socket.emit("JoinChan", {
-          type: "info",
-          user_id: this.user.id,
-          username: this.user.username,
+        let res = await this.socket.emit("JoinChan", {
           channel_id: this.channels[i].id,
           channel_name: this.channels[i].name,
-          content: this.user.username + " has joined the chat !",
         });
+        console.log(res);
       }
     },
 
     async reloadMessages() {
+      if (this.channel.length == 0) return;
       await this.$axios
         .get(
           "/channels/messages/" +
             (
-              await this.channels.find((e) => e.name === this.channel)
+              await this.channels.find((e) => e.name == this.channel)
             ).id
         )
         .then((res) => {
           this.messages = res.data;
+          console.log(res.data);
         })
         .catch((error) => {
           console.error(error);
@@ -154,7 +196,7 @@ export default {
         user_id: this.user.id,
         username: this.user.username,
         channel_id: (
-          await this.channels.find((e) => e.name === this.channel)
+          await this.channels.find((e) => e.name == this.channel)
         ).id,
         channel_name: this.channel,
         content: this.message,

@@ -22,7 +22,16 @@ export class Channel {
 	name: string;
 
 	@Column()
+
+	@Column({
+		type: "enum",
+		enum: ["public", "private", "protected"],
+		default: "public",
+	})
 	scope: string;
+
+	@Column({ nullable: true })
+	password: string;
 
 	@Column({ nullable: true })
 	image_url: string;
@@ -32,6 +41,9 @@ export class Channel {
 
 	@Column("bigint", { default: [], array: true })
 	admin_ids: number[];
+
+	@Column("bigint", { default: [], array: true })
+	invited_ids: number[];
 
 	@Column("bigint", { default: [], array: true })
 	users_ids: number[];

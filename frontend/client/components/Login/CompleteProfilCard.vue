@@ -1,11 +1,11 @@
 <template>
-  <v-card color="secondary" width="500px" max-height="700px" elevation="20">
+  <v-card color="secondary" width="800px" max-height="700px" elevation="20">
     <v-toolbar color="primary" class="d-flex justify-center">
       <v-toolbar-title
         class="font-weight-black info--text"
         style="font-size: 25px"
       >
-        EDIT YOUR PROFILE
+        COMPLETE YOUR PROFILE
       </v-toolbar-title>
     </v-toolbar>
 
@@ -26,7 +26,7 @@
       <v-btn color="info" @click="selectImage" text> SELECT AN IMAGE </v-btn>
     </v-row>
 
-    <v-row justify="center" class="py-5">
+    <v-row justify="center" class="pt-5">
       <v-slide-x-transition>
         <div v-if="avatar && saving == true">
           <v-btn
@@ -40,11 +40,11 @@
       </v-slide-x-transition>
     </v-row>
 
-    <v-row class="py-5 pa-15">
+    <v-row class="pt-5 pb-10 pa-15">
       <v-text-field
         v-model="user.username"
         name="username"
-        label="Change your username"
+        label="Username"
         type="text"
         filled
         rounded
@@ -54,23 +54,15 @@
         clearable
         maxlength="15"
         counter
-        :rules="[rules.counter_max, rules.counter_min]"
+        :rules="[rules.required, rules.counter_max, rules.counter_min]"
+        @keyup.enter="saveUsername"
       ></v-text-field>
-    </v-row>
-    <v-row class="pb-6" justify="center">
-      <v-checkbox
-        v-model="user.twofauser"
-        ref="istwofa"
-        name="istwofa"
-        label="Use two-factor authentification"
-        color="info"
-      ></v-checkbox>
     </v-row>
 
     <v-divider></v-divider>
 
     <v-card-actions class="d-flex justify-center align-center pa-3">
-      <v-btn color="accent" text @click="saveUserinfo"> Validate </v-btn>
+      <v-btn color="accent" text @click="saveUsername"> Validate </v-btn>
     </v-card-actions>
   </v-card>
 </template>
@@ -84,17 +76,23 @@ export default Vue.extend({
     return {
       avatar: "",
       photo: "",
-      username: "",
       saving: false,
-      istwofa: "",
       user: {
+        id: 0,
+        login: "",
+        email: "",
+        access_token: "",
+        refresh_token: "",
+        scope: "",
+        expires_in: 0,
+        created_at: 0,
         username: "",
         avatar: "",
-        twofauser: false,
       },
       rules: {
         counter_max: (value) => value.length <= 15 || "Max 15 characters",
         counter_min: (value) => value.length >= 5 || "Min 5 characters",
+        required: (value) => !!value || "Required",
       },
     };
   },
@@ -132,23 +130,8 @@ export default Vue.extend({
       this.photo = (this.$refs as HTMLFormElement).image.files[0];
       this.saving = true;
     },
-    async saveUserinfo() {
-      this.$axios
-        .post("/users/profile/update/userinfos", {
-          new_username: this.user.username,
-          istwofa: this.user.twofauser,
-        })
-        .then((res) => {
-          if (res.data === true) {
-            this.$router.push("/user/qr-2fa");
-          }
-        })
-        .catch((error) => {
-          console.error(error);
-        });
-      this.$router.push("/home");
-    },
     async saveUsername() {
+      const { username } = this;
       console.log(this.user.username);
       this.$axios
         .post("/users/profile/update/username", {
