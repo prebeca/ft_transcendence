@@ -26,7 +26,7 @@ import { UsersModule } from './users/users.module';
 import { ScoresModule } from './scores/scores.module';
 import { ChannelsModule } from './chat/channels/channels.module';
 import { GameModule } from './game/game.module';
-import { GameGateway } from './game/game.gateway';
+import { GameGateway } from './game/gateways/game.gateway';
 import { SocketModule } from './socket/socket.module';
 
 @Module({
