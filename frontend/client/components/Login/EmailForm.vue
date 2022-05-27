@@ -192,8 +192,11 @@ export default Vue.extend({
           password: this.loginPassword,
         })
         .then((res) => {
-          console.log(res);
-          this.$router.push("/home");
+          if (res.data) {
+            this.$router.push("/login/2fa");
+          } else {
+            this.$router.push("/home");
+          }
         })
         .catch((error) => {
           console.error(error);

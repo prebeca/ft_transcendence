@@ -1,116 +1,192 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, InternalServerErrorException, StreamableFile, UnauthorizedException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { User } from 'src/users/entities/user.entity';
-import { Repository, UpdateResult, UsingJoinColumnOnlyOnOneSideAllowedError } from 'typeorm';
+import { Repository } from 'typeorm';
 import { UserDto } from 'src/users/dto/users.dto';
-import { getRepository } from "typeorm";
+import { createReadStream } from 'fs';
+import { ReadStream } from 'typeorm/platform/PlatformTools';
+import { UpdateUserDto } from '../dto/updateUser.dto';
 
 @Injectable()
 export class UsersService {
 	constructor(@InjectRepository(User) private readonly userRepository: Repository<User>) { }
 
 	async getUsers(): Promise<User[]> {
-		return this.userRepository.find();
+		try {
+			return this.userRepository.find();
+		} catch (error) {
+			throw new InternalServerErrorException("Query to find every users failed");
+		}
 	}
 
-	async createUser(userDto: UserDto) {
-		const newUser = this.userRepository.create(userDto);
-		return await this.userRepository.save(newUser);
+	async createUser(userDto: UserDto): Promise<User> {
+		console.log(userDto);
+		try {
+			const newuser: User = this.userRepository.create(userDto);
+			return this.userRepository.save(newuser);
+		} catch (error) {
+			throw new InternalServerErrorException("Creation of user failed");
+		}
 	}
 
 	async findUsersById(id: number): Promise<User> {
-		return this.userRepository.findOne(id);
+		try {
+			const { password, salt, ...user } = await this.userRepository.findOne(id);
+			if (!(user as User))
+				return null;
+			return user as User;
+		} catch (error) {
+			throw new InternalServerErrorException("Query to find user failed");
+		}
 	}
 
-	//	async getUpdateQueryBuilder()
-	async updateUsersById(userid: number, userDto: UserDto): Promise<User> {
-		return this.userRepository.save({ userDto, id: userid });
+	async updateUsersById(user: User, updatedto: UpdateUserDto): Promise<User> {
+		try {
+			const same_user: User = { ...user, ...updatedto };
+			return await this.userRepository.save(same_user);
+		}
+		catch (error) {
+			throw new InternalServerErrorException("update of user failed");
+		}
 	}
 
-	async updateUsername(userid: number, new_username: string) {
-		console.log("updateUsername in service (): " + userid);
-		const a = await getRepository(User)
-			.createQueryBuilder("user")
-			.update(User)
-			.set({
-				username: new_username,
-			})
-			.where("id = :id", { id: userid })
-			.printSql()
-			.execute();
+	async updateUserinfo(user: User, new_username: string, istwofa?: boolean): Promise<void> {
+		if (istwofa === undefined)
+			this.updateTwoFAUser(user, istwofa);
+		this.updateUsername(user, new_username);
 	}
 
-	async updateAvatar(filename: string, userid: number): Promise<User> {
-		console.log("updateAvatar in service (): " + userid);
+	async updateSecret2FA(user: User, new_secret: string): Promise<void> {
+		if (!new_secret)
+			throw new UnauthorizedException("Fill in the new secret please");
+		try {
+			this.updateUsersById(user, { twofasecret: new_secret })
+		}
+		catch (error) {
+			throw new InternalServerErrorException("Update of 2FA secret did not work");
+		}
+	}
+	async updateUsername(user: User, new_username: string): Promise<void> {
+		if (!new_username)
+			throw new UnauthorizedException("Fill in the new username please");
+		try {
+			this.updateUsersById(user, { username: new_username })
+		}
+		catch (error) {
+			throw new InternalServerErrorException("Update of username did not work");
+		}
+	}
+
+	async updateAvatar(user: User, filename: string): Promise<User> {
+		console.log("updateAvatar in service (): " + user.id);
 		if (filename) {
 			const fs = require('fs');
-			const ancient_filename: string = await this.getAvatarUrl(userid);
+			const ancient_filename: string = await this.getAvatarUrl(user.id);
 			if (ancient_filename === null)
 				return null;
-			await getRepository(User)
-				.createQueryBuilder("user")
-				.update(User)
-				.set({
-					avatar: filename,
-				})
-				.where("id = :id", { id: userid })
-				.printSql()
-				.execute();
+			try {
+				await this.updateUsersById(user, { avatar: filename });
+			} catch (error) {
+				throw new InternalServerErrorException("Update of avatar does not work");
+			}
 			if (ancient_filename !== 'default.png') {
-
-				if (fs.existsSync('src/avatar/' + ancient_filename)) {
-					fs.unlinkSync('src/avatar/' + ancient_filename);
+				try {
+					if (fs.existsSync('src/avatar/' + ancient_filename)) {
+						fs.unlinkSync('src/avatar/' + ancient_filename);
+					}
+				} catch (error) {
+					throw new InternalServerErrorException("Deletion of old avatar failed");
 				}
 			}
 		}
-		return await this.userRepository.findOne(userid);
+		return await this.userRepository.findOne(user.id);
 	}
 
-	async updateTwoFAUser(userid: number, istwofa: boolean): Promise<boolean> {
-		const ret: UpdateResult = await getRepository(User)
-			.createQueryBuilder("user")
-			.update(User)
-			.set({
-				twofauser: istwofa,
-			})
-			.where("id = :id", { id: userid })
-			.printSql()
-			.execute();
-		if (ret)
-			return istwofa;
-		return !istwofa; //no good if not checked on frontend
+	async updateTwoFAUser(user: User, istwofa: boolean): Promise<User> {
+		try {
+			await this.updateUsersById(user, { twofauser: istwofa });
+		} catch (error) {
+			throw new InternalServerErrorException("Update TwoFAUser not work");
+		}
+		return await this.userRepository.findOne(user.id);
+	}
+
+	async updateTwoFASecret(user: User, twofasecret: string): Promise<User> {
+		try {
+			return this.updateUsersById(user, { twofasecret: twofasecret });
+		} catch (error) {
+			throw new InternalServerErrorException("Update of twofasecret failed");
+		}
 	}
 
 	async getAvatarUrl(userid: number): Promise<string> {
-		var avatar_url: string = (await this.userRepository.findOne(userid)).avatar;
-		return avatar_url;
+		try {
+			return (await this.userRepository.findOne(userid)).avatar;
+		} catch (error) {
+			throw new InternalServerErrorException("Query to search for avatar failed");
+		}
 	}
 
-	async remove(id: number): Promise<User[]> {
-		await this.userRepository.delete(id);
-		return this.getUsers();
+	async getAvatar(filename: string): Promise<StreamableFile> {
+		var file: ReadStream;
+		var path_avatar = 'src/avatar/';
+		const fs = require('fs');
+		try {
+
+			if (filename !== undefined) {
+				path_avatar += filename;
+				if (fs.existsSync(path_avatar)) {
+					file = createReadStream(path_avatar);
+					return new StreamableFile(file);
+				}
+			}
+			path_avatar = 'src/avatar/default.png';
+			if (fs.existsSync(path_avatar)) {
+				file = createReadStream(path_avatar);
+				return new StreamableFile(file);
+			}
+			return null;
+		} catch (error) {
+			throw new InternalServerErrorException("Creation of StreamableFile(" + filename + ") failed");
+		}
 	}
 
 	async removeAll(): Promise<User[]> {
-		await this.userRepository.clear();
-		return this.getUsers();
+		try {
+			await this.userRepository.clear();
+			return this.getUsers();
+		} catch (error) {
+			throw new InternalServerErrorException("Deletion of every users failed");
+		}
 	}
 
 	async findOne(login_user: string): Promise<User> {
-		return this.userRepository.findOne({ where: { login: login_user } });
+		try {
+			return this.userRepository.findOne({ where: { login: login_user } });
+		} catch (error) {
+			throw new InternalServerErrorException("Query to search for user with login: " + login_user + " failed");
+		}
 	}
 
 	async findOneByEmail(email_user: string): Promise<User> {
-		return this.userRepository.findOne({ where: { email: email_user } });
+		try {
+			return this.userRepository.findOne({ where: { email: email_user } });
+		} catch (error) {
+			throw new InternalServerErrorException("Query to search for user with email: " + email_user + " failed");
+		}
 	}
 
-	async addChannel(user_id: number, chan_id: number) {
+	async addChannel(user_id: number, chan_id: number): Promise<void> {
 		let user = await this.userRepository.findOne(user_id);
 		if (user == null)
 			return
 		if (user.channels.find((e) => e == chan_id) === undefined) {
 			user.channels.push(chan_id)
 		}
-		this.userRepository.save(user);
+		try {
+			this.userRepository.save(user);
+		} catch (error) {
+			throw new InternalServerErrorException("addChannel does not work");
+		}
 	}
 }

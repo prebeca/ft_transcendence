@@ -78,15 +78,49 @@ export default {
           "Content-Type": "application/json",
         }
       )
+      .then((res) => {
+        console.log(res.data);
+      })
       .catch((error) => {
         console.error(error);
       });
 
-    // await fetch(`${process.env.API_URL}`, {
-    //   method: "POST",
+    await this.$axios
+      .post(
+        "/channels/create",
+        {
+          name: "MyProtectedChannel",
+          scope: "protected",
+          password: "password",
+        },
+        {
+          "Content-Type": "application/json",
+        }
+      )
+      .then((res) => {
+        console.log(res.data);
+      })
+      .catch((error) => {
+        console.error(error);
+      });
 
-    //   body: JSON.stringify(),
-    // });
+    await this.$axios
+      .post(
+        "/channels/create",
+        {
+          name: "MyPrivateChannel",
+          scope: "private",
+        },
+        {
+          "Content-Type": "application/json",
+        }
+      )
+      .then((res) => {
+        console.log(res.data);
+      })
+      .catch((error) => {
+        console.error(error);
+      });
 
     await this.$axios
       .get("/users/channels")
@@ -121,14 +155,11 @@ export default {
   methods: {
     async joinChannels() {
       for (let i = 0; i < this.channels.length; ++i) {
-        await this.socket.emit("JoinChan", {
-          type: "info",
-          user_id: this.user.id,
-          username: this.user.username,
+        let res = await this.socket.emit("JoinChan", {
           channel_id: this.channels[i].id,
           channel_name: this.channels[i].name,
-          content: "",
         });
+        console.log(res);
       }
     },
 
@@ -138,11 +169,12 @@ export default {
         .get(
           "/channels/messages/" +
             (
-              await this.channels.find((e) => e.name === this.channel)
+              await this.channels.find((e) => e.name == this.channel)
             ).id
         )
         .then((res) => {
           this.messages = res.data;
+          console.log(res.data);
         })
         .catch((error) => {
           console.error(error);
@@ -164,7 +196,7 @@ export default {
         user_id: this.user.id,
         username: this.user.username,
         channel_id: (
-          await this.channels.find((e) => e.name === this.channel)
+          await this.channels.find((e) => e.name == this.channel)
         ).id,
         channel_name: this.channel,
         content: this.message,
