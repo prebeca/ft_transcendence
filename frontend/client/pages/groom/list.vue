@@ -3,8 +3,7 @@
     style="height: 80vh; max-height: 100%"
     class="d-flex flex-column justify-center align-center"
   >
-    <v-btn color="success" class="mr-4" @click="create"> Create </v-btn>
-    <v-btn color="success" class="mr-4" @click="join"> Join </v-btn>
+    <p>LISTS</p>
   </div>
 </template>
 
@@ -12,12 +11,19 @@
 import Vue from "vue";
 
 export default Vue.extend({
+  created: async function () {
+    await this.$axios
+      .get("/gameroom/list")
+      .then((res) => {
+        console.log(res);
+      })
+      .catch((error) => {
+        console.log(error);
+      });
+  },
   methods: {
-    async create() {
-      this.$router.push("/groom/creation");
-    },
     async join() {
-      this.$router.push("/groom/list");
+      console.log("does nothing");
     },
   },
 });

@@ -1,6 +1,8 @@
-import { ContextType, Logger } from "@nestjs/common";
+import { ContextType, Logger, Req, UseGuards } from "@nestjs/common";
 import { ConnectedSocket, MessageBody, OnGatewayConnection, OnGatewayDisconnect, SubscribeMessage, WebSocketGateway, WebSocketServer, WsResponse } from "@nestjs/websockets";
 import { Server, Socket } from "socket.io";
+import { JwtAuthGuard } from "src/auth/guards/jwt-auth.guard";
+import { User } from "src/users/entities/user.entity";
 import { GameRoomClass, PlayerClass } from "../classes/player.class";
 
 @WebSocketGateway(42041, {
@@ -26,16 +28,18 @@ export class GameRoomGateway implements OnGatewayConnection, OnGatewayDisconnect
 
 	handleDisconnect(@ConnectedSocket() client: Socket) {
 		console.log(`Client disconnected: ${client.id}`);
-		this.gameRoom.deletePlayer(client.id);
+		//this.gameRoom.deletePlayer(client.id);
 	}
 
 	handleConnection(@ConnectedSocket() client: Socket, ...args: any[]) {
 		console.log(`Client connected:    ${client.id}`);
-		this.gameRoom.addPlayerToRoom(client.id);
+		//this.gameRoom.addPlayerToRoom(client.id);
 	}
 
 	@SubscribeMessage('createRoom')
-	createRoom(@MessageBody() data: string, @ConnectedSocket() client: Socket) {
+	createRoom(@Req() req, @MessageBody() data: string, @ConnectedSocket() client: Socket) {
+		const user: User = { ... (req.user as User) };
+		console.log(JSON.stringify(user));
 		if (this.rooms.indexOf(data) === -1) {
 			console.log("creation of room named: " + data);
 			this.rooms.push(data);

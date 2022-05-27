@@ -9,7 +9,18 @@ export class GameRoomController {
 
 	@Get('create')
 	creation(@Req() request: Request): string {
+		var name: string = uuid();
+		this.gameRoomService.addRoom(name);
 		return (uuid());
 	}
 
+	@Get('list')
+	list(): string[] {
+		return this.gameRoomService.getRooms();
+	}
+
+	@Get('clear')
+	clear(): void {
+		return this.gameRoomService.clear();
+	}
 }
