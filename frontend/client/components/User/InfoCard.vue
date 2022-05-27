@@ -43,7 +43,7 @@ export default Vue.extend({
   data() {
     return {
       isUser: false,
-      isConnected: false,
+      isConnected: true,
       user: {
         username: "",
       },
