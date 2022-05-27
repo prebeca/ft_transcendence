@@ -29,7 +29,6 @@ import { GameRoomGateway } from './game/gateways/gameroom.gateway';
   providers: [
     AppService,
     GameGateway,
-    GameRoomGateway
   ],
 })
 export class AppModule implements NestModule {

@@ -28,7 +28,7 @@ export default Vue.extend({
   },
   mounted() {
     console.log("mouted");
-    this.socket.emit("initGameRoom");
+    this.socket.emit("createRoom", this.$route.query.name);
   },
 });
 </script>

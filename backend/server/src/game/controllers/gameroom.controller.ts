@@ -1,23 +1,15 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, Req } from '@nestjs/common';
 import { GameRoomService } from '../services/gameroom.service';
+import { Request } from 'express';
+import { v4 as uuid } from 'uuid';
 
 @Controller('gameroom')
 export class GameRoomController {
 	constructor(private readonly gameRoomService: GameRoomService) { }
 
-
-	@Get()
-	findAll() {
-		return this.gameRoomService.findAll();
+	@Get('create')
+	creation(@Req() request: Request): string {
+		return (uuid());
 	}
 
-	@Get(':id')
-	findOne(@Param('id') id: string) {
-		return this.gameRoomService.findOne(+id);
-	}
-
-	@Delete(':id')
-	remove(@Param('id') id: string) {
-		return this.gameRoomService.remove(+id);
-	}
 }
