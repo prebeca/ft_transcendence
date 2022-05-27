@@ -12,6 +12,7 @@ import { ChannelsModule } from './chat/channels/channels.module';
 import { GameModule } from './game/game.module';
 import { GameGateway } from './game/gateways/game.gateway';
 import { SocketModule } from './socket/socket.module';
+import { GameRoomGateway } from './game/gateways/gameroom.gateway';
 
 @Module({
   imports: [
@@ -28,6 +29,7 @@ import { SocketModule } from './socket/socket.module';
   providers: [
     AppService,
     GameGateway,
+    GameRoomGateway
   ],
 })
 export class AppModule implements NestModule {

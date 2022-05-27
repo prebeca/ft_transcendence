@@ -1,5 +1,5 @@
 import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
-import { GameRoomService } from './gameroom.service';
+import { GameRoomService } from '../services/gameroom.service';
 
 @Controller('gameroom')
 export class GameRoomController {

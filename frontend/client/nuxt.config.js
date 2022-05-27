@@ -10,6 +10,7 @@ export default {
     NUXT_PORT: process.env.NUXT_PORT,
     NUXT_HOST: process.env.NUXT_HOST,
     API_SOCKET_GAME: process.env.API_SOCKET_GAME,
+    API_SOCKET_GAMEROOM: process.env.API_SOCKET_GAMEROOM
   },
   // Global page headers: https://go.nuxtjs.dev/config-head
   head: {
@@ -44,26 +45,26 @@ export default {
     "@nuxtjs/vuetify",
   ],
 
-	// Modules: https://go.nuxtjs.dev/config-modules
-	modules: [
-		// https://go.nuxtjs.dev/axios
-		'@nuxtjs/axios',
-		['cookie-universal-nuxt', { alias: 'cookiz' }],
-		'nuxt-socket-io',
-	],
+  // Modules: https://go.nuxtjs.dev/config-modules
+  modules: [
+    // https://go.nuxtjs.dev/axios
+    '@nuxtjs/axios',
+    ['cookie-universal-nuxt', { alias: 'cookiz' }],
+    'nuxt-socket-io',
+  ],
 
-	io: {
-		// module options
-		sockets: [
-			{ name: 'chat', url: process.env.API_URL }
-		],
-	},
+  io: {
+    // module options
+    sockets: [
+      { name: 'chat', url: process.env.API_URL }
+    ],
+  },
 
-	// Axios module configuration: https://go.nuxtjs.dev/config-axios
-	axios: {
-		baseURL: `${process.env.API_URL}`,
-		credentials: true,
-	},
+  // Axios module configuration: https://go.nuxtjs.dev/config-axios
+  axios: {
+    baseURL: `${process.env.API_URL}`,
+    credentials: true,
+  },
 
   // Vuetify module configuration: https://go.nuxtjs.dev/config-vuetify
   vuetify: {
