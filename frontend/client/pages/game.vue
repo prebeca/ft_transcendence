@@ -112,11 +112,9 @@ export default Vue.extend({
       this.score1 = this.game.score1;
       this.score2 = this.game.score2;
       this.status = this.game.status;
-      console.log(this.status);
     },
     play() {
       this.draw();
-      // if (this.status === GameStatus.WAITING)
       requestAnimationFrame(this.play);
     },
     stop() {
