@@ -87,7 +87,6 @@ function checkCollision(game: GameI) {
 				game.ballx + game.ballr > game.pad2x) {
 					game.ballDir.y *= -1;
 			}
-
 		}
 	}
 	return GameStatus.INPROGRESS;
