@@ -11,6 +11,7 @@ export enum GameStatus {
 	INPROGRESS = "in progress",
 	PLAYER1WON = "player 1 won",
 	PLAYER2WON = "player 2 won",
+	ENDED = "ended",
 }
 
 const gameWidth = 640;
@@ -20,10 +21,14 @@ const padHeight = 100;
 const ballRadius = 7;
 const ballSpeed = 1;
 const padSpeed = 20;
-let play = false;
+const pointToWin = 10;
 
-function random_x_start() {
+function random_x_start(side: string) {
 	let x = Math.random() * 0.5 + 0.5;
+	if (side === "left")
+		return (-x);
+	if (side === "right")
+		return (x);
 	let tmp = Math.floor(Math.random() * 2);
 	if (tmp == 1)
 		return (-x);
@@ -34,8 +39,8 @@ function multiply_by_x(x: number, y: number, mult: number) {
 	return ({ x: x * mult, y: y * mult })
 }
 
-function generate_random_start() {
-	let x = random_x_start();
+function generate_random_start(side: string) {
+	let x = random_x_start(side);
 	let y = Math.sqrt(1 - x * x);
 	let tmp = Math.floor(Math.random() * 2);
 	if (tmp == 1)
@@ -46,15 +51,19 @@ function generate_random_start() {
 function checkCollision(game: GameI) {
 	if (game.ballx - game.ballr <= 0) {
 		game.score2++;
+		if (game.score2 === pointToWin)
+			return GameStatus.PLAYER2WON;
 		game.ballx = game.canvasWidth / 2;
 		game.bally = game.canvasHeight / 2;
-		game.ballDir = generate_random_start();
+		game.ballDir = generate_random_start("left");
 	}
 	else if (game.ballx + game.ballr >= game.canvasWidth) {
 		game.score1++;
+		if (game.score1 === pointToWin)
+			return GameStatus.PLAYER1WON;
 		game.ballx = game.canvasWidth / 2;
 		game.bally = game.canvasHeight / 2;
-		game.ballDir = generate_random_start();
+		game.ballDir = generate_random_start("right");
 	}
 	else if (game.ballx - game.ballr <= game.pad1x + game.pad1Width && game.ballx + game.ballr >= game.pad1x) {
 		if (game.bally - game.ballr <= game.pad1y + game.pad1Height && game.bally + game.ballr >= game.pad1y) {
@@ -63,9 +72,9 @@ function checkCollision(game: GameI) {
 
 			if ((game.bally - game.ballr < game.pad1y + game.pad1Height && game.bally + game.ballr > game.pad1y + game.pad1Height ||
 				game.bally + game.ballr > game.pad1y && game.bally - game.ballr < game.pad1y) &&
-				game.ballx - game.ballr < game.pad1x + game.pad1Width)
-
-				game.ballDir.y *= -1;
+				game.ballx - game.ballr < game.pad1x + game.pad1Width) {
+					game.ballDir.y *= -1;
+			}
 		}
 	}
 	else if (game.ballx + game.ballr >= game.pad2x && game.ballx - game.ballr <= game.pad2x + game.pad2Width) {
@@ -75,11 +84,12 @@ function checkCollision(game: GameI) {
 
 			if ((game.bally - game.ballr < game.pad2y + game.pad2Height && game.bally + game.ballr > game.pad2y + game.pad2Height ||
 				game.bally + game.ballr > game.pad2y && game.bally - game.ballr < game.pad2y) &&
-				game.ballx + game.ballr > game.pad2x)
-
-				game.ballDir.y *= -1;
+				game.ballx + game.ballr > game.pad2x) {
+					game.ballDir.y *= -1;
+			}
 		}
 	}
+	return GameStatus.INPROGRESS;
 }
 
 function moveBall(game: GameI) {
@@ -94,25 +104,61 @@ function moveBall(game: GameI) {
 function initGame(game: GameI, data: any) {
 	game.canvasWidth = data.width / 2;
 	game.canvasHeight = data.height / 2;
-	game.ratiox = gameWidth / game.canvasWidth;
-	game.ratioy = gameHeight / game.canvasHeight;
+
+	game.ratiox = game.canvasWidth / gameWidth;
+	game.ratioy = game.canvasHeight / gameHeight;
+
+	game.pad1Width = padWidth * game.ratiox;
+	game.pad1Height = padHeight * game.ratioy;
 	game.pad1x = game.canvasWidth / 10 - padWidth;
 	game.pad1y = game.canvasHeight / 2 - game.pad1Height / 2;
-	game.pad1Width = padWidth;
-	game.pad1Height = padHeight;
-	game.pad1Speed = padSpeed;
+	game.pad1Speed = padSpeed * game.ratiox * game.ratioy;
+
+	game.pad2Width = padWidth * game.ratiox;
+	game.pad2Height = padHeight * game.ratioy;
 	game.pad2x = game.canvasWidth - game.canvasWidth / 10;
 	game.pad2y = game.canvasHeight / 2 - game.pad2Height / 2;
-	game.pad2Width = padWidth;
-	game.pad2Height = padHeight;
-	game.pad2Speed = padSpeed;
+	game.pad2Speed = padSpeed * game.ratiox * game.ratioy;
+
 	game.ballx = game.canvasWidth / 2;
 	game.bally = game.canvasHeight / 2;
-	game.ballr = ballRadius;
-	game.ballSpeed = ballSpeed;
+	game.ballr = ballRadius * game.ratiox * game.ratioy;
+	game.ballSpeed = ballSpeed * game.ratiox * game.ratioy;
+	game.ballDir = generate_random_start(null);
+
 	game.score1 = 0;
 	game.score2 = 0;
+
 	game.status = GameStatus.WAITING;
+}
+
+function updateDimensions(game: GameI, data: any) {
+	let previousW = game.canvasWidth;
+	let previousH = game.canvasHeight;
+
+	game.canvasWidth = data.width / 2;
+	game.canvasHeight = data.height / 2;
+
+	game.ratiox = game.canvasWidth / previousW;
+	game.ratioy = game.canvasHeight / previousH;
+
+	game.pad1x *= game.ratiox;
+	game.pad1y *= game.ratioy;
+	game.pad1Width *= game.ratiox;
+	game.pad1Height *= game.ratioy;
+	game.pad1Speed *= game.ratioy;
+
+	game.pad2x *= game.ratiox;
+	game.pad2y *= game.ratioy;
+	game.pad2Width *= game.ratiox;
+	game.pad2Height *= game.ratioy;
+	game.pad2Speed *= game.ratioy;
+
+	game.ballx *= game.ratiox;
+	game.bally *= game.ratioy;
+	game.ballr *= game.ratioy * game.ratiox;
+	game.ballSpeed *= game.ratioy * game.ratiox;
+
 }
 
 @WebSocketGateway(42042, {
@@ -151,12 +197,12 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
 	startGame(client: Socket) {
 
 		let moveInterval: NodeJS.Timer;
-		this.game.ballDir = generate_random_start();
 
 		moveInterval = setInterval(async () => {
 			moveBall(this.game);
 
-			let ret = checkCollision(this.game)
+			if (this.game.status != GameStatus.ENDED)
+				this.game.status = checkCollision(this.game);
 
 			//   if (ret == "n")
 			// 	return ;
@@ -188,44 +234,27 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
 			// 	this.games.delete(game.id);
 			// 	this.server.emit('games', this.getGames())
 			//   }
-			// if (play === false)
-			// clearInterval(moveInterval);
-			if (this.game.status === GameStatus.INPROGRESS)
+
+			if (this.game.status === GameStatus.INPROGRESS) {
+				console.log("clear intervaaaaaaaaaaaaaaaaaaaaaal");
 				this.server.emit("updateGame", this.game);
+			}
+			else {
+				console.log("clear interval");
+				clearInterval(moveInterval);
+			}
 		}, 34);
 	}
 
 	@SubscribeMessage('updateDimensions')
 	updateDimensions(client: Socket, data: any) {
-		let previousW = this.game.canvasWidth;
-		let previousH = this.game.canvasHeight;
-
-		this.game.canvasWidth = data.width / 2;
-		this.game.canvasHeight = data.height / 2;
-
-		const ratx = this.game.canvasWidth / previousW;
-		const raty = this.game.canvasHeight / previousH;
-
-		this.game.pad1x *= ratx;
-		this.game.pad1y *= raty;
-		this.game.pad1Width *= ratx;
-		this.game.pad1Height *= raty;
-		this.game.pad1Speed *= raty;
-		this.game.pad2x *= ratx;
-		this.game.pad2y *= raty;
-		this.game.pad2Width *= ratx;
-		this.game.pad2Height *= raty;
-		this.game.pad2Speed *= raty;
-		this.game.ballx *= ratx;
-		this.game.bally *= raty;
-		this.game.ballr *= raty * ratx;
-		this.game.ballSpeed *= raty * ratx;
+		updateDimensions(this.game, data);
 		this.server.emit("updateGame", this.game);
 	}
 
 	@SubscribeMessage('stopGame')
 	stopGame(client: Socket) {
-		play = false;
+		this.game.status = GameStatus.ENDED;
 	}
 
 	@SubscribeMessage('arrowUp')
