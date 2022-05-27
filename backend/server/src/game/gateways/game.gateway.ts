@@ -11,6 +11,7 @@ export enum GameStatus {
 	INPROGRESS = "in progress",
 	PLAYER1WON = "player 1 won",
 	PLAYER2WON = "player 2 won",
+	ENDED = "ended",
 }
 
 const gameWidth = 640;
@@ -201,7 +202,8 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
 		moveInterval = setInterval(async () => {
 			moveBall(this.game);
 
-			this.game.status = checkCollision(this.game);
+			if (this.game.status != GameStatus.ENDED)
+				this.game.status = checkCollision(this.game);
 
 			//   if (ret == "n")
 			// 	return ;
@@ -234,10 +236,14 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
 			// 	this.server.emit('games', this.getGames())
 			//   }
 
-			if (this.game.status === GameStatus.INPROGRESS)
+			if (this.game.status === GameStatus.INPROGRESS) {
+				console.log("clear intervaaaaaaaaaaaaaaaaaaaaaal");
 				this.server.emit("updateGame", this.game);
-			else
+			}
+			else {
+				console.log("clear interval");
 				clearInterval(moveInterval);
+			}
 		}, 34);
 	}
 
@@ -249,6 +255,7 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
 
 	@SubscribeMessage('stopGame')
 	stopGame(client: Socket) {
+		this.game.status = GameStatus.ENDED;
 	}
 
 	@SubscribeMessage('arrowUp')
