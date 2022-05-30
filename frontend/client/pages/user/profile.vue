@@ -4,10 +4,10 @@
 
     <v-card
       color="secondary" 
-      width="1000px"
-      max-height="600px"
       elevation="20"
       class="mt-15"
+      width="1000px"
+      height="400px"
     >
       <div 
         class="d-block-flex"

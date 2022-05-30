@@ -2,7 +2,7 @@
   <v-card
     class="mx-auto"
     color="secondary"
-    height="500px"
+    height="100px"
     outlined
   >
 
@@ -20,12 +20,55 @@
           <v-tab
             v-for="n in 2"
             :key="n"
+            class="font-weight-bold"
           >
             {{ tab[n - 1] }}
           </v-tab>
         </v-tabs>
       </template>
     </v-toolbar>
+
+    <v-tabs-items v-model="tabs">
+      <v-tab-item>
+        <v-card 
+          flat
+          color="secondary"
+          class="py-10"
+        >
+        <v-simple-table
+          class="secondary"
+        >
+          <template v-slot:default>
+            <tbody>
+              <tr
+                v-for="match in matches"
+                :key="match.player1"
+                class="row-color"
+              >
+                <UserMatchItem :match="match" />
+              </tr>
+            </tbody>
+          </template>
+        </v-simple-table>
+        </v-card>
+      </v-tab-item>
+            <v-tab-item>
+        <v-card 
+          flat
+          color="secondary"
+        >
+        <v-simple-table
+          class="secondary"
+        >
+          <template v-slot:default>
+            <tbody>
+            </tbody>
+          </template>
+        </v-simple-table>
+
+        </v-card>
+      </v-tab-item>
+    </v-tabs-items>
 
   </v-card>
 </template>
@@ -42,7 +85,51 @@ export default Vue.extend({
         username: "",
       },
       tabs: null,
-      tab: ['Match History', 'Friends List']
+      tab: ['Match History', 'Friends List'],
+      matches: [
+        {
+          player1: 'player1',
+          player2: 'player2',
+          player1Score: 12,
+          player2Score: 3,
+        },
+        {
+          player1: 'player1',
+          player2: 'player2',
+          player1Score: 3,
+          player2Score: 12,
+        },
+        {
+          player1: 'player1',
+          player2: 'player2',
+          player1Score: 12,
+          player2Score: 12,
+        },
+        {
+          player1: 'player1',
+          player2: 'player2',
+          player1Score: 12,
+          player2Score: 12,
+        },
+                {
+          player1: 'player1',
+          player2: 'player2',
+          player1Score: 12,
+          player2Score: 12,
+        },
+                {
+          player1: 'player1',
+          player2: 'player2',
+          player1Score: 12,
+          player2Score: 12,
+        },
+                {
+          player1: 'player1',
+          player2: 'player2',
+          player1Score: 12,
+          player2Score: 12,
+        }
+      ]
     };
   },
   created: function () {
@@ -65,3 +152,13 @@ export default Vue.extend({
   },
 });
 </script>
+
+<style scoped>
+  .row-color {
+    display: table-row;
+  }
+
+  .row-color:hover {
+    background: rgb(94, 53, 177) !important;
+  }
+</style>
