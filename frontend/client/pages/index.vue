@@ -32,7 +32,7 @@ export default {
   data: () => ({
     url: `${process.env.API_URL}/auth/42login`,
   }),
-});
+};
 </script>
 
 <style scoped lang="scss">

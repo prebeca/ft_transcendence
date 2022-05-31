@@ -48,7 +48,7 @@ export class AuthService {
 		response.cookie('access_token', token_client, {
 			httpOnly: true,
 			path: '/',
-			maxAge: 1000 * 60 * 15,
+			maxAge: 1000 * 60 * 200,
 			/* secure: true, -> only for localhost AND https */
 		});
 		return {
@@ -181,25 +181,4 @@ export class AuthService {
 			throw new InternalServerErrorException("Password hashing failed");
 		}
 	}
-	/*
-		async signIn(signInCredentialsDto: SignInCredentialsDto): Promise<{ accessToken: string, refreshToken?: string, user?: JwtPayload }> {
-			const resp: User = await this.userRepository.validateUserPassword(signInCredentialsDto);
-				
-			if (!resp) {
-				throw new UnauthorizedException('Invalid credentials');
-			}
-		
-			const accessToken = await this.jwtGenerate(resp.username, resp.id, resp.twofauser);
-		
-			if (resp.twofauser) {
-				return {
-					accessToken
-				}
-			}
-
-			return {
-				accessToken,
-				user: resp
-			}
-		 }*/
 }

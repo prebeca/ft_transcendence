@@ -1,9 +1,6 @@
-import { Controller, Get, Inject, Redirect, Req } from '@nestjs/common';
+import { Controller, Get, Inject } from '@nestjs/common';
 import { AppService } from './app.service';
 import { ConfigService } from '@nestjs/config';
-import { JwtAuthGuard } from './auth/guards/jwt-auth.guard';
-import { UseGuards } from '@nestjs/common';
-import { Request } from 'express';
 
 @Controller()
 export class AppController {
