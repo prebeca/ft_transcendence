@@ -3,7 +3,7 @@
     style="height: 80vh; max-height: 100%"
     class="d-flex flex-column justify-center align-center"
   >
-    <UserEditProfilCard />
+    <UserEditProfileCard />
   </div>
 </template>
 
