@@ -1,6 +1,8 @@
 <template>
-  <div id="myGame" width="100vw" height="100vh">
-    <canvas id="canvas"></canvas>
+  <div id="score">
+    <div id="myGame" width="100vw" height="100vh">
+      <canvas id="canvas"></canvas>
+    </div>
   </div>
 </template>
 
@@ -28,29 +30,21 @@ export default Vue.extend({
       canvas: {} as HTMLCanvasElement,
       context: {} as CanvasRenderingContext2D | null,
       game: {} as GameI,
-      pad1: {} as PadI,
-      pad2: {} as PadI,
-      ball: {} as BallI,
       score1: {} as number,
       score2: {} as number,
       status: GameStatus.INCOMPLETE,
     };
   },
   created() {
-    this.socket = io(process.env.API_SOCKET_GAME);
+    this.socket = io(process.env.API_SOCKET_GAME, {withCredentials: true});
   },
   beforeMount() {
     this.socket.on("print", (data) => {
       this.myPrint(data);
     });
-
     this.socket.on("initGame", (data: GameI) => {
       this.updateState(data);
     });
-    this.socket.on("startGame", (data: GameI) => {
-      this.updateState(data);
-      this.socket.emit("startGame");
-    })
     this.socket.on("updateGame", (data: GameI) => {
       this.updateState(data);
     });
@@ -66,8 +60,6 @@ export default Vue.extend({
       height: window.innerHeight,
     });
 
-    this.play();
-
     window.addEventListener("keydown", this.handleKeyDown);
     window.addEventListener("resize", this.handleResize);
   },
@@ -78,18 +70,14 @@ export default Vue.extend({
   },
   methods: {
     handleKeyDown: function(event) {
-      if (event.key === "ArrowUp") {
+      if (event.key === "ArrowUp")
         this.socket.emit("arrowUp", this.game);
-      }
-      if (event.key === "ArrowDown") {
+      if (event.key === "ArrowDown")
         this.socket.emit("arrowDown", this.game);
-      }
-      if (event.key === "Escape") {
+      if (event.key === "Escape")
         this.stop();
-      }
-      if (event.key === "Enter") {
+      if (event.key === "Enter")
         this.rePlay();
-      }
     },
     handleResize() {
       this.socket.emit("updateDimensions", {
@@ -101,27 +89,10 @@ export default Vue.extend({
       this.game = data;
       this.canvas.width = data.canvasWidth;
       this.canvas.height = data.canvasHeight;
-      this.pad1.x = this.game.pad1x;
-      this.pad1.y = this.game.pad1y;
-      this.pad1.width = this.game.pad1Width;
-      this.pad1.height = this.game.pad1Height;
-      this.pad1.speed = this.game.pad1Speed;
-      this.pad2.x = this.game.pad2x;
-      this.pad2.y = this.game.pad2y;
-      this.pad2.width = this.game.pad2Width;
-      this.pad2.height = this.game.pad2Height;
-      this.pad2.speed = this.game.pad2Speed;
-      this.ball.x = this.game.ballx;
-      this.ball.y = this.game.bally;
-      this.ball.r = this.game.ballr;
       this.score1 = this.game.score1;
       this.score2 = this.game.score2;
       this.status = this.game.status;
-    },
-    play() {
       this.draw();
-			if (this.status != GameStatus.ENDED)
-        requestAnimationFrame(this.play);
     },
     stop() {
       this.status = GameStatus.ENDED;
@@ -135,12 +106,11 @@ export default Vue.extend({
     draw() {
       // this.context.font = '100px Courier New';
       // this.context.textAlign = 'center';
-      console.log("dans draw");
+      console.log("dans draw")
       this.clearScreen();
       this.drawCanvas();
       this.drawScore();
-      this.drawPad(this.pad1);
-      this.drawPad(this.pad2);
+      this.drawPads();
       this.drawBall();
     },
     clearScreen() {
@@ -168,14 +138,15 @@ export default Vue.extend({
         200
       );
     },
-    drawPad(pad: PadI) {
+    drawPads() {
       this.context.fillStyle = "white";
-      this.context.fillRect(pad.x, pad.y, pad.width, pad.height);
+      this.context.fillRect(this.game.pad1.x, this.game.pad1.y, this.game.pad1.width, this.game.pad1.height);
+      this.context.fillRect(this.game.pad2.x, this.game.pad2.y, this.game.pad2.width, this.game.pad2.height);
     },
     drawBall() {
       this.context.beginPath();
       this.context.fillStyle = "white";
-      const { x, y, r } = this.ball;
+      const { x, y, r } = this.game.ball;
       this.context.arc(x, y, r, 0, Math.PI * 2, false);
       this.context.fill();
     },

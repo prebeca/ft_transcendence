@@ -3,4 +3,5 @@ export default interface PadI {
 	y: number,
 	width: number,
 	height: number,
+	speed: number,
 }
