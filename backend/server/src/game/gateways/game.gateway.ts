@@ -112,25 +112,25 @@ function initGame(game: GameI, data: any) {
 	game.canvasWidth = data.width / 2;
 	game.canvasHeight = data.height / 2;
 
-	game.ratiox = game.canvasWidth / gameWidth;
-	game.ratioy = game.canvasHeight / gameHeight;
+	let ratiox = game.canvasWidth / gameWidth;
+	let ratioy = game.canvasHeight / gameHeight;
 
-	game.pad1.width = padWidth * game.ratiox;
-	game.pad1.height = padHeight * game.ratioy;
+	game.pad1.width = padWidth * ratiox;
+	game.pad1.height = padHeight * ratioy;
 	game.pad1.x = game.canvasWidth / 10 - padWidth;
 	game.pad1.y = game.canvasHeight / 2 - game.pad1.height / 2;
-	game.pad1.speed = padSpeed * game.ratiox * game.ratioy;
+	game.pad1.speed = padSpeed * ratiox * ratioy;
 
-	game.pad2.width = padWidth * game.ratiox;
-	game.pad2.height = padHeight * game.ratioy;
+	game.pad2.width = padWidth * ratiox;
+	game.pad2.height = padHeight * ratioy;
 	game.pad2.x = game.canvasWidth - game.canvasWidth / 10;
 	game.pad2.y = game.canvasHeight / 2 - game.pad2.height / 2;
-	game.pad2.speed = padSpeed * game.ratiox * game.ratioy;
+	game.pad2.speed = padSpeed * ratiox * ratioy;
 
 	game.ball.x = game.canvasWidth / 2;
 	game.ball.y = game.canvasHeight / 2;
-	game.ball.r = ballRadius * game.ratiox * game.ratioy;
-	game.ball.speed = ballSpeed * game.ratiox * game.ratioy;
+	game.ball.r = ballRadius * ratiox * ratioy;
+	game.ball.speed = ballSpeed * ratiox * ratioy;
 	game.ball.dir = generate_random_start(null);
 
 	game.score1 = 0;
@@ -146,25 +146,25 @@ function updateDimensions(game: GameI, data: any) {
 	game.canvasWidth = data.width / 2;
 	game.canvasHeight = data.height / 2;
 
-	game.ratiox = game.canvasWidth / previousW;
-	game.ratioy = game.canvasHeight / previousH;
+	let ratiox = game.canvasWidth / previousW;
+	let ratioy = game.canvasHeight / previousH;
 
-	game.pad1.x *= game.ratiox;
-	game.pad1.y *= game.ratioy;
-	game.pad1.width *= game.ratiox;
-	game.pad1.height *= game.ratioy;
-	game.pad1.speed *= game.ratioy;
+	game.pad1.x *= ratiox;
+	game.pad1.y *= ratioy;
+	game.pad1.width *= ratiox;
+	game.pad1.height *= ratioy;
+	game.pad1.speed *= ratioy;
 
-	game.pad2.x *= game.ratiox;
-	game.pad2.y *= game.ratioy;
-	game.pad2.width *= game.ratiox;
-	game.pad2.height *= game.ratioy;
-	game.pad2.speed *= game.ratioy;
+	game.pad2.x *= ratiox;
+	game.pad2.y *= ratioy;
+	game.pad2.width *= ratiox;
+	game.pad2.height *= ratioy;
+	game.pad2.speed *= ratioy;
 
-	game.ball.x *= game.ratiox;
-	game.ball.y *= game.ratioy;
-	game.ball.r *= game.ratioy * game.ratiox;
-	game.ball.speed *= game.ratioy * game.ratiox;
+	game.ball.x *= ratiox;
+	game.ball.y *= ratioy;
+	game.ball.r *= ratioy * ratiox;
+	game.ball.speed *= ratioy * ratiox;
 }
 
 @WebSocketGateway(42042, {

@@ -11,9 +11,6 @@ export default interface GameI {
 
 	ball: BallI,
 
-	ratiox: number,
-	ratioy: number,
-
 	score1: number,
 	score2: number,
 

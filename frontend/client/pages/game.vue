@@ -9,8 +9,6 @@
 <script lang="ts">
 import Vue from "vue";
 import io from "socket.io-client";
-import PadI from "../types/interfaces/padI.interface";
-import BallI from "../types/interfaces/ballI.interface";
 import GameI from "../types/interfaces/gameI.interface";
 
 export enum GameStatus {
