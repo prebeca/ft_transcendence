@@ -19,7 +19,7 @@ export class GameRoomGateway implements OnGatewayConnection, OnGatewayDisconnect
 	) { }
 
 	@WebSocketServer()
-	server2: Server = new Server();
+	server2 = new Server();
 
 	private readonly ppr: number = 2;
 	private id_room: number = 1;
@@ -30,6 +30,10 @@ export class GameRoomGateway implements OnGatewayConnection, OnGatewayDisconnect
 
 	afterInit(server2: Server) {
 		this.logger.log("gameroom socket init !");
+		this.gameRooms.clear();
+		this.server2.emit("disco");
+		this.server2.sockets.disconnectSockets();
+		this.server2.disconnectSockets();
 	}
 
 	handleDisconnect(@ConnectedSocket() client: Socket) {
@@ -42,31 +46,40 @@ export class GameRoomGateway implements OnGatewayConnection, OnGatewayDisconnect
 		//this.gameRoom.addPlayerToRoom(client.id);
 	}
 
-	createRoom(roomname: string) {
+	createRoom(roomname: string, sid: string, user: User, player: Player) {
 		console.log("creation of room named: " + roomname);
 		this.rooms.push(roomname);
 		let gameRoom: GameRoomClass = new GameRoomClass();
 		gameRoom.roomname = roomname;
 		this.gameRooms.set(roomname, gameRoom);
+		gameRoom.addPlayerToRoom(sid, user);
+		this.server2.emit("infouserp1", { username: user.username, avatar: user.avatar, level: player.level, losses: player.losses, wins: player.winnings, mmr: player.mmr });
 	}
 
 	@UseGuards(WsJwtAuthGuard)
 	@SubscribeMessage('joinRoom')
 	joinRoom(@Req() req, @MessageBody() data: string, @ConnectedSocket() client: Socket) {
 		const user: User = { ... (req.user as User) };
+		const player: Player = user.player;
+		console.log(player);
 		if (this.rooms.indexOf(data) === -1) {
-			this.createRoom(data);
+			return this.createRoom(data, client.id, user, player);
+		} else {
+			let gameRoom: GameRoomClass = this.gameRooms.get(data);
+			if (gameRoom.nbPlayer < this.ppr) //add user to room (spectator or otherwise) but not to the gameroom object if spectator
+				gameRoom.addPlayerToRoom(client.id, user);
+			for (const [key, value] of gameRoom.mapPlayers) { //will send to every member the informations of every player present
+				this.server2.emit("infouserp" + value.player_number, {
+					username: value.username,
+					avatar: value.avatar,
+					level: value.level,
+					losses: value.losses,
+					wins: value.wins,
+					mmr: value.mmr,
+				});
+				console.log(`${key} = ${value}`);
+			}
 		}
-		else {
-			console.log("joining a room named: " + data);
-		}
-		let gameRoom: GameRoomClass = this.gameRooms.get(data);
-		if (gameRoom.nbPlayer >= this.ppr)
-			return;
-		console.log('gameRoom' + gameRoom);
-		gameRoom.addPlayerToRoom(client.id);
-		console.log('gameRoom' + gameRoom);
-		client.join(data);
-		this.server2.emit("infouser", user);
+		client.join(data); //Should use interfaces for it instead of this json (same but not clear)
 	}
 }

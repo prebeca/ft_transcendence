@@ -1,6 +1,7 @@
 import { MigrationInterface, QueryRunner } from "typeorm";
 import { User } from "../users/entities/user.entity";
 import * as bcrypt from 'bcrypt'
+import { Player } from "src/game/entities/player.entity";
 
 export class UserData1652873596846 implements MigrationInterface {
 
@@ -16,7 +17,8 @@ export class UserData1652873596846 implements MigrationInterface {
                 email: 'alexandre@mail.com',
                 username: 'alexandre',
                 password: hash_pass,
-                salt: salt_pass
+                salt: salt_pass,
+                player: new Player(),
             },
             {
                 id: 2,
@@ -24,7 +26,8 @@ export class UserData1652873596846 implements MigrationInterface {
                 email: 'thomas@mail.com',
                 username: 'thomas',
                 password: hash_pass,
-                salt: salt_pass
+                salt: salt_pass,
+                player: new Player(),
             },
             {
                 id: 3,
@@ -32,15 +35,17 @@ export class UserData1652873596846 implements MigrationInterface {
                 email: 'amelie@mail.com',
                 username: 'amelie',
                 password: hash_pass,
-                salt: salt_pass
+                salt: salt_pass,
+                player: new Player(),
             },
             {
                 id: 4,
                 login: 'pierre',
                 email: 'pierre@mail.com',
-                username: '',
+                username: 'pierre',
                 password: hash_pass,
-                salt: salt_pass
+                salt: salt_pass,
+                player: new Player(),
             }
         ]);
     }

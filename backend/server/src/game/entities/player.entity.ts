@@ -1,15 +1,12 @@
-import { Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
+import { Column, Entity, OneToOne, PrimaryGeneratedColumn } from 'typeorm';
 
 @Entity()
 export class Player {
 	@PrimaryGeneratedColumn({
 		type: 'bigint',
-		name: 'user_id',
+		name: 'player_id',
 	})
 	id: number;
-
-	@Column({ unique: true })
-	userid: number;
 
 	@Column({ default: 0 })
 	level: number;
@@ -20,6 +17,6 @@ export class Player {
 	@Column({ default: 0 })
 	winnings: number;
 
-	@Column({ nullable: true })
+	@Column({ default: 0 })
 	mmr: number;
 }

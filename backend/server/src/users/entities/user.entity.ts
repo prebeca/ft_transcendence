@@ -1,4 +1,5 @@
-import { Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
+import { Player } from 'src/game/entities/player.entity';
+import { Column, Entity, JoinColumn, OneToOne, PrimaryGeneratedColumn } from 'typeorm';
 
 @Entity()
 export class User {
@@ -15,19 +16,7 @@ export class User {
 	email: string;
 
 	@Column({ unique: true, nullable: true })
-	access_token: string;
-
-	@Column({ unique: true, nullable: true })
 	refresh_token: string;
-
-	@Column({ nullable: true })
-	scope: string;
-
-	@Column({ nullable: true })
-	expires_in: number;
-
-	@Column({ nullable: true })
-	created_at: number;
 
 	@Column('text', { default: "default.png" })
 	avatar: string;
@@ -52,4 +41,10 @@ export class User {
 
 	@Column("bigint", { default: {}, array: true })
 	channels: number[];
+
+	@OneToOne(() => Player, {
+		cascade: ["insert"],
+	})
+	@JoinColumn()
+	player: Player;
 }

@@ -9,15 +9,7 @@ export class UserDto {
 	@IsEmail()
 	email: string;
 
-	access_token?: string;
-
 	refresh_token?: string;
-
-	scope?: string;
-
-	expires_in?: number;
-
-	created_at?: number;
 
 	@IsNotEmpty()
 	username: string;
@@ -27,4 +19,6 @@ export class UserDto {
 	salt?: string;
 
 	fortytwouser?: boolean;
+
+	playerid?: number;
 }
