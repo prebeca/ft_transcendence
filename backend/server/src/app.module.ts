@@ -11,29 +11,29 @@ import { ScoresModule } from './scores/scores.module';
 import { ChannelsModule } from './chat/channels/channels.module';
 import { GameModule } from './game/game.module';
 import { GameGateway } from './game/gateways/game.gateway';
-import { SocketModule } from './socket/socket.module';
+import { SocketModule } from './chat/socket/socket.module';
 
 @Module({
-  imports: [
-    ConfigModule.forRoot({ isGlobal: true }),
-    TypeOrmModule.forRootAsync({ useClass: TypeOrmConfigService }),
-    AuthModule,
-    UsersModule,
-    ChannelsModule,
-    ScoresModule,
-    GameModule,
-    SocketModule
-  ],
-  controllers: [AppController],
-  providers: [
-    AppService,
-    GameGateway,
-  ],
+	imports: [
+		ConfigModule.forRoot({ isGlobal: true }),
+		TypeOrmModule.forRootAsync({ useClass: TypeOrmConfigService }),
+		AuthModule,
+		UsersModule,
+		ChannelsModule,
+		ScoresModule,
+		GameModule,
+		SocketModule
+	],
+	controllers: [AppController],
+	providers: [
+		AppService,
+		GameGateway,
+	],
 })
 export class AppModule implements NestModule {
-  configure(consumer: MiddlewareConsumer) {
-    consumer
-      .apply(LoggerMiddleware)
-      .forRoutes({ path: '*', method: RequestMethod.ALL });
-  }
+	configure(consumer: MiddlewareConsumer) {
+		consumer
+			.apply(LoggerMiddleware)
+			.forRoutes({ path: '*', method: RequestMethod.ALL });
+	}
 }

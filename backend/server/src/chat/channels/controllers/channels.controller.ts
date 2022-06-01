@@ -13,6 +13,7 @@ import {
 	UseGuards,
 	InternalServerErrorException,
 } from '@nestjs/common';
+import { channel } from 'diagnostics_channel';
 import { Request } from 'express';
 import { JwtAuthGuard } from 'src/auth/guards/jwt-auth.guard';
 import { UsersService } from 'src/users/services/users.service';
@@ -80,4 +81,18 @@ export class ChannelsController {
 	// 		this.channelService.createChannel(val);
 	// 	return this.channelService.getChannels();
 	// }
+
+	@UseGuards(JwtAuthGuard)
+	@Post('handleMessage')
+	async handleMessage(@Req() req: Request, @Body() message: Message) {
+		let channel = await this.channelService.findOneById(message.channel_id);
+		let user = await this.userService.findUsersById(req.user["id"]);
+		if (channel == null)
+			throw new InternalServerErrorException("No such channel");
+		if (user == null)
+			throw new InternalServerErrorException("Request from unknown user");
+		if (channel.users_ids.find(e => e == user.id) == undefined)
+			throw new InternalServerErrorException("User not in channel");
+		await this.channelService.handleMessage(channel, user, message);
+	}
 }

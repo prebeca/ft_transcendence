@@ -22,9 +22,9 @@ export class SocketGateway {
 		return await this.socketService.joinChannel(data, client)
 	}
 
-	@SubscribeMessage('MessageSend')
-	async handleMsgDistrib(@MessageBody() data: Message, @ConnectedSocket() client: Socket) {
-		return await this.socketService.handleMsgDistrib(data, client, this.server)
+	@SubscribeMessage('NewMessage')
+	async newMessage(@MessageBody() data: Message, @ConnectedSocket() client: Socket) {
+		return await this.socketService.newMessage(data, client, this.server)
 	}
 
 }
