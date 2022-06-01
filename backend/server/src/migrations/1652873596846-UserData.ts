@@ -38,7 +38,7 @@ export class UserData1652873596846 implements MigrationInterface {
                 id: 4,
                 login: 'pierre',
                 email: 'pierre@mail.com',
-                username: '',
+                username: 'pierre',
                 password: hash_pass,
                 salt: salt_pass
             }
