@@ -17,6 +17,7 @@ export enum GameStatus {
   INPROGRESS = "in progress",
   PLAYER1WON = "player 1 won",
   PLAYER2WON = "player 2 won",
+	ENDED = "ended",
 }
 
 export default Vue.extend({
@@ -67,7 +68,16 @@ export default Vue.extend({
 
     this.play();
 
-    window.addEventListener("keydown", (event) => {
+    window.addEventListener("keydown", this.handleKeyDown);
+    window.addEventListener("resize", this.handleResize);
+  },
+  beforeDestroy() {
+    window.removeEventListener('resize', this.handleResize);
+    window.removeEventListener('keydown', this.handleKeyDown);
+    this.stop();
+  },
+  methods: {
+    handleKeyDown: function(event) {
       if (event.key === "ArrowUp") {
         this.socket.emit("arrowUp", this.game);
       }
@@ -80,18 +90,13 @@ export default Vue.extend({
       if (event.key === "Enter") {
         this.rePlay();
       }
-    });
-
-    const handleResize = (event) => {
+    },
+    handleResize() {
       this.socket.emit("updateDimensions", {
         width: window.innerWidth,
         height: window.innerHeight,
       });
-    };
-
-    window.addEventListener("resize", handleResize);
-  },
-  methods: {
+    },
     updateState(data: GameI) {
       this.game = data;
       this.canvas.width = data.canvasWidth;
@@ -112,25 +117,25 @@ export default Vue.extend({
       this.score1 = this.game.score1;
       this.score2 = this.game.score2;
       this.status = this.game.status;
-      console.log(this.status);
     },
     play() {
       this.draw();
-      // if (this.status === GameStatus.WAITING)
-      requestAnimationFrame(this.play);
+			if (this.status != GameStatus.ENDED)
+        requestAnimationFrame(this.play);
     },
     stop() {
-      // console.log("dans stop");
-      // this.status = GameStatus.WAITING;
-      // this.socket.emit("stopGame");
+      this.status = GameStatus.ENDED;
+      this.socket.emit("stopGame");
     },
     rePlay() {
-      this.status = GameStatus.INPROGRESS;
+      this.game.status = GameStatus.INPROGRESS;
+      this.status = this.game.status;
       this.play();
     },
     draw() {
       // this.context.font = '100px Courier New';
       // this.context.textAlign = 'center';
+      console.log("dans draw");
       this.clearScreen();
       this.drawCanvas();
       this.drawScore();
