@@ -81,7 +81,7 @@ export class AuthService {
 			...createUserDto,
 			login: res2.data.login,
 			email: res2.data.email,
-			username: res2.data.username
+			username: res2.data.login,
 		};
 
 		var user: User = await this.usersService.findOne(createUserDto.login);
