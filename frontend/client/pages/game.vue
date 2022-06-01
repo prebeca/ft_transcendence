@@ -1,9 +1,17 @@
 <template>
-  <div id="score">
-    <div id="myGame" width="100vw" height="100vh">
-      <canvas id="canvas"></canvas>
-    </div>
+
+  <div style="height: 80vh; max-height: 100%;" class="d-flex flex-column justify-center align-center">
+
+      <v-card class="d-flex flex-column justify-center align-center" color="secondary" width="70%" height="10%" >
+        <td> {{ game.score1 }} </td>
+        <td> {{ game.score2 }} </td>
+      </v-card>
+      <div id="myGame" width="100vw" height="100vh">
+        <canvas id="canvas"></canvas>
+      </div>
+
   </div>
+
 </template>
 
 <script lang="ts">
@@ -28,9 +36,9 @@ export default Vue.extend({
       canvas: {} as HTMLCanvasElement,
       context: {} as CanvasRenderingContext2D | null,
       game: {} as GameI,
-      score1: {} as number,
-      score2: {} as number,
-      status: GameStatus.INCOMPLETE,
+      // score1: {} as number,
+      // score2: {} as number,
+      // status: GameStatus.INCOMPLETE,
     };
   },
   created() {
@@ -45,6 +53,9 @@ export default Vue.extend({
     });
     this.socket.on("updateGame", (data: GameI) => {
       this.updateState(data);
+    });
+    this.socket.on("end", (data: GameI) => {
+      this.endGame(data);
     });
   },
   mounted() {
@@ -87,9 +98,9 @@ export default Vue.extend({
       this.game = data;
       this.canvas.width = data.canvasWidth;
       this.canvas.height = data.canvasHeight;
-      this.score1 = this.game.score1;
-      this.score2 = this.game.score2;
-      this.status = this.game.status;
+      // this.score1 = this.game.score1;
+      // this.score2 = this.game.score2;
+      // this.status = this.game.status;
       this.draw();
     },
     stop() {
@@ -107,9 +118,10 @@ export default Vue.extend({
       console.log("dans draw")
       this.clearScreen();
       this.drawCanvas();
-      this.drawScore();
       this.drawPads();
       this.drawBall();
+      if (this.game.status != GameStatus.INPROGRESS && this.game.status != GameStatus.WAITING)
+        this.endGame(this.game);
     },
     clearScreen() {
       this.context.clearRect(0, 0, this.canvas.width, this.canvas.height);
@@ -123,17 +135,15 @@ export default Vue.extend({
       this.context.lineTo(this.canvas.width / 2, this.canvas.height);
       this.context.stroke();
     },
-    drawScore() {
+    endGame(game: GameI) {
+      const winner = game.status;
       this.context.fillStyle = "white";
+      this.context.font = (this.canvas.width / 10).toString() + "px serif";
+      this.context.textAlign = "center";
       this.context.fillText(
-        this.score1.toString(),
-        this.canvas.width / 2 - 50,
-        200
-      );
-      this.context.fillText(
-        this.score2.toString(),
-        this.canvas.width / 2 + 50,
-        200
+        winner,
+        this.canvas.width / 2,
+        this.canvas.height / 4,
       );
     },
     drawPads() {

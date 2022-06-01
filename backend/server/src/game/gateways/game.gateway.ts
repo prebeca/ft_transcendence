@@ -1,6 +1,7 @@
 import { Logger } from "@nestjs/common";
 import { OnGatewayConnection, OnGatewayDisconnect, SubscribeMessage, WebSocketGateway, WebSocketServer } from "@nestjs/websockets";
 import { Server, Socket } from "socket.io";
+import { Game } from "../entities/game.entity";
 import BallI from "../interfaces/ballI.interface";
 import GameI from "../interfaces/gameI.interface";
 import PadI from "../interfaces/padI.interface";
@@ -22,7 +23,7 @@ const padHeight = 100;
 const ballRadius = 7;
 const ballSpeed = 1;
 const padSpeed = 20;
-const pointToWin = 10;
+const pointToWin = 2;
 
 function random_x_start(side: string) {
 	let x = Math.random() * 0.5 + 0.5;
@@ -101,8 +102,14 @@ function checkCollision(game: GameI) {
 }
 
 function moveBall(game: GameI) {
-	if (game.ball.y + game.ball.r > game.canvasHeight || game.ball.y - game.ball.r < 0)
+	if (game.ball.y + game.ball.r + game.ball.speed > game.canvasHeight) {
+		game.ball.y = game.canvasHeight - game.ball.r;
 		game.ball.dir.y *= -1;
+	}
+	if (game.ball.y - game.ball.r < game.ball.speed) {
+		game.ball.y = game.ball.r;
+		game.ball.dir.y *= -1;
+	}
 
 	game.ball.x += game.ball.dir.x * game.ball.speed;
 	game.ball.y += game.ball.dir.y * game.ball.speed;
@@ -245,7 +252,10 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
 
 			if (this.game.status != GameStatus.INPROGRESS)
 				clearInterval(moveInterval);
-			this.server.emit("updateGame", this.game);
+			// if (this.game.status === GameStatus.PLAYER1WON || this.game.status === GameStatus.PLAYER2WON)
+			// 	this.server.emit("end", this.game);
+			// else
+				this.server.emit("updateGame", this.game);
 		}, 1000 / 30);
 	}
 
@@ -266,11 +276,13 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
 			this.game.status = GameStatus.INPROGRESS;
 			this.startGame(client);
 		}
-		if (this.game.pad1.y > this.game.pad1.speed)
-			this.game.pad1.y -= this.game.pad1.speed;
-		else
-			this.game.pad1.y = 0;
-		this.server.emit("updateGame", this.game);
+		if(this.game.status === GameStatus.INPROGRESS) {
+			if (this.game.pad1.y > this.game.pad1.speed)
+				this.game.pad1.y -= this.game.pad1.speed;
+			else
+				this.game.pad1.y = 0;
+			this.server.emit("updateGame", this.game);
+		}
 	}
 
 	@SubscribeMessage('arrowDown')
@@ -279,10 +291,12 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
 			this.game.status = GameStatus.INPROGRESS;
 			this.startGame(client);
 		}
-		if (this.game.pad1.y < this.game.canvasHeight - this.game.pad1.height - this.game.pad1.speed)
-			this.game.pad1.y += this.game.pad1.speed;
-		else
-			this.game.pad1.y = this.game.canvasHeight - this.game.pad1.height;
-		this.server.emit("updateGame", this.game);
+		if(this.game.status === GameStatus.INPROGRESS) {
+			if (this.game.pad1.y < this.game.canvasHeight - this.game.pad1.height - this.game.pad1.speed)
+				this.game.pad1.y += this.game.pad1.speed;
+			else
+				this.game.pad1.y = this.game.canvasHeight - this.game.pad1.height;
+			this.server.emit("updateGame", this.game);
+		}
 	}
 }
