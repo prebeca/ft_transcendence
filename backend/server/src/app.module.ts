@@ -11,6 +11,7 @@ import { ScoresModule } from './scores/scores.module';
 import { ChannelsModule } from './chat/channels/channels.module';
 import { GameModule } from './game/game.module';
 import { GameGateway } from './game/gateways/game.gateway';
+import { GameRoomGateway } from './game/gateways/gameroom.gateway';
 import { SocketModule } from './chat/socket/socket.module';
 
 @Module({

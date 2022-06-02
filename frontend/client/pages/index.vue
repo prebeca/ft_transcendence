@@ -24,15 +24,15 @@
 </template>
 
 <script lang="ts">
-import Vue from 'vue';
+import Vue from "vue";
 
-export default ({
-  layout: 'empty',
-  name: 'IndexPage',
+export default {
+  layout: "empty",
+  name: "IndexPage",
   data: () => ({
     url: `${process.env.API_URL}/auth/42login`,
   }),
-});
+};
 </script>
 
 <style scoped lang="scss">
