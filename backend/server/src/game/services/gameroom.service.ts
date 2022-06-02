@@ -32,6 +32,15 @@ export class GameRoomService {
 		return this.gameRooms.get(id_room);
 	}
 
+	getPlayersInRooms(): { roomname: string, player1: string, player2: string }[] {
+		let ppr: { roomname: string, player1: string, player2: string }[] = [];
+		for (const [keyroom, gameroom] of this.gameRooms) {
+			let players = gameroom.getPlayers();
+			ppr.push({ roomname: keyroom, player1: players[0], player2: players[1] });
+		}
+		return ppr;
+	}
+
 	containsRoom(room_id: string): boolean {
 		if (this.rooms.indexOf(room_id) === -1)
 			return false;

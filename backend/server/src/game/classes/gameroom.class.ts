@@ -8,7 +8,7 @@ export class GameRoomClass {
 	constructor() {
 	}
 
-	public mapPlayers = new Map<string, PlayerClass>();
+	public mapPlayers: Map<string, PlayerClass> = new Map<string, PlayerClass>();
 	public nbPlayer: number = 0;
 	public roomname: string = null;
 
@@ -23,6 +23,14 @@ export class GameRoomClass {
 		for (let key of this.mapPlayers.keys()) {
 			console.log("player: " + key);
 		}
+	}
+
+	getPlayers(): string[] {
+		let players: string[] = [];
+		for (const [sid, player] of this.mapPlayers) {
+			players.push(player.username);
+		}
+		return players;
 	}
 
 	addPlayerToRoom(sid: string, user: User): void {

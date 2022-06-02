@@ -3,9 +3,9 @@
     style="height: 80vh; max-height: 100%"
     class="d-flex flex-column justify-center align-center"
   >
-    <li v-for="room in rooms" :key="room.name">
-      {{ room.name }}
-      <v-btn color="success" class="mr-2" @click="join(room.name)">
+    <li v-for="room in rooms" :key="room.roomname">
+      <p>Player1 : {{ room.player1 }} || Player2 : {{ room.player2 }}</p>
+      <v-btn color="success" class="mr-2" @click="join(room.roomname)">
         join
       </v-btn>
     </li>
@@ -26,7 +26,9 @@ export default Vue.extend({
     return {
       rooms: [
         {
-          name: "",
+          roomname: "",
+          player1: "",
+          player2: "",
         },
       ],
     };
@@ -35,13 +37,20 @@ export default Vue.extend({
     await this.$axios
       .get("/gameroom/list")
       .then((res) => {
-        var array: string[];
+        console.log(res.data);
+        var array: { roomname: string; player1: string; player2: string }[];
         array = res.data;
         for (let i = 0; i < array.length; i++) {
-          if (i === 0 && this.rooms[0].name === "") {
-            this.rooms[0].name = array[i] as string;
+          if (i === 0 && this.rooms[0].roomname === "") {
+            this.rooms[0].roomname = array[i].roomname;
+            this.rooms[0].player1 = array[i].player1;
+            this.rooms[0].player2 = array[i].player2;
           } else {
-            this.rooms.push({ name: array[i] });
+            this.rooms.push({
+              roomname: array[i].roomname,
+              player1: array[i].player1,
+              player2: array[i].player2,
+            });
           }
         }
       })
