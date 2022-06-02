@@ -17,8 +17,8 @@
         <img :src="player2.avatar" alt="avatar" />
       </v-avatar>
       <h3>
-        Level {{ player1.level }} || {{ player1.wins }} wins /
-        {{ player1.losses }} losses || {{ player1.mmr }} mmr
+        Level {{ player2.level }} || {{ player2.wins }} wins /
+        {{ player2.losses }} losses || {{ player2.mmr }} mmr
       </h3>
     </div>
   </div>
@@ -62,9 +62,6 @@ export default Vue.extend({
     console.log("beforeMount");
     this.socket.on("handshake", (data) => {
       console.log(data);
-    });
-    this.socket.on("disco", (data) => {
-      this.socket.disconnect();
     });
     this.socket.on("infouserp1", (data) => {
       console.log(data);

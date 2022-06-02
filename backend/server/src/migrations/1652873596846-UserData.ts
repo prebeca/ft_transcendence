@@ -6,11 +6,33 @@ import { Player } from "src/game/entities/player.entity";
 export class UserData1652873596846 implements MigrationInterface {
 
     public async up(queryRunner: QueryRunner): Promise<void> {
-        const productRepo = queryRunner.connection.getRepository(User);
+        const playerRepo = queryRunner.connection.getRepository(Player);
+        await playerRepo.insert([
+            {
+                level: 2,
+                winnings: 5,
+                losses: 3,
+            },
+            {
+                level: 3,
+                winnings: 8,
+                losses: 3,
+            }, {
+                level: 3,
+                winnings: 9,
+                losses: 5,
+            }, {
+                level: 1,
+                winnings: 0,
+                losses: 50,
+            },
+        ]);
 
+        const userRepo = queryRunner.connection.getRepository(User);
         const salt_pass = await bcrypt.genSalt();
         const hash_pass = await bcrypt.hash('abcdefgh', salt_pass);
-        await productRepo.insert([
+        const players: Player[] = await queryRunner.connection.getRepository(Player).find();
+        await userRepo.insert([
             {
                 id: 1,
                 login: 'alexandre',
@@ -18,7 +40,7 @@ export class UserData1652873596846 implements MigrationInterface {
                 username: 'alexandre',
                 password: hash_pass,
                 salt: salt_pass,
-                player: new Player(),
+                player: players[0],
             },
             {
                 id: 2,
@@ -27,7 +49,7 @@ export class UserData1652873596846 implements MigrationInterface {
                 username: 'thomas',
                 password: hash_pass,
                 salt: salt_pass,
-                player: new Player(),
+                player: players[1]
             },
             {
                 id: 3,
@@ -36,7 +58,7 @@ export class UserData1652873596846 implements MigrationInterface {
                 username: 'amelie',
                 password: hash_pass,
                 salt: salt_pass,
-                player: new Player(),
+                player: players[2]
             },
             {
                 id: 4,
@@ -45,14 +67,14 @@ export class UserData1652873596846 implements MigrationInterface {
                 username: 'pierre',
                 password: hash_pass,
                 salt: salt_pass,
-                player: new Player(),
+                player: players[3]
             }
         ]);
     }
 
     public async down(queryRunner: QueryRunner): Promise<void> {
-        const productRepo = queryRunner.connection.getRepository(User);
-        productRepo.clear();
+        const userRepo = queryRunner.connection.getRepository(User);
+        userRepo.clear();
     }
 
 }

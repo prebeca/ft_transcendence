@@ -1,19 +1,20 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, Req } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, Req, UseGuards } from '@nestjs/common';
 import { GameRoomService } from '../services/gameroom.service';
 import { Request } from 'express';
-import { v4 as uuid } from 'uuid';
+import { JwtAuthGuard } from 'src/auth/guards/jwt-auth.guard';
+import { CreateGameDto } from '../dto/create-game.dto';
 
 @Controller('gameroom')
 export class GameRoomController {
 	constructor(private readonly gameRoomService: GameRoomService) { }
 
-	@Get('create')
-	creation(@Req() request: Request): string {
-		var name: string = uuid();
-		this.gameRoomService.addRoom(name);
-		return (uuid());
+	@UseGuards(JwtAuthGuard)
+	@Post('create')
+	create(@Body() createGameDto: CreateGameDto): string {
+		return this.gameRoomService.addRoom(createGameDto)
 	}
 
+	@UseGuards(JwtAuthGuard)
 	@Get('list')
 	list(): string[] {
 		return this.gameRoomService.getRooms();

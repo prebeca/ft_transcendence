@@ -1,5 +1,6 @@
 import { Injectable } from "@nestjs/common";
 import { User } from "src/users/entities/user.entity";
+import { CreateGameDto } from "../dto/create-game.dto";
 import { PlayerClass } from "./player.class";
 
 @Injectable()
@@ -11,11 +12,19 @@ export class GameRoomClass {
 	public nbPlayer: number = 0;
 	public roomname: string = null;
 
+	public difficulty: number = 0; // 1 - 3
+
+	setOptions(roomname: string, createGameDto: CreateGameDto) {
+		this.difficulty = createGameDto.difficulty;
+		this.roomname = roomname;
+	}
+
 	printSid(): void {
 		for (let key of this.mapPlayers.keys()) {
 			console.log("player: " + key);
 		}
 	}
+
 	addPlayerToRoom(sid: string, user: User): void {
 		if (this.nbPlayer < 2) {
 			this.nbPlayer += 1;
@@ -35,10 +44,12 @@ export class GameRoomClass {
 			console.log("already 2 players");
 		}
 	}
+
 	deletePlayer(sid: string): void {
 		this.mapPlayers.delete(sid);
 		this.printSid();
 	}
+
 	clearPlayers(): void {
 		this.mapPlayers.clear();
 	}
