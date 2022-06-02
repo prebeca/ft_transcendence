@@ -12,6 +12,7 @@ import { LocalStrategy } from './strategies/local.strategy';
 import { JwtTwoFaStrategy } from './strategies/jwt-twofa.strategy';
 import { TwoFactorAuthService } from './services/twofa.service';
 import { TwoFactorAuthController } from './controllers/twofa.controller';
+import { WsJwtStrategy } from './strategies/ws-jwt.strategy';
 
 @Module({
 	imports: [
@@ -25,8 +26,8 @@ import { TwoFactorAuthController } from './controllers/twofa.controller';
 		}),
 	],
 	controllers: [AuthController, TwoFactorAuthController],
-	providers: [AuthService, TwoFactorAuthService, JwtStrategy, JwtTwoFaStrategy, LocalStrategy],
-	exports: [AuthService, JwtStrategy, JwtTwoFaStrategy],
+	providers: [AuthService, TwoFactorAuthService, JwtStrategy, JwtTwoFaStrategy, LocalStrategy, WsJwtStrategy],
+	exports: [AuthService, JwtStrategy, JwtTwoFaStrategy, WsJwtStrategy],
 })
 
 export class AuthModule { }

@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Channel } from 'src/typeorm';
+import { Channel, User } from 'src/typeorm';
 import { Any, Repository } from 'typeorm';
 import { CreateChannelDto } from 'src/chat/channels/dto/channels.dto';
 import { Message } from '../entities/channel.entity';
@@ -134,4 +134,11 @@ export class ChannelsService {
 		return ("Success: joined channel " + channel.name);
 	}
 
+	async handleMessage(channel: Channel, user: User, message: Message) {
+		if (message.content[0] == '/')
+			console.log("handle commands")
+		else
+			channel.messages.push(message);
+		await this.channelRepository.save(channel);
+	}
 }

@@ -6,6 +6,7 @@ import { UserDto } from 'src/users/dto/users.dto';
 import { createReadStream } from 'fs';
 import { ReadStream } from 'typeorm/platform/PlatformTools';
 import { UpdateUserDto } from '../dto/updateUser.dto';
+import { Player } from 'src/game/entities/player.entity';
 
 @Injectable()
 export class UsersService {
@@ -13,7 +14,7 @@ export class UsersService {
 
 	async getUsers(): Promise<User[]> {
 		try {
-			return this.userRepository.find();
+			return this.userRepository.find({ relations: ["player"] });
 		} catch (error) {
 			throw new InternalServerErrorException("Query to find every users failed");
 		}
@@ -22,7 +23,9 @@ export class UsersService {
 	async createUser(userDto: UserDto): Promise<User> {
 		console.log(userDto);
 		try {
+			const player = new Player();
 			const newuser: User = this.userRepository.create(userDto);
+			newuser.player = player;
 			return this.userRepository.save(newuser);
 		} catch (error) {
 			throw new InternalServerErrorException("Creation of user failed");
@@ -32,6 +35,17 @@ export class UsersService {
 	async findUsersById(id: number): Promise<User> {
 		try {
 			const { password, salt, ...user } = await this.userRepository.findOne(id);
+			if (!(user as User))
+				return null;
+			return user as User;
+		} catch (error) {
+			throw new InternalServerErrorException("Query to find user failed");
+		}
+	}
+
+	async findUsersByIdWithRelations(id: number): Promise<User> {
+		try {
+			const { password, salt, ...user } = await this.userRepository.findOne(id, { relations: ["player"] });
 			if (!(user as User))
 				return null;
 			return user as User;

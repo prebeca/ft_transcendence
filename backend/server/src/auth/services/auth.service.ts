@@ -11,6 +11,7 @@ import { Response } from 'express';
 import { LoginInterface } from '../interfaces/login.interface';
 import { RegisterInterface } from '../interfaces/register.interface';
 import { JwtPayload } from '../interfaces/JwtPayload.interface';
+import { Player } from 'src/game/entities/player.entity';
 
 @Injectable()
 export class AuthService {
@@ -48,7 +49,7 @@ export class AuthService {
 		response.cookie('access_token', token_client, {
 			httpOnly: true,
 			path: '/',
-			maxAge: 1000 * 60 * 15,
+			maxAge: 1000 * 60 * 200,
 			/* secure: true, -> only for localhost AND https */
 		});
 		return {
@@ -81,7 +82,7 @@ export class AuthService {
 			...createUserDto,
 			login: res2.data.login,
 			email: res2.data.email,
-			username: res2.data.username
+			username: res2.data.login
 		};
 
 		var user: User = await this.usersService.findOne(createUserDto.login);
@@ -125,12 +126,8 @@ export class AuthService {
 		var createUserDto = new UserDto();
 		createUserDto = {
 			...createUserDto,
-			access_token: res.data.access_token,
 			refresh_token: res.data.access_token,
-			scope: res.data.scope,
 			fortytwouser: true,
-			created_at: res.data.created_at,
-			expires_in: res.data.expires_in
 		};
 		return await this.getUser42Infos(access_token, createUserDto);
 	}
@@ -181,25 +178,4 @@ export class AuthService {
 			throw new InternalServerErrorException("Password hashing failed");
 		}
 	}
-	/*
-		async signIn(signInCredentialsDto: SignInCredentialsDto): Promise<{ accessToken: string, refreshToken?: string, user?: JwtPayload }> {
-			const resp: User = await this.userRepository.validateUserPassword(signInCredentialsDto);
-				
-			if (!resp) {
-				throw new UnauthorizedException('Invalid credentials');
-			}
-		
-			const accessToken = await this.jwtGenerate(resp.username, resp.id, resp.twofauser);
-		
-			if (resp.twofauser) {
-				return {
-					accessToken
-				}
-			}
-
-			return {
-				accessToken,
-				user: resp
-			}
-		 }*/
 }
