@@ -191,18 +191,34 @@ export default {
       let type = "message";
       if (this.message[0] == "/") type = "cmd";
 
-      await this.socket.emit("MessageSend", {
-        type: type,
-        user_id: this.user.id,
-        username: this.user.username,
-        channel_id: (
-          await this.channels.find((e) => e.name == this.channel)
-        ).id,
-        channel_name: this.channel,
-        content: this.message,
-      });
+      let channel_id = (await this.channels.find((e) => e.name == this.channel))
+        .id;
+
+      await this.$axios
+        .post(
+          "channels/handleMessage",
+          {
+            type: type,
+            user_id: this.user.id,
+            username: this.user.username,
+            channel_id: channel_id,
+            channel_name: this.channel,
+            content: this.message,
+          },
+          {
+            "Content-Type": "application/json",
+          }
+        )
+        .then(async (res) => {
+          await this.socket.emit("NewMessage", {
+            channel_id: channel_id,
+          });
+          console.log("Message sent !");
+        })
+        .catch((error) => {
+          console.error(error);
+        });
       this.message = "";
-      console.log("Message sent !");
     },
   },
 };
