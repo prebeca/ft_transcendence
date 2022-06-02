@@ -171,7 +171,6 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
 		if (!this.game.pad1.id) {
 			this.game.pad1.id = client.id;
 			initGame(this.game);
-			console.log(this.game);
 		}
 		else if (!this.game.pad2.id)
 			this.game.pad2.id = client.id;
