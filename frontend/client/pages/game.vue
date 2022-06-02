@@ -79,7 +79,7 @@ export default Vue.extend({
     this.context = this.canvas.getContext("2d");
 
     window.addEventListener("keydown", this.handleKeyDown);
-    window.addEventListener("resize", this.update);
+    window.addEventListener("resize", this.handleResize);
   },
   beforeDestroy() {
     window.removeEventListener('keydown', this.handleKeyDown);
@@ -102,11 +102,11 @@ export default Vue.extend({
       this.canvas.height = window.innerHeight / 1.5;
       this.ratiox = this.canvas.width / this.game.gameWidth;
       this.ratioy = this.canvas.height / this.game.gameHeight;
+      this.draw();
     },
     update(data: GameI) {
       this.game = data;
       this.handleResize();
-      this.draw();
     },
     stop() {
       this.status = GameStatus.ENDED;
