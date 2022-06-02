@@ -47,6 +47,12 @@ export class GameRoomService {
 		return true;
 	}
 
+	removePlayerFromRooms(sid: string): void {
+		for (const [keyroom, gameroom] of this.gameRooms) {
+			gameroom.removePlayerFromRoom(sid);
+		}
+	}
+
 	clear() {
 		this.rooms = [];
 		this.gameRooms.clear();

@@ -4,6 +4,7 @@
     class="d-flex flex-column justify-center align-center"
   >
     <li v-for="room in rooms" :key="room.roomname">
+      <p>roomid : {{ room.roomname }}</p>
       <p>Player1 : {{ room.player1 }} || Player2 : {{ room.player2 }}</p>
       <v-btn color="success" class="mr-2" @click="join(room.roomname)">
         join

@@ -33,18 +33,24 @@ export class GameRoomClass {
 		return players;
 	}
 
+	removePlayerFromRoom(sid: string): void {
+		this.deletePlayer(sid);
+	}
+
 	addPlayerToRoom(sid: string, user: User): void {
 		if (this.nbPlayer < 2) {
 			this.nbPlayer += 1;
 			let player: PlayerClass = new PlayerClass();
-			player.player_number = this.nbPlayer;
-			player.userid = user.id;
-			player.avatar = user.avatar;
-			player.level = user.player.level;
-			player.wins = user.player.winnings;
-			player.losses = user.player.losses;
-			player.mmr = user.player.mmr;
-			player.username = user.username;
+			player = {
+				player_number: this.nbPlayer,
+				userid: user.id,
+				avatar: user.avatar,
+				level: user.player.level,
+				wins: user.player.winnings,
+				losses: user.player.losses,
+				mmr: user.player.mmr,
+				username: user.username
+			};
 			this.mapPlayers.set(sid, player);
 			this.printSid();
 		}
@@ -54,7 +60,9 @@ export class GameRoomClass {
 	}
 
 	deletePlayer(sid: string): void {
-		this.mapPlayers.delete(sid);
+		if (this.mapPlayers.delete(sid) === true) {
+			this.nbPlayer--;
+		}
 		this.printSid();
 	}
 

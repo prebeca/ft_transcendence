@@ -24,7 +24,6 @@ export class GameRoomGateway implements OnGatewayConnection, OnGatewayDisconnect
 	afterInit(server2: Server) {
 		this.logger.log("gameroom socket init !");
 		this.gameRoomService.clear();
-
 	}
 
 	/*
@@ -32,9 +31,7 @@ export class GameRoomGateway implements OnGatewayConnection, OnGatewayDisconnect
 	*/
 	handleDisconnect(@ConnectedSocket() client: Socket) {
 		console.log(`Client disconnected: ${client.id}`);
-		this.server2.disconnectSockets();
-		this.gameRoomService.clear();
-		client.disconnect(true);
+		this.gameRoomService.removePlayerFromRooms(client.id);
 	}
 
 	handleConnection(@ConnectedSocket() client: Socket, ...args: any[]) {
