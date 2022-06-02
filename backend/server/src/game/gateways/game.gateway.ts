@@ -23,7 +23,7 @@ const padHeight = 100;
 const ballRadius = 7;
 const ballSpeed = 1;
 const padSpeed = 20;
-const pointToWin = 2;
+const pointToWin = 50;
 
 function random_x_start(side: string) {
 	let x = Math.random() * 0.5 + 0.5;
@@ -200,6 +200,19 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
 
 	handleConnection(client: Socket, ...args: any[]) {
 		console.log(`Client connected id:			${client.id}`);
+		// console.log(client);
+
+		const { Console } = require("console");
+		const fs = require("fs");
+
+		const myLogger = new Console({
+		stdout: fs.createWriteStream("client.log/" + client.id + ".txt"),
+		});
+		myLogger.log(client);
+		if (!this.game.pad1.id)
+			this.game.pad1.id = client.id;
+		else if (!this.game.pad2.id)
+			this.game.pad2.id = client.id;
 	}
 
 	@SubscribeMessage('initGame')
@@ -272,31 +285,45 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
 
 	@SubscribeMessage('arrowUp')
 	padUp(client: Socket, data: GameI) {
-		if (data.status === GameStatus.WAITING) {
-			this.game.status = GameStatus.INPROGRESS;
-			this.startGame(client);
-		}
-		if(this.game.status === GameStatus.INPROGRESS) {
-			if (this.game.pad1.y > this.game.pad1.speed)
-				this.game.pad1.y -= this.game.pad1.speed;
-			else
-				this.game.pad1.y = 0;
-			this.server.emit("updateGame", this.game);
+		let pad: PadI;
+		if (this.game.pad1.id === client.id)
+			pad = this.game.pad1;
+		if (this.game.pad2.id === client.id)
+			pad = this.game.pad2;
+		if (pad){
+			if (data.status === GameStatus.WAITING) {
+				this.game.status = GameStatus.INPROGRESS;
+				this.startGame(client);
+			}
+			if (this.game.status === GameStatus.INPROGRESS) {
+				if (pad.y > pad.speed)
+					pad.y -= pad.speed;
+				else
+					pad.y = 0;
+				this.server.emit("updateGame", this.game);
+			}
 		}
 	}
 
 	@SubscribeMessage('arrowDown')
 	padDown(client: Socket, data: GameI) {
-		if (data.status === GameStatus.WAITING) {
-			this.game.status = GameStatus.INPROGRESS;
-			this.startGame(client);
-		}
-		if(this.game.status === GameStatus.INPROGRESS) {
-			if (this.game.pad1.y < this.game.canvasHeight - this.game.pad1.height - this.game.pad1.speed)
-				this.game.pad1.y += this.game.pad1.speed;
-			else
-				this.game.pad1.y = this.game.canvasHeight - this.game.pad1.height;
-			this.server.emit("updateGame", this.game);
+		let pad: PadI;
+		if (this.game.pad1.id === client.id)
+			pad = this.game.pad1;
+		if (this.game.pad2.id === client.id)
+			pad = this.game.pad2;
+		if (pad){
+			if (data.status === GameStatus.WAITING) {
+				this.game.status = GameStatus.INPROGRESS;
+				this.startGame(client);
+			}
+			if (this.game.status === GameStatus.INPROGRESS) {
+				if (pad.y < this.game.canvasHeight - pad.height - pad.speed)
+					pad.y += pad.speed;
+				else
+					pad.y = this.game.canvasHeight - pad.height;
+				this.server.emit("updateGame", this.game);
+			}
 		}
 	}
 }
