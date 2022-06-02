@@ -3,8 +3,8 @@ import PadI from "./padI.interface";
 
 export default interface GameI {
 
-	canvasWidth: number,
-	canvasHeight: number,
+	gameWidth: number,
+	gameHeight: number,
 
 	pad1: PadI,
 	pad2: PadI,

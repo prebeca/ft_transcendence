@@ -19,7 +19,6 @@ const gameWidth = 640;
 const gameHeight = 480;
 const padWidth = 10;
 const padHeight = 100;
-// const padHeight = 480;
 const ballRadius = 7;
 const ballSpeed = 1;
 const padSpeed = 20;
@@ -51,12 +50,12 @@ function generate_random_start(side: string) {
 }
 
 function resetAfterPoint(game: GameI, side: string) {
-	game.pad1.x = game.canvasWidth / 10 - padWidth;
-	game.pad1.y = game.canvasHeight / 2 - game.pad1.height / 2;
-	game.pad2.x = game.canvasWidth - game.canvasWidth / 10;
-	game.pad2.y = game.canvasHeight / 2 - game.pad2.height / 2;
-	game.ball.x = game.canvasWidth / 2;
-	game.ball.y = game.canvasHeight / 2;
+	game.pad1.x = game.gameWidth / 10 - padWidth;
+	game.pad1.y = game.gameHeight / 2 - game.pad1.height / 2;
+	game.pad2.x = game.gameWidth - game.gameWidth / 10;
+	game.pad2.y = game.gameHeight / 2 - game.pad2.height / 2;
+	game.ball.x = game.gameWidth / 2;
+	game.ball.y = game.gameHeight / 2;
 	game.ball.dir = generate_random_start(side);
 	return GameStatus.WAITING;
 }
@@ -68,7 +67,7 @@ function checkCollision(game: GameI) {
 			return GameStatus.PLAYER2WON;
 		return resetAfterPoint(game, "left");
 	}
-	else if (game.ball.x + game.ball.r >= game.canvasWidth) {
+	else if (game.ball.x + game.ball.r >= game.gameWidth) {
 		game.score1++;
 		if (game.score1 === pointToWin)
 			return GameStatus.PLAYER1WON;
@@ -102,76 +101,44 @@ function checkCollision(game: GameI) {
 }
 
 function moveBall(game: GameI) {
-	if (game.ball.y + game.ball.r + game.ball.speed > game.canvasHeight) {
-		game.ball.y = game.canvasHeight - game.ball.r;
+	if (game.ball.y + game.ball.r + game.ball.speed > game.gameHeight) {
+		game.ball.y = game.gameHeight - game.ball.r;
 		game.ball.dir.y *= -1;
 	}
 	if (game.ball.y - game.ball.r < game.ball.speed) {
 		game.ball.y = game.ball.r;
 		game.ball.dir.y *= -1;
 	}
-
 	game.ball.x += game.ball.dir.x * game.ball.speed;
 	game.ball.y += game.ball.dir.y * game.ball.speed;
 }
 
-function initGame(game: GameI, data: any) {
-	game.canvasWidth = data.width / 2;
-	game.canvasHeight = data.height / 2;
+function initGame(game: GameI,) {
+	game.gameWidth = gameWidth;
+	game.gameHeight = gameHeight;
 
-	let ratiox = game.canvasWidth / gameWidth;
-	let ratioy = game.canvasHeight / gameHeight;
+	game.pad1.width = padWidth;
+	game.pad1.height = padHeight;
+	game.pad1.x = game.gameWidth / 10 - padWidth;
+	game.pad1.y = game.gameHeight / 2 - game.pad1.height / 2;
+	game.pad1.speed = padSpeed;
 
-	game.pad1.width = padWidth * ratiox;
-	game.pad1.height = padHeight * ratioy;
-	game.pad1.x = game.canvasWidth / 10 - padWidth;
-	game.pad1.y = game.canvasHeight / 2 - game.pad1.height / 2;
-	game.pad1.speed = padSpeed * ratiox * ratioy;
+	game.pad2.width = padWidth;
+	game.pad2.height = padHeight;
+	game.pad2.x = game.gameWidth - game.gameWidth / 10;
+	game.pad2.y = game.gameHeight / 2 - game.pad2.height / 2;
+	game.pad2.speed = padSpeed;
 
-	game.pad2.width = padWidth * ratiox;
-	game.pad2.height = padHeight * ratioy;
-	game.pad2.x = game.canvasWidth - game.canvasWidth / 10;
-	game.pad2.y = game.canvasHeight / 2 - game.pad2.height / 2;
-	game.pad2.speed = padSpeed * ratiox * ratioy;
-
-	game.ball.x = game.canvasWidth / 2;
-	game.ball.y = game.canvasHeight / 2;
-	game.ball.r = ballRadius * ratiox * ratioy;
-	game.ball.speed = ballSpeed * ratiox * ratioy;
+	game.ball.x = game.gameWidth / 2;
+	game.ball.y = game.gameHeight / 2;
+	game.ball.r = ballRadius;
+	game.ball.speed = ballSpeed;
 	game.ball.dir = generate_random_start(null);
 
 	game.score1 = 0;
 	game.score2 = 0;
 
 	game.status = GameStatus.WAITING;
-}
-
-function updateDimensions(game: GameI, data: any) {
-	let previousW = game.canvasWidth;
-	let previousH = game.canvasHeight;
-
-	game.canvasWidth = data.width / 2;
-	game.canvasHeight = data.height / 2;
-
-	let ratiox = game.canvasWidth / previousW;
-	let ratioy = game.canvasHeight / previousH;
-
-	game.pad1.x *= ratiox;
-	game.pad1.y *= ratioy;
-	game.pad1.width *= ratiox;
-	game.pad1.height *= ratioy;
-	game.pad1.speed *= ratioy;
-
-	game.pad2.x *= ratiox;
-	game.pad2.y *= ratioy;
-	game.pad2.width *= ratiox;
-	game.pad2.height *= ratioy;
-	game.pad2.speed *= ratioy;
-
-	game.ball.x *= ratiox;
-	game.ball.y *= ratioy;
-	game.ball.r *= ratioy * ratiox;
-	game.ball.speed *= ratioy * ratiox;
 }
 
 @WebSocketGateway(42042, {
@@ -200,31 +167,22 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
 
 	handleConnection(client: Socket, ...args: any[]) {
 		console.log(`Client connected id:			${client.id}`);
-		// console.log(client);
 
-		const { Console } = require("console");
-		const fs = require("fs");
-
-		const myLogger = new Console({
-		stdout: fs.createWriteStream("client.log/" + client.id + ".txt"),
-		});
-		myLogger.log(client);
-		if (!this.game.pad1.id)
+		if (!this.game.pad1.id) {
 			this.game.pad1.id = client.id;
+			initGame(this.game);
+			console.log(this.game);
+		}
 		else if (!this.game.pad2.id)
 			this.game.pad2.id = client.id;
-	}
-
-	@SubscribeMessage('initGame')
-	initGame(client: Socket, data: any) {
-		initGame(this.game, data);
-		this.server.emit("initGame", this.game);
+		client.emit("initDone", this.game);
 	}
 
 	@SubscribeMessage('startGame')
 	startGame(client: Socket) {
 
 		let moveInterval: NodeJS.Timer;
+
 
 		moveInterval = setInterval(async () => {
 			moveBall(this.game);
@@ -272,12 +230,6 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
 		}, 1000 / 30);
 	}
 
-	@SubscribeMessage('updateDimensions')
-	updateDimensions(client: Socket, data: any) {
-		updateDimensions(this.game, data);
-		this.server.emit("updateGame", this.game);
-	}
-
 	@SubscribeMessage('stopGame')
 	stopGame(client: Socket) {
 		this.game.status = GameStatus.ENDED;
@@ -318,10 +270,10 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
 				this.startGame(client);
 			}
 			if (this.game.status === GameStatus.INPROGRESS) {
-				if (pad.y < this.game.canvasHeight - pad.height - pad.speed)
+				if (pad.y < this.game.gameHeight - pad.height - pad.speed)
 					pad.y += pad.speed;
 				else
-					pad.y = this.game.canvasHeight - pad.height;
+					pad.y = this.game.gameHeight - pad.height;
 				this.server.emit("updateGame", this.game);
 			}
 		}

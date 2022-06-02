@@ -18,6 +18,8 @@
 import Vue from "vue";
 import io from "socket.io-client";
 import GameI from "../types/interfaces/gameI.interface";
+import PadI from "../types/interfaces/padI.interface";
+import BallI from "../types/interfaces/ballI.interface";
 
 export enum GameStatus {
   WAITING = "waiting",
@@ -36,23 +38,34 @@ export default Vue.extend({
       canvas: {} as HTMLCanvasElement,
       context: {} as CanvasRenderingContext2D | null,
       game: {} as GameI,
+      pad1: {} as PadI,
+      pad2: {} as PadI,
+      ball: {} as BallI,
       // score1: {} as number,
       // score2: {} as number,
       // status: GameStatus.INCOMPLETE,
+      ratiox: {} as number,
+      ratioy: {} as number,
     };
   },
   created() {
+		this.game.pad1 = {} as PadI;
+		this.game.pad2 = {} as PadI;
+		this.game.ball = {} as BallI;
+    this.game.score1 = 0;
+    this.game.score2 = 0;
+    this.game.status = GameStatus.WAITING;
     this.socket = io(process.env.API_SOCKET_GAME, {withCredentials: true});
   },
   beforeMount() {
     this.socket.on("print", (data) => {
       this.myPrint(data);
     });
-    this.socket.on("initGame", (data: GameI) => {
-      this.updateState(data);
+    this.socket.on("initDone", (data: GameI) => {
+      this.update(data);
     });
     this.socket.on("updateGame", (data: GameI) => {
-      this.updateState(data);
+      this.update(data);
     });
     this.socket.on("end", (data: GameI) => {
       this.endGame(data);
@@ -64,17 +77,13 @@ export default Vue.extend({
       return;
     }
     this.context = this.canvas.getContext("2d");
-    this.socket.emit("initGame", {
-      width: window.innerWidth,
-      height: window.innerHeight,
-    });
 
     window.addEventListener("keydown", this.handleKeyDown);
-    window.addEventListener("resize", this.handleResize);
+    window.addEventListener("resize", this.update);
   },
   beforeDestroy() {
-    window.removeEventListener('resize', this.handleResize);
     window.removeEventListener('keydown', this.handleKeyDown);
+    window.removeEventListener('resize', this.handleResize);
     this.stop();
   },
   methods: {
@@ -89,18 +98,14 @@ export default Vue.extend({
         this.rePlay();
     },
     handleResize() {
-      this.socket.emit("updateDimensions", {
-        width: window.innerWidth,
-        height: window.innerHeight,
-      });
+      this.canvas.width = window.innerWidth / 1.5;
+      this.canvas.height = window.innerHeight / 1.5;
+      this.ratiox = this.canvas.width / this.game.gameWidth;
+      this.ratioy = this.canvas.height / this.game.gameHeight;
     },
-    updateState(data: GameI) {
+    update(data: GameI) {
       this.game = data;
-      this.canvas.width = data.canvasWidth;
-      this.canvas.height = data.canvasHeight;
-      // this.score1 = this.game.score1;
-      // this.score2 = this.game.score2;
-      // this.status = this.game.status;
+      this.handleResize();
       this.draw();
     },
     stop() {
@@ -113,9 +118,6 @@ export default Vue.extend({
       this.play();
     },
     draw() {
-      // this.context.font = '100px Courier New';
-      // this.context.textAlign = 'center';
-      console.log("dans draw")
       this.clearScreen();
       this.drawCanvas();
       this.drawPads();
@@ -135,6 +137,18 @@ export default Vue.extend({
       this.context.lineTo(this.canvas.width / 2, this.canvas.height);
       this.context.stroke();
     },
+    drawPads() {
+      this.context.fillStyle = "white";
+      this.context.fillRect(this.game.pad1.x * this.ratiox, this.game.pad1.y * this.ratioy, this.game.pad1.width * this.ratiox, this.game.pad1.height * this.ratioy);
+      this.context.fillRect(this.game.pad2.x * this.ratiox, this.game.pad2.y * this.ratioy, this.game.pad2.width * this.ratiox, this.game.pad2.height * this.ratioy);
+    },
+    drawBall() {
+      this.context.beginPath();
+      this.context.fillStyle = "white";
+      const { x, y, r } = this.game.ball;
+      this.context.arc(x * this.ratiox, y * this.ratioy, r * this.ratiox * this.ratioy, 0, Math.PI * 2, false);
+      this.context.fill();
+    },
     endGame(game: GameI) {
       const winner = game.status;
       this.context.fillStyle = "white";
@@ -145,18 +159,6 @@ export default Vue.extend({
         this.canvas.width / 2,
         this.canvas.height / 4,
       );
-    },
-    drawPads() {
-      this.context.fillStyle = "white";
-      this.context.fillRect(this.game.pad1.x, this.game.pad1.y, this.game.pad1.width, this.game.pad1.height);
-      this.context.fillRect(this.game.pad2.x, this.game.pad2.y, this.game.pad2.width, this.game.pad2.height);
-    },
-    drawBall() {
-      this.context.beginPath();
-      this.context.fillStyle = "white";
-      const { x, y, r } = this.game.ball;
-      this.context.arc(x, y, r, 0, Math.PI * 2, false);
-      this.context.fill();
     },
     myPrint(data) {
       console.log(data);
