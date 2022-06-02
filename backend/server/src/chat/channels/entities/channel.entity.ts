@@ -1,14 +1,15 @@
 import { Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
+import { MessageData } from './message.entity';
 
 
-export class Message {
-	type: string;
-	user_id: number;
-	username: string;
-	channel_id: number;
-	channel_name: string;
-	content: string;
-}
+// export class Message {
+// 	type: string;
+// 	user_id: number;
+// 	username: string;
+// 	channel_id: number;
+// 	channel_name: string;
+// 	content: string;
+// }
 
 @Entity()
 export class Channel {
@@ -20,8 +21,6 @@ export class Channel {
 
 	@Column({ unique: true })
 	name: string;
-
-	@Column()
 
 	@Column({
 		type: "enum",
@@ -49,5 +48,5 @@ export class Channel {
 	users_ids: number[];
 
 	@Column("json", { default: [] })
-	messages: Message[];
+	messages: MessageData[];
 }
