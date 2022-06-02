@@ -12,7 +12,7 @@ export class GameRoomClass {
 	public nbPlayer: number = 0;
 	public roomname: string = null;
 
-	public difficulty: number = 0; // 1 - 3
+	public difficulty: number = 0; // 1 (easy) - 3 (hard) - speed of ball and maybe height of pads
 
 	setOptions(roomname: string, createGameDto: CreateGameDto) {
 		this.difficulty = createGameDto.difficulty;

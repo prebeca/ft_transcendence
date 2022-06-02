@@ -10,8 +10,10 @@ export class GameRoomController {
 
 	@UseGuards(JwtAuthGuard)
 	@Post('create')
-	create(@Body() createGameDto: CreateGameDto): string {
-		return this.gameRoomService.addRoom(createGameDto)
+	create(@Body() createGameDto: CreateGameDto, @Req() req: Request): string {
+		const nameroom: string = this.gameRoomService.addRoom(createGameDto)
+		console.log(nameroom);
+		return nameroom;
 	}
 
 	@UseGuards(JwtAuthGuard)
