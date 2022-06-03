@@ -10,14 +10,18 @@ export class GameRoomController {
 
 	@UseGuards(JwtAuthGuard)
 	@Post('create')
-	create(@Body() createGameDto: CreateGameDto): string {
-		return this.gameRoomService.addRoom(createGameDto)
+	create(@Body() createGameDto: CreateGameDto, @Req() req: Request): string {
+		const nameroom: string = this.gameRoomService.addRoom(createGameDto)
+		console.log(nameroom);
+		return nameroom;
 	}
 
 	@UseGuards(JwtAuthGuard)
 	@Get('list')
-	list(): string[] {
-		return this.gameRoomService.getRooms();
+	list(): { roomname: string, player1: string, player2: string }[] {
+		const rooms: string[] = this.gameRoomService.getRooms();
+		const ppr: { roomname: string, player1: string, player2: string }[] = this.gameRoomService.getPlayersInRooms();
+		return ppr;
 	}
 
 	@Get('clear')
