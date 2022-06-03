@@ -1,15 +1,29 @@
 <template>
-  <div id="myGame" width="100vw" height="100vh">
-    <canvas id="canvas"></canvas>
+  <div
+    style="height: 80vh; max-height: 100%"
+    class="d-flex flex-column justify-center align-center"
+  >
+    <v-card
+      class="d-flex flex-column justify-center align-center"
+      color="secondary"
+      width="70%"
+      height="10%"
+    >
+      <td>{{ game.score1 }}</td>
+      <td>{{ game.score2 }}</td>
+    </v-card>
+    <div id="myGame" width="100vw" height="100vh">
+      <canvas id="canvas"></canvas>
+    </div>
   </div>
 </template>
 
 <script lang="ts">
 import Vue from "vue";
 import io from "socket.io-client";
+import GameI from "../types/interfaces/gameI.interface";
 import PadI from "../types/interfaces/padI.interface";
 import BallI from "../types/interfaces/ballI.interface";
-import GameI from "../types/interfaces/gameI.interface";
 
 export enum GameStatus {
   WAITING = "waiting",
@@ -17,7 +31,9 @@ export enum GameStatus {
   INPROGRESS = "in progress",
   PLAYER1WON = "player 1 won",
   PLAYER2WON = "player 2 won",
-	ENDED = "ended",
+  PLAYER1LEAVE = "player 2 won by forfeit",
+  PLAYER2LEAVE = "player 1 won by forfeit",
+  ENDED = "ended",
 }
 
 export default Vue.extend({
@@ -25,34 +41,42 @@ export default Vue.extend({
   data() {
     return {
       socket: io(),
-      canvas: {} as HTMLCanvasElement,
+      canvas: {} as HTMLElement | null,
       context: {} as CanvasRenderingContext2D | null,
       game: {} as GameI,
       pad1: {} as PadI,
       pad2: {} as PadI,
       ball: {} as BallI,
-      score1: {} as number,
-      score2: {} as number,
-      status: GameStatus.INCOMPLETE,
+      // score1: {} as number,
+      // score2: {} as number,
+      // status: GameStatus.INCOMPLETE,
+      ratiox: {} as number,
+      ratioy: {} as number,
     };
   },
   created() {
-    this.socket = io(process.env.API_SOCKET_GAME);
+    this.game.pad1 = {} as PadI;
+    this.game.pad2 = {} as PadI;
+    this.game.ball = {} as BallI;
+    this.game.status = GameStatus.WAITING;
+    this.socket = io(process.env.API_SOCKET_GAME, { withCredentials: true });
   },
   beforeMount() {
     this.socket.on("print", (data) => {
       this.myPrint(data);
     });
-
-    this.socket.on("initGame", (data: GameI) => {
-      this.updateState(data);
+    this.socket.on("initDone", (data: GameI) => {
+      this.update(data);
     });
-    this.socket.on("startGame", (data: GameI) => {
-      this.updateState(data);
-      this.socket.emit("startGame");
-    })
     this.socket.on("updateGame", (data: GameI) => {
-      this.updateState(data);
+      this.update(data);
+    });
+    this.socket.on("updateStatus", (data: GameStatus) => {
+      this.game.status = data;
+      this.handleResize();
+    });
+    this.socket.on("end", (data: GameI) => {
+      this.endGame(data);
     });
   },
   mounted() {
@@ -61,87 +85,41 @@ export default Vue.extend({
       return;
     }
     this.context = this.canvas.getContext("2d");
-    this.socket.emit("initGame", {
-      width: window.innerWidth,
-      height: window.innerHeight,
-    });
-
-    this.play();
 
     window.addEventListener("keydown", this.handleKeyDown);
     window.addEventListener("resize", this.handleResize);
   },
-  beforeDestroy() {
-    window.removeEventListener('resize', this.handleResize);
-    window.removeEventListener('keydown', this.handleKeyDown);
-    this.stop();
+  destroyed() {
+    window.removeEventListener("keydown", this.handleKeyDown);
+    window.removeEventListener("resize", this.handleResize);
+    this.socket.emit("leaveGame");
   },
   methods: {
-    handleKeyDown: function(event) {
-      if (event.key === "ArrowUp") {
-        this.socket.emit("arrowUp", this.game);
-      }
-      if (event.key === "ArrowDown") {
-        this.socket.emit("arrowDown", this.game);
-      }
-      if (event.key === "Escape") {
-        this.stop();
-      }
-      if (event.key === "Enter") {
-        this.rePlay();
-      }
+    handleKeyDown: function (event: any) {
+      if (event.key === "ArrowUp") this.socket.emit("arrowUp", this.game);
+      if (event.key === "ArrowDown") this.socket.emit("arrowDown", this.game);
     },
     handleResize() {
-      this.socket.emit("updateDimensions", {
-        width: window.innerWidth,
-        height: window.innerHeight,
-      });
-    },
-    updateState(data: GameI) {
-      this.game = data;
-      this.canvas.width = data.canvasWidth;
-      this.canvas.height = data.canvasHeight;
-      this.pad1.x = this.game.pad1x;
-      this.pad1.y = this.game.pad1y;
-      this.pad1.width = this.game.pad1Width;
-      this.pad1.height = this.game.pad1Height;
-      this.pad1.speed = this.game.pad1Speed;
-      this.pad2.x = this.game.pad2x;
-      this.pad2.y = this.game.pad2y;
-      this.pad2.width = this.game.pad2Width;
-      this.pad2.height = this.game.pad2Height;
-      this.pad2.speed = this.game.pad2Speed;
-      this.ball.x = this.game.ballx;
-      this.ball.y = this.game.bally;
-      this.ball.r = this.game.ballr;
-      this.score1 = this.game.score1;
-      this.score2 = this.game.score2;
-      this.status = this.game.status;
-    },
-    play() {
+      this.canvas.width = window.innerWidth / 1.5;
+      this.canvas.height = window.innerHeight / 1.5;
+      this.ratiox = this.canvas.width / this.game.gameWidth;
+      this.ratioy = this.canvas.height / this.game.gameHeight;
       this.draw();
-			if (this.status != GameStatus.ENDED)
-        requestAnimationFrame(this.play);
     },
-    stop() {
-      this.status = GameStatus.ENDED;
-      this.socket.emit("stopGame");
-    },
-    rePlay() {
-      this.game.status = GameStatus.INPROGRESS;
-      this.status = this.game.status;
-      this.play();
+    update(data: GameI) {
+      this.game = data;
+      this.handleResize();
     },
     draw() {
-      // this.context.font = '100px Courier New';
-      // this.context.textAlign = 'center';
-      console.log("dans draw");
       this.clearScreen();
       this.drawCanvas();
-      this.drawScore();
-      this.drawPad(this.pad1);
-      this.drawPad(this.pad2);
+      this.drawPads();
       this.drawBall();
+      if (
+        this.game.status != GameStatus.INPROGRESS &&
+        this.game.status != GameStatus.WAITING
+      )
+        this.endGame(this.game);
     },
     clearScreen() {
       this.context.clearRect(0, 0, this.canvas.width, this.canvas.height);
@@ -155,29 +133,45 @@ export default Vue.extend({
       this.context.lineTo(this.canvas.width / 2, this.canvas.height);
       this.context.stroke();
     },
-    drawScore() {
+    drawPads() {
       this.context.fillStyle = "white";
-      this.context.fillText(
-        this.score1.toString(),
-        this.canvas.width / 2 - 50,
-        200
+      this.context.fillRect(
+        this.game.pad1.x * this.ratiox,
+        this.game.pad1.y * this.ratioy,
+        this.game.pad1.width * this.ratiox,
+        this.game.pad1.height * this.ratioy
       );
-      this.context.fillText(
-        this.score2.toString(),
-        this.canvas.width / 2 + 50,
-        200
+      this.context.fillRect(
+        this.game.pad2.x * this.ratiox,
+        this.game.pad2.y * this.ratioy,
+        this.game.pad2.width * this.ratiox,
+        this.game.pad2.height * this.ratioy
       );
-    },
-    drawPad(pad: PadI) {
-      this.context.fillStyle = "white";
-      this.context.fillRect(pad.x, pad.y, pad.width, pad.height);
     },
     drawBall() {
       this.context.beginPath();
       this.context.fillStyle = "white";
-      const { x, y, r } = this.ball;
-      this.context.arc(x, y, r, 0, Math.PI * 2, false);
+      const { x, y, r } = this.game.ball;
+      this.context.arc(
+        x * this.ratiox,
+        y * this.ratioy,
+        r * this.ratiox * this.ratioy,
+        0,
+        Math.PI * 2,
+        false
+      );
       this.context.fill();
+    },
+    endGame(game: GameI) {
+      const winner = game.status;
+      this.context.fillStyle = "white";
+      this.context.font = (this.canvas.width / 10).toString() + "px serif";
+      this.context.textAlign = "center";
+      this.context.fillText(
+        winner,
+        this.canvas.width / 2,
+        this.canvas.height / 4
+      );
     },
     myPrint(data) {
       console.log(data);
@@ -185,65 +179,3 @@ export default Vue.extend({
   },
 });
 </script>
-
-<!--<style scoped>
-#canvas {
-  border: solid 2px white;
-}
-#myGame {
-  background-color: black;
-  width: 100vw;
-  height: 100vh;
-  padding: 5vh;
-  /* display: flex; */
-  /* flex-direction: */
-}
-.score {
-  color: white;
-  font-size: 3em;
-}
-img {
-  width: 50px;
-  display: inline;
-}
-</style>-->
-
-<!--<script lang="ts">
-
-
-import Vue from 'vue'
-import socket from 'socket.io'
-import io from 'socket.io-client'
-
-export default Vue.extend({
-	data() {
-		return {
-			title: 'Websockets Tester',
-			text: '',
-			messages: ['Some message', 'Another message'],
-			socket: null,
-		}
-	},
-	methods: {
-		sendMessage() {
-			// this.messages.push(this.text);
-			console.log(`send: ${this.text}`);
-			this.socket.emit('msgToServer', this.text);
-			this.text = '';
-		},
-		receiveMessage(msg) {
-			console.log(`recv: ${msg}`);
-			this.messages.push(msg);
-			// this.text = '';
-		},
-	},
-	created() {
-		this.socket = io(process.env.API_SOCKET_GAME);
-		this.socket.on('msgToClient', (msg) => {
-			this.receiveMessage(msg);
-		});
-	}
-})
-
-
-</script>-->

@@ -4,11 +4,13 @@
     style="height: 80vh; max-height: 100%; column-gap: 20px"
     class="d-flex justify-center align-center"
   >
-    <GameRoomPlayerCard v-if="player1.username.length > 0" player="player1" />
-    <GameRoomWaitingCard v-else />
+    <GameRoomPlayerCard player="player1" />
+    <!-- <GameRoomPlayerCard v-if="player1.username.length > 0" player="player1" />
+    <GameRoomWaitingCard v-else /> -->
     <h1>VS</h1>
     <GameRoomPlayerCard v-if="player2.username.length > 0" player="player2" />
     <GameRoomWaitingCard v-else />
+    <v-btn color="success" class="mr-4" @click="gameOn"> PLAY </v-btn>
   </div>
 </template>
 
@@ -20,6 +22,7 @@ export default Vue.extend({
   name: "GameRoom",
   data() {
     return {
+      roomid: "",
       socket: io(),
       counter: 0,
       player1: {
@@ -40,6 +43,11 @@ export default Vue.extend({
       },
     };
   },
+  methods: {
+    async gameOn() {
+      this.socket.emit("launchGame", this.roomid);
+    },
+  },
   created() {
     console.log("created");
     this.socket = io(process.env.API_SOCKET_GAMEROOM, {
@@ -50,6 +58,31 @@ export default Vue.extend({
     console.log("beforeMount");
     this.socket.on("handshake", (data) => {
       console.log(data);
+    });
+    this.socket.on("gamestart", (data) => {
+      this.$router.push({ path: "/game", query: { roomid: this.roomid } });
+    });
+    this.socket.on("p1leaving", (data) => {
+      console.log("p1leaving");
+      this.player1 = {
+        username: "",
+        avatar: "",
+        level: 0,
+        mmr: 0,
+        wins: 0,
+        losses: 0,
+      };
+    });
+    this.socket.on("p2leaving", (data) => {
+      console.log("p2leaving");
+      this.player2 = {
+        username: "",
+        avatar: "",
+        level: 0,
+        mmr: 0,
+        wins: 0,
+        losses: 0,
+      };
     });
     this.socket.on("infouserp1", (data) => {
       console.log(data);
@@ -84,6 +117,12 @@ export default Vue.extend({
   mounted() {
     console.log("mouted");
     this.socket.emit("joinRoom", this.$route.query.name);
+    this.roomid = this.$route.query.name as string;
+  },
+  beforeDestroy() {
+    console.log("BeforeDestruction: leaving room");
+    console.log("roomid = " + this.roomid);
+    this.socket.emit("leaveRoom", this.roomid);
   },
 });
 </script>
