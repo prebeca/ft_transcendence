@@ -3,6 +3,12 @@
     <li v-for="room in rooms" :key="room.roomname">
       <p>roomid : {{ room.roomname }}</p>
       <p>Player1 : {{ room.player1 }} || Player2 : {{ room.player2 }}</p>
+      <v-avatar size="50px" class="m-10 mr-5">
+        <img :src="room.avatar1" alt="avatar" />
+      </v-avatar>
+      <v-avatar size="50px" class="m-10 mr-5">
+        <img :src="room.avatar2" alt="avatar" />
+      </v-avatar>
       <v-btn color="success" class="mr-2" @click="join(room.roomname)">
         join
       </v-btn>
@@ -27,7 +33,9 @@ export default Vue.extend({
         {
           roomname: "",
           player1: "",
+          avatar1: "",
           player2: "",
+          avatar2: "",
         },
       ],
     };
@@ -41,23 +49,35 @@ export default Vue.extend({
   },
   methods: {
     async getList() {
-      var new_rooms = [{ roomname: "", player1: "", player2: "" }];
+      var new_rooms = [
+        { roomname: "", player1: "", avatar1: "", player2: "", avatar2: "" },
+      ];
       await this.$axios
         .get("/gameroom/list")
         .then((res) => {
           console.log(res.data);
-          var array: { roomname: string; player1: string; player2: string }[];
+          var array: {
+            roomname: string;
+            player1: string;
+            avatar1: string;
+            player2: string;
+            avatar2: string;
+          }[];
           array = res.data;
           for (let i = 0; i < array.length; i++) {
             if (i === 0 && new_rooms[0].roomname === "") {
               new_rooms[0].roomname = array[i].roomname;
               new_rooms[0].player1 = array[i].player1;
+              new_rooms[0].avatar1 = array[i].avatar1;
               new_rooms[0].player2 = array[i].player2;
+              new_rooms[0].avatar2 = array[i].avatar2;
             } else {
               new_rooms.push({
                 roomname: array[i].roomname,
                 player1: array[i].player1,
+                avatar1: array[i].avatar1,
                 player2: array[i].player2,
+                avatar2: array[i].avatar2,
               });
             }
           }

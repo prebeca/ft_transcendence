@@ -35,12 +35,13 @@ export class GameRoomService {
 	/*
 	** Return every room where a player is waiting
 	*/
-	getPlayersInRooms(): { roomname: string, player1: string, player2: string }[] {
-		let ppr: { roomname: string, player1: string, player2: string }[] = [];
+	getPlayersInRooms(): { roomname: string, player1: string, avatar1: string, player2: string, avatar2: string }[] {
+		let ppr: { roomname: string, player1: string, avatar1: string, player2: string, avatar2: string }[] = [];
 		for (const [keyroom, gameroom] of this.gameRooms) {
 			let players: string[] = gameroom.getPlayers();
+			let avatars: string[] = gameroom.getPlayersAvatars();
 			if (players.length !== 0)
-				ppr.push({ roomname: keyroom, player1: players[0], player2: players[1] });
+				ppr.push({ roomname: keyroom, player1: players[0], avatar1: avatars[0], player2: players[1], avatar2: avatars[1] });
 		}
 		return ppr;
 	}

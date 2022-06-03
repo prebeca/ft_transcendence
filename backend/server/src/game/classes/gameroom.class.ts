@@ -4,6 +4,8 @@ import { CreateGameDto } from "../dto/create-game.dto";
 import { PlayerInfo } from "../interfaces/playerinfo.interface";
 import { PlayerClass } from "./player.class";
 
+export enum GAMEROOMSTATUS { WAITING = "WAITING", FULL = "FULL", INGAME = "INGAME" };
+
 @Injectable()
 export class GameRoomClass {
 	constructor() {
@@ -12,7 +14,7 @@ export class GameRoomClass {
 	public mapPlayers: Map<string, PlayerClass> = new Map<string, PlayerClass>();
 	public nbPlayer: number = 0;
 	public roomname: string = null;
-
+	public status: string = GAMEROOMSTATUS.WAITING;
 	public difficulty: number = 0; // 1 (easy) - 3 (hard) - speed of ball and maybe height of pads
 
 	setOptions(roomname: string, createGameDto: CreateGameDto) {
@@ -56,6 +58,14 @@ export class GameRoomClass {
 			players.push(player.username);
 		}
 		return players;
+	}
+
+	getPlayersAvatars(): string[] {
+		let avatars: string[] = [];
+		for (const [sid, player] of this.mapPlayers) {
+			avatars.push(player.avatar);
+		}
+		return avatars;
 	}
 
 	removePlayerFromRoom(sid: string): void {

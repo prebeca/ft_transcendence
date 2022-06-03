@@ -3,7 +3,7 @@ import { ConnectedSocket, MessageBody, OnGatewayConnection, OnGatewayDisconnect,
 import { Server, Socket } from "socket.io";
 import { WsJwtAuthGuard } from "src/auth/guards/ws-jwt-auth.guard";
 import { User } from "src/users/entities/user.entity";
-import { GameRoomClass } from "../classes/gameroom.class";
+import { GameRoomClass, GAMEROOMSTATUS } from "../classes/gameroom.class";
 import { PlayerClass } from "../classes/player.class";
 import { GameRoomService } from "../services/gameroom.service";
 import { PlayerInfo } from "../interfaces/playerinfo.interface";
@@ -47,6 +47,8 @@ export class GameRoomGateway implements OnGatewayConnection, OnGatewayDisconnect
 	@UseGuards(WsJwtAuthGuard)
 	@SubscribeMessage('launchGame')
 	launchGame(@MessageBody() data: string, @ConnectedSocket() client: Socket) {
+		let gameRoom: GameRoomClass = this.gameRoomService.getRoomById(data);
+		gameRoom.status = GAMEROOMSTATUS.INGAME;
 		this.server2.to(data).emit("gamestart", data);
 	}
 
@@ -59,6 +61,8 @@ export class GameRoomGateway implements OnGatewayConnection, OnGatewayDisconnect
 	leaveRoom(@MessageBody() data: string, @ConnectedSocket() client: Socket) {
 		client.leave(data);
 		let gameRoom: GameRoomClass = this.gameRoomService.getRoomById(data);
+		if (gameRoom.status === GAMEROOMSTATUS.INGAME)
+			return;
 		const player: PlayerClass = gameRoom.getPlayerById(client.id);
 		if (player) {
 			console.log("sending pleaving");
@@ -75,14 +79,14 @@ export class GameRoomGateway implements OnGatewayConnection, OnGatewayDisconnect
 	*/
 	@UseGuards(WsJwtAuthGuard)
 	@SubscribeMessage('joinRoom')
-	joinRoom(@Req() req, @MessageBody() data: string, @ConnectedSocket() client: Socket) {
-		client.join(data);
-		let gameRoom: GameRoomClass = this.gameRoomService.getRoomById(data);
+	joinRoom(@Req() req, @MessageBody() roomid: string, @ConnectedSocket() client: Socket) {
+		client.join(roomid);
+		let gameRoom: GameRoomClass = this.gameRoomService.getRoomById(roomid);
 		if (gameRoom.nbPlayer < this.gameRoomService.getPPG()) {
 			const user: User = { ... (req.user as User) };
 			gameRoom.addPlayerToRoom(client.id, user);
 		}
 		console.log(gameRoom);
-		this.emitPlayersToRoom(data, gameRoom);
+		this.emitPlayersToRoom(roomid, gameRoom);
 	}
 }

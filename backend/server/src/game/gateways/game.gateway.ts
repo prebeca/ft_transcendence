@@ -18,15 +18,15 @@ export enum GameStatus {
 	ENDED = "ended",
 }
 
-const	gameWidth = 640;
-const	gameHeight = 480;
-const	padWidth = 10;
-const	padHeight = 100;
-const	ballRadius = 7;
-const	ballSpeed = 1;
-const	padSpeed = 20;
-const	pointToWin = 10;
-let		looserPoint = "";
+const gameWidth = 640;
+const gameHeight = 480;
+const padWidth = 10;
+const padHeight = 100;
+const ballRadius = 7;
+const ballSpeed = 1;
+const padSpeed = 20;
+const pointToWin = 10;
+let looserPoint = "";
 
 function random_x_start(side: string) {
 	let x = Math.random() * 0.5 + 0.5;
@@ -87,7 +87,7 @@ function checkCollision(game: GameI) {
 			if ((game.ball.y - game.ball.r < game.pad1.y + game.pad1.height && game.ball.y + game.ball.r > game.pad1.y + game.pad1.height ||
 				game.ball.y + game.ball.r > game.pad1.y && game.ball.y - game.ball.r < game.pad1.y) &&
 				game.ball.x - game.ball.r < game.pad1.x + game.pad1.width) {
-					game.ball.dir.y *= -1;
+				game.ball.dir.y *= -1;
 			}
 		}
 	}
@@ -99,7 +99,7 @@ function checkCollision(game: GameI) {
 			if ((game.ball.y - game.ball.r < game.pad2.y + game.pad2.height && game.ball.y + game.ball.r > game.pad2.y + game.pad2.height ||
 				game.ball.y + game.ball.r > game.pad2.y && game.ball.y - game.ball.r < game.pad2.y) &&
 				game.ball.x + game.ball.r > game.pad2.x) {
-					game.ball.dir.y *= -1;
+				game.ball.dir.y *= -1;
 			}
 		}
 	}
@@ -148,7 +148,7 @@ function initGame(game: GameI,) {
 	looserPoint = game.pad1.id;
 }
 
-@WebSocketGateway(42042, {
+@WebSocketGateway(42041, {
 	cors: {
 		origin: process.env.APPLICATION_REDIRECT_URI,
 		credentials: true
@@ -233,7 +233,7 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
 			// if (this.game.status === GameStatus.PLAYER1WON || this.game.status === GameStatus.PLAYER2WON)
 			// 	this.server.emit("end", this.game);
 			// else
-				this.server.emit("updateGame", this.game);
+			this.server.emit("updateGame", this.game);
 		}, 1000 / 30);
 	}
 
@@ -252,13 +252,13 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
 	@SubscribeMessage('arrowUp')
 	padUp(client: Socket, data: GameI) {
 		if (!this.game.pad1.id || !this.game.pad2.id)
-			return ;
+			return;
 		let pad: PadI;
 		if (this.game.pad1.id === client.id)
 			pad = this.game.pad1;
 		if (this.game.pad2.id === client.id)
 			pad = this.game.pad2;
-		if (pad){
+		if (pad) {
 			if (data.status === GameStatus.WAITING && looserPoint === pad.id) {
 				this.startGame(client);
 			}
@@ -275,13 +275,13 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
 	@SubscribeMessage('arrowDown')
 	padDown(client: Socket, data: GameI) {
 		if (!this.game.pad1.id || !this.game.pad2.id)
-			return ;
+			return;
 		let pad: PadI;
 		if (this.game.pad1.id === client.id)
 			pad = this.game.pad1;
 		if (this.game.pad2.id === client.id)
 			pad = this.game.pad2;
-		if (pad){
+		if (pad) {
 			if (data.status === GameStatus.WAITING && looserPoint === pad.id) {
 				this.startGame(client);
 			}
