@@ -1,5 +1,6 @@
 import { Logger } from "@nestjs/common";
 import { OnGatewayConnection, OnGatewayDisconnect, SubscribeMessage, WebSocketGateway, WebSocketServer } from "@nestjs/websockets";
+import { time, timeLog } from "console";
 import { Server, Socket } from "socket.io";
 import { Game } from "../entities/game.entity";
 import BallI from "../interfaces/ballI.interface";
@@ -12,17 +13,20 @@ export enum GameStatus {
 	INPROGRESS = "in progress",
 	PLAYER1WON = "player 1 won",
 	PLAYER2WON = "player 2 won",
+	PLAYER1LEAVE = "player 2 won by forfeit",
+	PLAYER2LEAVE = "player 1 won by forfeit",
 	ENDED = "ended",
 }
 
-const gameWidth = 640;
-const gameHeight = 480;
-const padWidth = 10;
-const padHeight = 100;
-const ballRadius = 7;
-const ballSpeed = 1;
-const padSpeed = 20;
-const pointToWin = 50;
+const	gameWidth = 640;
+const	gameHeight = 480;
+const	padWidth = 10;
+const	padHeight = 100;
+const	ballRadius = 7;
+const	ballSpeed = 1;
+const	padSpeed = 20;
+const	pointToWin = 10;
+let		looserPoint = "";
 
 function random_x_start(side: string) {
 	let x = Math.random() * 0.5 + 0.5;
@@ -65,12 +69,14 @@ function checkCollision(game: GameI) {
 		game.score2++;
 		if (game.score2 === pointToWin)
 			return GameStatus.PLAYER2WON;
+		looserPoint = game.pad1.id;
 		return resetAfterPoint(game, "left");
 	}
 	else if (game.ball.x + game.ball.r >= game.gameWidth) {
 		game.score1++;
 		if (game.score1 === pointToWin)
 			return GameStatus.PLAYER1WON;
+		looserPoint = game.pad2.id;
 		return resetAfterPoint(game, "right");
 	}
 	else if (game.ball.x - game.ball.r <= game.pad1.x + game.pad1.width && game.ball.x + game.ball.r >= game.pad1.x) {
@@ -139,6 +145,7 @@ function initGame(game: GameI,) {
 	game.score2 = 0;
 
 	game.status = GameStatus.WAITING;
+	looserPoint = game.pad1.id;
 }
 
 @WebSocketGateway(42042, {
@@ -163,6 +170,7 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
 
 	handleDisconnect(client: Socket) {
 		console.log(`Client disconnected: ${client.id}`);
+		this.leaveGame(client);
 	}
 
 	handleConnection(client: Socket, ...args: any[]) {
@@ -179,14 +187,14 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
 
 	@SubscribeMessage('startGame')
 	startGame(client: Socket) {
+		this.game.status = GameStatus.INPROGRESS;
 
 		let moveInterval: NodeJS.Timer;
-
 
 		moveInterval = setInterval(async () => {
 			moveBall(this.game);
 
-			if (this.game.status != GameStatus.ENDED)
+			if (this.game.status === GameStatus.INPROGRESS)
 				this.game.status = checkCollision(this.game);
 
 			//   if (ret == "n")
@@ -229,21 +237,29 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
 		}, 1000 / 30);
 	}
 
-	@SubscribeMessage('stopGame')
-	stopGame(client: Socket) {
-		this.game.status = GameStatus.ENDED;
+	@SubscribeMessage('leaveGame')
+	leaveGame(client: Socket) {
+		if (this.game.pad1.id === client.id) {
+			this.game.status = GameStatus.PLAYER1LEAVE;
+			this.server.emit('updateStatus', this.game.status);
+		}
+		if (this.game.pad2.id === client.id) {
+			this.game.status = GameStatus.PLAYER2LEAVE;
+			this.server.emit('updateStatus', this.game.status);
+		}
 	}
 
 	@SubscribeMessage('arrowUp')
 	padUp(client: Socket, data: GameI) {
+		if (!this.game.pad1.id || !this.game.pad2.id)
+			return ;
 		let pad: PadI;
 		if (this.game.pad1.id === client.id)
 			pad = this.game.pad1;
 		if (this.game.pad2.id === client.id)
 			pad = this.game.pad2;
 		if (pad){
-			if (data.status === GameStatus.WAITING) {
-				this.game.status = GameStatus.INPROGRESS;
+			if (data.status === GameStatus.WAITING && looserPoint === pad.id) {
 				this.startGame(client);
 			}
 			if (this.game.status === GameStatus.INPROGRESS) {
@@ -258,14 +274,15 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
 
 	@SubscribeMessage('arrowDown')
 	padDown(client: Socket, data: GameI) {
+		if (!this.game.pad1.id || !this.game.pad2.id)
+			return ;
 		let pad: PadI;
 		if (this.game.pad1.id === client.id)
 			pad = this.game.pad1;
 		if (this.game.pad2.id === client.id)
 			pad = this.game.pad2;
 		if (pad){
-			if (data.status === GameStatus.WAITING) {
-				this.game.status = GameStatus.INPROGRESS;
+			if (data.status === GameStatus.WAITING && looserPoint === pad.id) {
 				this.startGame(client);
 			}
 			if (this.game.status === GameStatus.INPROGRESS) {

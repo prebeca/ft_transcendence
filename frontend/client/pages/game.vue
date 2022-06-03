@@ -1,17 +1,21 @@
 <template>
-
-  <div style="height: 80vh; max-height: 100%;" class="d-flex flex-column justify-center align-center">
-
-      <v-card class="d-flex flex-column justify-center align-center" color="secondary" width="70%" height="10%" >
-        <td> {{ game.score1 }} </td>
-        <td> {{ game.score2 }} </td>
-      </v-card>
-      <div id="myGame" width="100vw" height="100vh">
-        <canvas id="canvas"></canvas>
-      </div>
-
+  <div
+    style="height: 80vh; max-height: 100%"
+    class="d-flex flex-column justify-center align-center"
+  >
+    <v-card
+      class="d-flex flex-column justify-center align-center"
+      color="secondary"
+      width="70%"
+      height="10%"
+    >
+      <td>{{ game.score1 }}</td>
+      <td>{{ game.score2 }}</td>
+    </v-card>
+    <div id="myGame" width="100vw" height="100vh">
+      <canvas id="canvas"></canvas>
+    </div>
   </div>
-
 </template>
 
 <script lang="ts">
@@ -27,7 +31,9 @@ export enum GameStatus {
   INPROGRESS = "in progress",
   PLAYER1WON = "player 1 won",
   PLAYER2WON = "player 2 won",
-	ENDED = "ended",
+  PLAYER1LEAVE = "player 2 won by forfeit",
+  PLAYER2LEAVE = "player 1 won by forfeit",
+  ENDED = "ended",
 }
 
 export default Vue.extend({
@@ -35,7 +41,7 @@ export default Vue.extend({
   data() {
     return {
       socket: io(),
-      canvas: {} as HTMLCanvasElement,
+      canvas: {} as HTMLElement | null,
       context: {} as CanvasRenderingContext2D | null,
       game: {} as GameI,
       pad1: {} as PadI,
@@ -49,13 +55,11 @@ export default Vue.extend({
     };
   },
   created() {
-		this.game.pad1 = {} as PadI;
-		this.game.pad2 = {} as PadI;
-		this.game.ball = {} as BallI;
-    this.game.score1 = 0;
-    this.game.score2 = 0;
+    this.game.pad1 = {} as PadI;
+    this.game.pad2 = {} as PadI;
+    this.game.ball = {} as BallI;
     this.game.status = GameStatus.WAITING;
-    this.socket = io(process.env.API_SOCKET_GAME, {withCredentials: true});
+    this.socket = io(process.env.API_SOCKET_GAME, { withCredentials: true });
   },
   beforeMount() {
     this.socket.on("print", (data) => {
@@ -66,6 +70,10 @@ export default Vue.extend({
     });
     this.socket.on("updateGame", (data: GameI) => {
       this.update(data);
+    });
+    this.socket.on("updateStatus", (data: GameStatus) => {
+      this.game.status = data;
+      this.handleResize();
     });
     this.socket.on("end", (data: GameI) => {
       this.endGame(data);
@@ -81,21 +89,15 @@ export default Vue.extend({
     window.addEventListener("keydown", this.handleKeyDown);
     window.addEventListener("resize", this.handleResize);
   },
-  beforeDestroy() {
-    window.removeEventListener('keydown', this.handleKeyDown);
-    window.removeEventListener('resize', this.handleResize);
-    this.stop();
+  destroyed() {
+    window.removeEventListener("keydown", this.handleKeyDown);
+    window.removeEventListener("resize", this.handleResize);
+    this.socket.emit("leaveGame");
   },
   methods: {
-    handleKeyDown: function(event) {
-      if (event.key === "ArrowUp")
-        this.socket.emit("arrowUp", this.game);
-      if (event.key === "ArrowDown")
-        this.socket.emit("arrowDown", this.game);
-      if (event.key === "Escape")
-        this.stop();
-      if (event.key === "Enter")
-        this.rePlay();
+    handleKeyDown: function (event: any) {
+      if (event.key === "ArrowUp") this.socket.emit("arrowUp", this.game);
+      if (event.key === "ArrowDown") this.socket.emit("arrowDown", this.game);
     },
     handleResize() {
       this.canvas.width = window.innerWidth / 1.5;
@@ -108,21 +110,15 @@ export default Vue.extend({
       this.game = data;
       this.handleResize();
     },
-    stop() {
-      this.status = GameStatus.ENDED;
-      this.socket.emit("stopGame");
-    },
-    rePlay() {
-      this.game.status = GameStatus.INPROGRESS;
-      this.status = this.game.status;
-      this.play();
-    },
     draw() {
       this.clearScreen();
       this.drawCanvas();
       this.drawPads();
       this.drawBall();
-      if (this.game.status != GameStatus.INPROGRESS && this.game.status != GameStatus.WAITING)
+      if (
+        this.game.status != GameStatus.INPROGRESS &&
+        this.game.status != GameStatus.WAITING
+      )
         this.endGame(this.game);
     },
     clearScreen() {
@@ -139,14 +135,31 @@ export default Vue.extend({
     },
     drawPads() {
       this.context.fillStyle = "white";
-      this.context.fillRect(this.game.pad1.x * this.ratiox, this.game.pad1.y * this.ratioy, this.game.pad1.width * this.ratiox, this.game.pad1.height * this.ratioy);
-      this.context.fillRect(this.game.pad2.x * this.ratiox, this.game.pad2.y * this.ratioy, this.game.pad2.width * this.ratiox, this.game.pad2.height * this.ratioy);
+      this.context.fillRect(
+        this.game.pad1.x * this.ratiox,
+        this.game.pad1.y * this.ratioy,
+        this.game.pad1.width * this.ratiox,
+        this.game.pad1.height * this.ratioy
+      );
+      this.context.fillRect(
+        this.game.pad2.x * this.ratiox,
+        this.game.pad2.y * this.ratioy,
+        this.game.pad2.width * this.ratiox,
+        this.game.pad2.height * this.ratioy
+      );
     },
     drawBall() {
       this.context.beginPath();
       this.context.fillStyle = "white";
       const { x, y, r } = this.game.ball;
-      this.context.arc(x * this.ratiox, y * this.ratioy, r * this.ratiox * this.ratioy, 0, Math.PI * 2, false);
+      this.context.arc(
+        x * this.ratiox,
+        y * this.ratioy,
+        r * this.ratiox * this.ratioy,
+        0,
+        Math.PI * 2,
+        false
+      );
       this.context.fill();
     },
     endGame(game: GameI) {
@@ -157,7 +170,7 @@ export default Vue.extend({
       this.context.fillText(
         winner,
         this.canvas.width / 2,
-        this.canvas.height / 4,
+        this.canvas.height / 4
       );
     },
     myPrint(data) {
