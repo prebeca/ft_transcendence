@@ -4,13 +4,14 @@
     style="height: 80vh; max-height: 100%; column-gap: 20px"
     class="d-flex justify-center align-center"
   >
-    <GameRoomPlayerCard player="player1" />
-    <!-- <GameRoomPlayerCard v-if="player1.username.length > 0" player="player1" />
-    <GameRoomWaitingCard v-else /> -->
-    <h1>VS</h1>
-    <GameRoomPlayerCard v-if="player2.username.length > 0" player="player2" />
+    <GameRoomPlayerCard v-if="player1.username.length > 0" :player="player1" />
     <GameRoomWaitingCard v-else />
-    <v-btn color="success" class="mr-4" @click="gameOn"> PLAY </v-btn>
+    <h1>VS</h1>
+    <GameRoomPlayerCard v-if="player2.username.length > 0" :player="player2" />
+    <GameRoomWaitingCard v-else />
+    <v-row>
+      <v-btn color="success" class="mr-4" @click="gameOn"> PLAY </v-btn>
+    </v-row>
   </div>
 </template>
 

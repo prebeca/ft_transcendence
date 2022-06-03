@@ -74,6 +74,7 @@
             width="800px"
             style="row-gap: 50px"
           >
+            <GameRoomList />
           </v-card>
         </v-stepper-content>
       </v-stepper-items>
