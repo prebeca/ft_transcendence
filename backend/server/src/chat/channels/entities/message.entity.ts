@@ -14,7 +14,7 @@ export class MessageData {
 export class Message {
 	@PrimaryGeneratedColumn({
 		type: 'bigint',
-		name: 'channel_id',
+		name: 'message_id',
 	})
 	id: number;
 

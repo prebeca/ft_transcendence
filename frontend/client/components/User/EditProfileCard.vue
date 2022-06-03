@@ -93,8 +93,9 @@ export default Vue.extend({
         twofauser: false,
       },
       rules: {
-        counter_max: (value) => value.length <= 15 || "Max 15 characters",
-        counter_min: (value) => value.length >= 5 || "Min 5 characters",
+        counter_max: (value: string) =>
+          value.length <= 15 || "Max 15 characters",
+        counter_min: (value: string) => value.length >= 5 || "Min 5 characters",
       },
     };
   },

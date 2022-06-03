@@ -1,26 +1,14 @@
 <template>
-  <div id="myGameRoom" width="100vw" height="100vh">
-    <div>
-      <h2>{{ player1.username }}</h2>
-      <v-avatar size="200px" tile class="mt-3">
-        <img :src="player1.avatar" alt="avatar" />
-      </v-avatar>
-      <h3>
-        Level {{ player1.level }} || {{ player1.wins }} wins /
-        {{ player1.losses }} losses || {{ player1.mmr }} mmr
-      </h3>
-    </div>
-    <div><h1>VS</h1></div>
-    <div>
-      <h2>{{ player2.username }}</h2>
-      <v-avatar size="200px" tile class="mt-3">
-        <img :src="player2.avatar" alt="avatar" />
-      </v-avatar>
-      <h3>
-        Level {{ player2.level }} || {{ player2.wins }} wins /
-        {{ player2.losses }} losses || {{ player2.mmr }} mmr
-      </h3>
-    </div>
+  <div
+    id="myGameRoom"
+    style="height: 80vh; max-height: 100%; column-gap: 20px"
+    class="d-flex justify-center align-center"
+  >
+    <GameRoomPlayerCard v-if="player1.username.length > 0" player="player1" />
+    <GameRoomWaitingCard v-else />
+    <h1>VS</h1>
+    <GameRoomPlayerCard v-if="player2.username.length > 0" player="player2" />
+    <GameRoomWaitingCard v-else />
   </div>
 </template>
 
