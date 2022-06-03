@@ -6,10 +6,11 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { User } from 'src/typeorm';
 import { MulterModule } from '@nestjs/platform-express';
 import { ChannelsModule } from 'src/chat/channels/channels.module';
+import { Player } from 'src/game/entities/player.entity';
 
 @Module({
 	imports: [
-		TypeOrmModule.forFeature([User]),
+		TypeOrmModule.forFeature([User, Player]),
 		MulterModule.register({
 			dest: './avatar',
 		}),
