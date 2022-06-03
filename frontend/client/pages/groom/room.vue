@@ -32,6 +32,7 @@ export default Vue.extend({
   name: "GameRoom",
   data() {
     return {
+      roomid: "",
       socket: io(),
       counter: 0,
       player1: {
@@ -62,6 +63,28 @@ export default Vue.extend({
     console.log("beforeMount");
     this.socket.on("handshake", (data) => {
       console.log(data);
+    });
+    this.socket.on("p1leaving", (data) => {
+      console.log("p1leaving");
+      this.player1 = {
+        username: "",
+        avatar: "",
+        level: 0,
+        mmr: 0,
+        wins: 0,
+        losses: 0,
+      };
+    });
+    this.socket.on("p2leaving", (data) => {
+      console.log("p2leaving");
+      this.player2 = {
+        username: "",
+        avatar: "",
+        level: 0,
+        mmr: 0,
+        wins: 0,
+        losses: 0,
+      };
     });
     this.socket.on("infouserp1", (data) => {
       console.log(data);
@@ -96,6 +119,12 @@ export default Vue.extend({
   mounted() {
     console.log("mouted");
     this.socket.emit("joinRoom", this.$route.query.name);
+    this.roomid = this.$route.query.name as string;
+  },
+  beforeDestroy() {
+    console.log("BeforeDestruction: leaving room");
+    console.log("roomid = " + this.roomid);
+    this.socket.emit("leaveRoom", this.roomid);
   },
 });
 </script>

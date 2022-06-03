@@ -24,6 +24,13 @@ export class GameRoomClass {
 			console.log("player: " + key);
 		}
 	}
+	getPlayerById(player_id: string): PlayerClass {
+		for (const [sid, player] of this.mapPlayers) {
+			if (sid === player_id)
+				return player;
+		}
+		return null;
+	}
 
 	getPlayers(): string[] {
 		let players: string[] = [];
@@ -41,8 +48,13 @@ export class GameRoomClass {
 		if (this.nbPlayer < 2) {
 			this.nbPlayer += 1;
 			let player: PlayerClass = new PlayerClass();
+			let player_number: number = 1;
+			for (const [socketid, player] of this.mapPlayers) {
+				player_number = (player.player_number === 1) ? 2 : 1;
+				break;
+			}
 			player = {
-				player_number: this.nbPlayer,
+				player_number: player_number,
 				userid: user.id,
 				avatar: user.avatar,
 				level: user.player.level,
@@ -63,7 +75,6 @@ export class GameRoomClass {
 		if (this.mapPlayers.delete(sid) === true) {
 			this.nbPlayer--;
 		}
-		this.printSid();
 	}
 
 	clearPlayers(): void {

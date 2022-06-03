@@ -4,6 +4,7 @@ import { Server, Socket } from "socket.io";
 import { WsJwtAuthGuard } from "src/auth/guards/ws-jwt-auth.guard";
 import { User } from "src/users/entities/user.entity";
 import { GameRoomClass } from "../classes/gameroom.class";
+import { PlayerClass } from "../classes/player.class";
 import { GameRoomService } from "../services/gameroom.service";
 
 @WebSocketGateway(42041, {
@@ -38,6 +39,35 @@ export class GameRoomGateway implements OnGatewayConnection, OnGatewayDisconnect
 		console.log(`Client connected:    ${client.id}`);
 	}
 
+	emitPlayersToRoom(roomid: string, gameRoom: GameRoomClass) {
+		for (const [key, value] of gameRoom.mapPlayers) { //will send to every member the informations of every player present
+			this.server2.to(roomid).emit("infouserp" + value.player_number, {
+				username: value.username,
+				avatar: value.avatar,
+				level: value.level,
+				losses: value.losses,
+				wins: value.wins,
+				mmr: value.mmr,
+			});
+		}
+	}
+
+	@UseGuards(WsJwtAuthGuard)
+	@SubscribeMessage('leaveRoom')
+	leaveRoom(@Req() req, @MessageBody() data: string, @ConnectedSocket() client: Socket) {
+		console.log("sid = " + client.id + ", rommid = " + data);
+		client.leave(data);
+		let gameRoom: GameRoomClass = this.gameRoomService.getRoomById(data);
+		const player: PlayerClass = gameRoom.getPlayerById(client.id);
+		console.log(this.server2.of(data).sockets.size > 0);
+		if (player) {
+			console.log("sending pleaving");
+			this.server2.to(data).emit("p" + player.player_number + "leaving", {});
+		}
+		gameRoom.deletePlayer(client.id);
+		client.disconnect(true);
+	}
+
 	@UseGuards(WsJwtAuthGuard)
 	@SubscribeMessage('joinRoom')
 	joinRoom(@Req() req, @MessageBody() data: string, @ConnectedSocket() client: Socket) {
@@ -49,16 +79,6 @@ export class GameRoomGateway implements OnGatewayConnection, OnGatewayDisconnect
 		if (gameRoom.nbPlayer < this.gameRoomService.getPPG()) { //add user to room (spectator or otherwise) but not to the gameroom object if spectator
 			gameRoom.addPlayerToRoom(client.id, user); //adds the player to the map in the gameRoom object (to keep track of him)
 		}
-		for (const [key, value] of gameRoom.mapPlayers) { //will send to every member the informations of every player present
-
-			this.server2.to(data).emit("infouserp" + value.player_number, {
-				username: value.username,
-				avatar: value.avatar,
-				level: value.level,
-				losses: value.losses,
-				wins: value.wins,
-				mmr: value.mmr,
-			});
-		}
+		this.emitPlayersToRoom(data, gameRoom);
 	}
 }
