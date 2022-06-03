@@ -32,10 +32,35 @@ export class GameRoomService {
 		return this.gameRooms.get(id_room);
 	}
 
+	/*
+	** Return every room where a player is waiting
+	*/
+	getPlayersInRooms(): { roomname: string, player1: string, player2: string }[] {
+		let ppr: { roomname: string, player1: string, player2: string }[] = [];
+		for (const [keyroom, gameroom] of this.gameRooms) {
+			let players: string[] = gameroom.getPlayers();
+			if (players.length !== 0)
+				ppr.push({ roomname: keyroom, player1: players[0], player2: players[1] });
+		}
+		return ppr;
+	}
+
+	/*
+	** Check if the map contains the room we are searching for
+	*/
 	containsRoom(room_id: string): boolean {
 		if (this.rooms.indexOf(room_id) === -1)
 			return false;
 		return true;
+	}
+
+	/*
+	** delete a socket from rooms
+	*/
+	removePlayerFromRooms(sid: string): void {
+		for (const [keyroom, gameroom] of this.gameRooms) {
+			gameroom.removePlayerFromRoom(sid);
+		}
 	}
 
 	clear() {

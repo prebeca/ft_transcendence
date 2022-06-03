@@ -1,9 +1,9 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, InternalServerErrorException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Channel, User } from 'src/typeorm';
 import { Any, Repository } from 'typeorm';
 import { CreateChannelDto } from 'src/chat/channels/dto/channels.dto';
-import { Message } from '../entities/channel.entity';
+import { MessageData } from '../entities/message.entity';
 import { channel } from 'diagnostics_channel';
 import { UsersService } from 'src/users/services/users.service';
 
@@ -90,7 +90,7 @@ export class ChannelsService {
 		await this.channelRepository.save(channel);
 	}
 
-	async addMessageToChannel(id: number, msg: Message) {
+	async addMessageToChannel(id: number, msg: MessageData) {
 		let channel = await this.channelRepository.findOne(id);
 		try {
 			channel.messages.push(msg);
@@ -100,7 +100,7 @@ export class ChannelsService {
 		}
 	}
 
-	async clearChat(id: number): Promise<Message> {
+	async clearChat(id: number): Promise<MessageData> {
 		let channel = await this.channelRepository.findOne(id);
 		let nb_msg = channel.messages.length;
 		channel.messages = [];
@@ -115,26 +115,26 @@ export class ChannelsService {
 		})
 	}
 
-	async joinChannel(data: Message): Promise<string> {
+	async joinChannel(data: MessageData): Promise<Channel> {
 		const channel: Channel = await this.findOneById(data.channel_id);
 
 		if (channel.users_ids.find(e => e == data.user_id) != undefined) {
-			return ("Error: already in channel");
+			throw new InternalServerErrorException("Error: already in channel");
 		}
 		if (channel.scope == "protected" && channel.password != data.content) {
-			return ("Error: bad password");
+			throw new InternalServerErrorException("Error: bad password");
 		}
 		if (channel.scope == "private" && channel.invited_ids.find((e: number) => e == data.user_id) == undefined) {
-			return ("Error: not invited");
+			throw new InternalServerErrorException("Error: not invited");
 		}
 
 		await this.addUser(data.channel_id, data.user_id)					// add user to channel members
 		await this.userService.addChannel(data.user_id, data.channel_id)	// add channel to the user's channels list
 		await this.removeInvite(data.channel_id, data.user_id);
-		return ("Success: joined channel " + channel.name);
+		return channel;
 	}
 
-	async handleMessage(channel: Channel, user: User, message: Message) {
+	async handleMessage(channel: Channel, user: User, message: MessageData) {
 		if (message.content[0] == '/')
 			console.log("handle commands")
 		else

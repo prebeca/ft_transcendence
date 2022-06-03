@@ -10,7 +10,10 @@ import { Player } from 'src/game/entities/player.entity';
 
 @Injectable()
 export class UsersService {
-	constructor(@InjectRepository(User) private readonly userRepository: Repository<User>) { }
+	constructor(
+		@InjectRepository(User)
+		private readonly userRepository: Repository<User>,
+	) { }
 
 	async getUsers(): Promise<User[]> {
 		try {

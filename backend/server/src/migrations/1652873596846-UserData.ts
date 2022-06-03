@@ -75,6 +75,8 @@ export class UserData1652873596846 implements MigrationInterface {
     public async down(queryRunner: QueryRunner): Promise<void> {
         const userRepo = queryRunner.connection.getRepository(User);
         userRepo.clear();
+        const playerRepo = queryRunner.connection.getRepository(Player);
+        playerRepo.clear();
     }
 
 }

@@ -18,7 +18,8 @@ import { Request } from 'express';
 import { JwtAuthGuard } from 'src/auth/guards/jwt-auth.guard';
 import { UsersService } from 'src/users/services/users.service';
 import { CreateChannelDto } from '../dto/channels.dto';
-import { Channel, Message } from '../entities/channel.entity';
+import { Channel } from '../entities/channel.entity';
+import { MessageData } from '../entities/message.entity';
 import { ChannelsService } from '../services/channels.service';
 
 @Controller('channels')
@@ -52,7 +53,7 @@ export class ChannelsController {
 
 	@UseGuards(JwtAuthGuard)
 	@Post('join')
-	async joinChannel(@Req() req: Request, @Body() data: Message): Promise<string> {
+	async joinChannel(@Req() req: Request, @Body() data: MessageData): Promise<Channel> {
 		if (req.user["id"] != data.user_id)
 			throw new InternalServerErrorException("User id does not match");
 		return this.channelService.joinChannel(data);
@@ -62,8 +63,16 @@ export class ChannelsController {
 	@Post('create')
 	async createChannel(@Req() req: Request, @Body() createChannelDto: CreateChannelDto) {
 		let channel: Channel = await this.channelService.createChannel(createChannelDto,);
+
 		if (channel == null) {
-			return ("ERROR: channels/create: channel = " + createChannelDto.name + " (channel name already in use)")
+			if ((channel = await this.channelService.findOneByName(createChannelDto.name)) != null)
+				return await this.channelService.joinChannel({
+					user_id: req.user["id"],
+					channel_id: channel.id,
+					content: "",
+				} as MessageData);
+			else
+				return ("ERROR: channels/create: channel = " + createChannelDto.name)
 		}
 		let owner = req.user["id"];
 		channel.owner = owner;
@@ -71,6 +80,12 @@ export class ChannelsController {
 		channel.users_ids.push(owner);
 		await this.userService.addChannel(owner, channel.id);
 		return await this.channelService.updateChannel(channel);
+	}
+
+	@UseGuards(JwtAuthGuard)
+	@Post('delete/:id')
+	async deleteChannel(@Req() req: Request, @Param('id', ParseIntPipe) id: number) {
+		return await this.channelService.remove(id);
 	}
 
 	// @Post('addGroup')
@@ -84,7 +99,7 @@ export class ChannelsController {
 
 	@UseGuards(JwtAuthGuard)
 	@Post('handleMessage')
-	async handleMessage(@Req() req: Request, @Body() message: Message) {
+	async handleMessage(@Req() req: Request, @Body() message: MessageData) {
 		let channel = await this.channelService.findOneById(message.channel_id);
 		let user = await this.userService.findUsersById(req.user["id"]);
 		if (channel == null)
