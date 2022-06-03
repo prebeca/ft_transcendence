@@ -21,6 +21,7 @@
         {{ player2.losses }} losses || {{ player2.mmr }} mmr
       </h3>
     </div>
+    <v-btn color="success" class="mr-4" @click="gameOn"> PLAY </v-btn>
   </div>
 </template>
 
@@ -53,6 +54,11 @@ export default Vue.extend({
       },
     };
   },
+  methods: {
+    async gameOn() {
+      this.socket.emit("launchGame", this.roomid);
+    },
+  },
   created() {
     console.log("created");
     this.socket = io(process.env.API_SOCKET_GAMEROOM, {
@@ -63,6 +69,9 @@ export default Vue.extend({
     console.log("beforeMount");
     this.socket.on("handshake", (data) => {
       console.log(data);
+    });
+    this.socket.on("gamestart", (data) => {
+      this.$router.push({ path: "/game", query: { roomid: this.roomid } });
     });
     this.socket.on("p1leaving", (data) => {
       console.log("p1leaving");

@@ -1,6 +1,7 @@
 import { Injectable } from "@nestjs/common";
 import { User } from "src/users/entities/user.entity";
 import { CreateGameDto } from "../dto/create-game.dto";
+import { PlayerInfo } from "../interfaces/playerinfo.interface";
 import { PlayerClass } from "./player.class";
 
 @Injectable()
@@ -24,10 +25,27 @@ export class GameRoomClass {
 			console.log("player: " + key);
 		}
 	}
+
 	getPlayerById(player_id: string): PlayerClass {
 		for (const [sid, player] of this.mapPlayers) {
 			if (sid === player_id)
 				return player;
+		}
+		return null;
+	}
+
+	getPlayerInfoById(player_id: string): PlayerInfo {
+		for (const [sid, player] of this.mapPlayers) {
+			if (sid === player_id)
+				return {
+					player_number: player.player_number,
+					username: player.username,
+					avatar: player.avatar,
+					level: player.level,
+					losses: player.losses,
+					wins: player.wins,
+					mmr: player.mmr,
+				};
 		}
 		return null;
 	}
@@ -42,6 +60,12 @@ export class GameRoomClass {
 
 	removePlayerFromRoom(sid: string): void {
 		this.deletePlayer(sid);
+	}
+
+	deletePlayer(sid: string): void {
+		if (this.mapPlayers.delete(sid) === true) {
+			this.nbPlayer--;
+		}
 	}
 
 	addPlayerToRoom(sid: string, user: User): void {
@@ -68,12 +92,6 @@ export class GameRoomClass {
 		}
 		else {
 			console.log("already 2 players");
-		}
-	}
-
-	deletePlayer(sid: string): void {
-		if (this.mapPlayers.delete(sid) === true) {
-			this.nbPlayer--;
 		}
 	}
 

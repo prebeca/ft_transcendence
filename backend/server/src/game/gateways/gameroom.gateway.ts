@@ -6,6 +6,7 @@ import { User } from "src/users/entities/user.entity";
 import { GameRoomClass } from "../classes/gameroom.class";
 import { PlayerClass } from "../classes/player.class";
 import { GameRoomService } from "../services/gameroom.service";
+import { PlayerInfo } from "../interfaces/playerinfo.interface";
 
 @WebSocketGateway(42041, {
 	cors: {
@@ -27,9 +28,6 @@ export class GameRoomGateway implements OnGatewayConnection, OnGatewayDisconnect
 		this.gameRoomService.clear();
 	}
 
-	/*
-	** If the spectator disconnects, it does nothing BUT if a player disconnects, what then ?
-	*/
 	handleDisconnect(@ConnectedSocket() client: Socket) {
 		console.log(`Client disconnected: ${client.id}`);
 		this.gameRoomService.removePlayerFromRooms(client.id);
@@ -41,25 +39,27 @@ export class GameRoomGateway implements OnGatewayConnection, OnGatewayDisconnect
 
 	emitPlayersToRoom(roomid: string, gameRoom: GameRoomClass) {
 		for (const [key, value] of gameRoom.mapPlayers) { //will send to every member the informations of every player present
-			this.server2.to(roomid).emit("infouserp" + value.player_number, {
-				username: value.username,
-				avatar: value.avatar,
-				level: value.level,
-				losses: value.losses,
-				wins: value.wins,
-				mmr: value.mmr,
-			});
+			var info_player: PlayerInfo = gameRoom.getPlayerInfoById(key)
+			this.server2.to(roomid).emit("infouserp" + info_player.player_number, info_player);
 		}
 	}
 
 	@UseGuards(WsJwtAuthGuard)
+	@SubscribeMessage('launchGame')
+	launchGame(@MessageBody() data: string, @ConnectedSocket() client: Socket) {
+		this.server2.to(data).emit("gamestart", data);
+	}
+
+	/*
+	** Client leaves room (it can be a player => the information will be send to the other player and spectators)
+	** It can be a spectator, nothing of note happens
+	*/
+	@UseGuards(WsJwtAuthGuard)
 	@SubscribeMessage('leaveRoom')
-	leaveRoom(@Req() req, @MessageBody() data: string, @ConnectedSocket() client: Socket) {
-		console.log("sid = " + client.id + ", rommid = " + data);
+	leaveRoom(@MessageBody() data: string, @ConnectedSocket() client: Socket) {
 		client.leave(data);
 		let gameRoom: GameRoomClass = this.gameRoomService.getRoomById(data);
 		const player: PlayerClass = gameRoom.getPlayerById(client.id);
-		console.log(this.server2.of(data).sockets.size > 0);
 		if (player) {
 			console.log("sending pleaving");
 			this.server2.to(data).emit("p" + player.player_number + "leaving", {});
@@ -68,17 +68,21 @@ export class GameRoomGateway implements OnGatewayConnection, OnGatewayDisconnect
 		client.disconnect(true);
 	}
 
+	/*
+	** Client joins room 
+	** The first two client will be players
+	** The following ones (if there are) will be spectators
+	*/
 	@UseGuards(WsJwtAuthGuard)
 	@SubscribeMessage('joinRoom')
 	joinRoom(@Req() req, @MessageBody() data: string, @ConnectedSocket() client: Socket) {
-		const user: User = { ... (req.user as User) };
-
-		client.join(data); //Should use interfaces for it instead of this json (same but not clear)
-		let gameRoom: GameRoomClass = this.gameRoomService.getRoomById(data); //get the object representing the room that the player OR spectator just joined
-		console.log(gameRoom);
-		if (gameRoom.nbPlayer < this.gameRoomService.getPPG()) { //add user to room (spectator or otherwise) but not to the gameroom object if spectator
-			gameRoom.addPlayerToRoom(client.id, user); //adds the player to the map in the gameRoom object (to keep track of him)
+		client.join(data);
+		let gameRoom: GameRoomClass = this.gameRoomService.getRoomById(data);
+		if (gameRoom.nbPlayer < this.gameRoomService.getPPG()) {
+			const user: User = { ... (req.user as User) };
+			gameRoom.addPlayerToRoom(client.id, user);
 		}
+		console.log(gameRoom);
 		this.emitPlayersToRoom(data, gameRoom);
 	}
 }
