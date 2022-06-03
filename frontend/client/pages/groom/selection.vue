@@ -54,7 +54,13 @@
                 max="3"
                 min="1"
                 class="mt-10"
-              ></v-slider>
+              >
+                <template v-slot:thumb-label>
+                  <span class="font-weight-bold" style="font-size: 15px">
+                    {{ difficulty }}
+                  </span>
+                </template>
+              </v-slider>
               <v-btn color="accent" @click="validate"> Validate </v-btn>
             </v-form>
           </v-card>
