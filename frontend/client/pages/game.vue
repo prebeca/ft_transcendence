@@ -59,7 +59,9 @@ export default Vue.extend({
     this.game.pad2 = {} as PadI;
     this.game.ball = {} as BallI;
     this.game.status = GameStatus.WAITING;
-    this.socket = io(process.env.API_SOCKET_GAME, { withCredentials: true });
+    this.socket = io(process.env.API_SOCKET_GAME, {
+      withCredentials: true,
+    });
   },
   beforeMount() {
     this.socket.on("print", (data) => {

@@ -65,6 +65,16 @@ export default Vue.extend({
           }[];
           array = res.data;
           for (let i = 0; i < array.length; i++) {
+            if (array[i].avatar1) {
+              array[i].avatar1 =
+                `${process.env.API_URL}/users/profile/avatar/` +
+                array[i].avatar1;
+            }
+            if (array[i].avatar2) {
+              array[i].avatar2 =
+                `${process.env.API_URL}/users/profile/avatar/` +
+                array[i].avatar2;
+            }
             if (i === 0 && new_rooms[0].roomname === "") {
               new_rooms[0].roomname = array[i].roomname;
               new_rooms[0].player1 = array[i].player1;

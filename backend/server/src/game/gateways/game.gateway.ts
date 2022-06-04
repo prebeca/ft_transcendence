@@ -6,6 +6,7 @@ import { Game } from "../entities/game.entity";
 import BallI from "../interfaces/ballI.interface";
 import GameI from "../interfaces/gameI.interface";
 import PadI from "../interfaces/padI.interface";
+import { GameRoomService } from "../services/gameroom.service";
 
 export enum GameStatus {
 	WAITING = "waiting",
@@ -148,13 +149,16 @@ function initGame(game: GameI,) {
 	looserPoint = game.pad1.id;
 }
 
-@WebSocketGateway(42041, {
+@WebSocketGateway(42042, {
 	cors: {
 		origin: process.env.APPLICATION_REDIRECT_URI,
 		credentials: true
 	}
 })
 export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
+	constructor(
+		private gameRoomService: GameRoomService,
+	) { }
 
 	game = {} as GameI;
 
@@ -169,12 +173,12 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
 	}
 
 	handleDisconnect(client: Socket) {
-		console.log(`Client disconnected: ${client.id}`);
+		console.log(`Client ${client.id} disconnected from game`);
 		this.leaveGame(client);
 	}
 
 	handleConnection(client: Socket, ...args: any[]) {
-		console.log(`Client connected id:			${client.id}`);
+		console.log(`Client ${client.id} connected to game`);
 
 		if (!this.game.pad1.id) {
 			this.game.pad1.id = client.id;
