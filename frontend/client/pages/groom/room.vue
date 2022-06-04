@@ -16,15 +16,15 @@
 </template>
 
 <script lang="ts">
+import type { NuxtSocket } from "nuxt-socket-io";
 import Vue from "vue";
-import io from "socket.io-client";
 
 export default Vue.extend({
   name: "GameRoom",
   data() {
     return {
       roomid: "",
-      socket: io(),
+      socket: {} as NuxtSocket,
       counter: 0,
       player1: {
         username: "",
@@ -51,9 +51,7 @@ export default Vue.extend({
   },
   created() {
     console.log("created");
-    this.socket = io(process.env.API_SOCKET_GAMEROOM, {
-      withCredentials: true,
-    });
+    this.socket = this.$nuxtSocket({ name: "chat", withCredentials: true });
   },
   beforeMount() {
     console.log("beforeMount");

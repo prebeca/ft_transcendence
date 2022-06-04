@@ -1,4 +1,4 @@
-import { Logger, Req, UseGuards } from "@nestjs/common";
+import { InternalServerErrorException, Logger, Req, UseGuards } from "@nestjs/common";
 import { ConnectedSocket, MessageBody, OnGatewayConnection, OnGatewayDisconnect, SubscribeMessage, WebSocketGateway, WebSocketServer, WsResponse } from "@nestjs/websockets";
 import { Server, Socket } from "socket.io";
 import { WsJwtAuthGuard } from "src/auth/guards/ws-jwt-auth.guard";
@@ -22,17 +22,13 @@ export class GameRoomGateway implements OnGatewayConnection, OnGatewayDisconnect
 
 	private logger: Logger = new Logger("gameRoomGateway"); // no idea what use it has
 
-	afterInit(server: Server) {
-		this.gameRoomService.clear();
-	}
-
 	handleDisconnect(@ConnectedSocket() client: Socket) {
 		console.log(`Client ${client.id} disconnected from room`);
 		this.gameRoomService.removePlayerFromRooms(client.id);
 	}
 
-	handleConnection(@ConnectedSocket() client: Socket, ...args: any[]) {
-		console.log(`Client ${client.id} connected to room`);
+	handleConnection(client: Socket, ...args: any[]) {
+		console.log(`Client ${client.id} connected to gameroom`);
 	}
 
 	emitPlayersToRoom(roomid: string, gameRoom: GameRoomClass) {
@@ -59,6 +55,8 @@ export class GameRoomGateway implements OnGatewayConnection, OnGatewayDisconnect
 	leaveRoom(@MessageBody() data: string, @ConnectedSocket() client: Socket) {
 		client.leave(data);
 		let gameRoom: GameRoomClass = this.gameRoomService.getRoomById(data);
+		if (gameRoom === undefined)
+			throw new InternalServerErrorException("The room does not exist anymore");
 		if (gameRoom.status === GAMEROOMSTATUS.INGAME) {
 			console.log("starting game");
 			return;
@@ -84,6 +82,8 @@ export class GameRoomGateway implements OnGatewayConnection, OnGatewayDisconnect
 	joinRoom(@Req() req, @MessageBody() roomid: string, @ConnectedSocket() client: Socket) {
 		client.join(roomid);
 		let gameRoom: GameRoomClass = this.gameRoomService.getRoomById(roomid);
+		if (gameRoom === undefined)
+			throw new InternalServerErrorException("The room does not exist anymore");
 		gameRoom.status = GAMEROOMSTATUS.WAITING;
 		if (gameRoom.nbPlayer < this.gameRoomService.getPPG()) {
 			const user: User = { ... (req.user as User) };

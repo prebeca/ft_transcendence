@@ -149,7 +149,7 @@ function initGame(game: GameI,) {
 	looserPoint = game.pad1.id;
 }
 
-@WebSocketGateway(42042, {
+@WebSocketGateway(42041, {
 	cors: {
 		origin: process.env.APPLICATION_REDIRECT_URI,
 		credentials: true
@@ -160,12 +160,27 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
 		private gameRoomService: GameRoomService,
 	) { }
 
+	/*
+	** Testing it like this because if it is the same server we are using, they will be both initialized together
+	** it means One method for both gateways
+	*/
+	/*public game: GameI = {
+		gameWidth: 0,
+		gameHeight: 0,
+		pad1: {} as PadI,
+		pad2: {} as PadI,
+		ball: {} as BallI,
+		score1: 0,
+		score2: 0,
+		status: ""
+	};*/
 	game = {} as GameI;
 
 	@WebSocketServer() server: Server;
 	private logger: Logger = new Logger("gameGateway");
 
 	afterInit(server: Server) {
+		this.gameRoomService.clear();
 		this.logger.log("game socket init !");
 		this.game.pad1 = {} as PadI;
 		this.game.pad2 = {} as PadI;
