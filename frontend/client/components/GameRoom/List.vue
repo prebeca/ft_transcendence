@@ -22,20 +22,36 @@
                   class="d-flex align-content-space-around justify-space-around"
                   cols="4"
                 >
-                  <div
-                    v-if="!room.player1 || !room.player2"
-                    class="d-flex flex-column align-center"
-                  >
-                    <v-avatar size="100">
-                      <img alt="friend-avatar" :src="room.avatar1" />
-                    </v-avatar>
-                    <h3 class="mt-1 info--text">
-                      {{ room.player1 }}
-                    </h3>
+                  <div v-if="!room.player1 || !room.player2">
+                    <div
+                      v-if="room.player1 && !room.player2"
+                      class="d-flex flex-column align-center"
+                    >
+                      <v-avatar size="100">
+                        <img alt="friend-avatar" :src="room.avatar1" />
+                      </v-avatar>
+                      <h3 class="mt-1 info--text">
+                        {{ room.player1 }}
+                      </h3>
+                      <v-btn text color="accent" @click="join(room.roomname)">
+                        join
+                      </v-btn>
+                    </div>
 
-                    <v-btn text color="accent" @click="join(room.roomname)">
-                      join
-                    </v-btn>
+                    <div
+                      v-if="!room.player1 && room.player2"
+                      class="d-flex flex-column align-center"
+                    >
+                      <v-avatar size="100">
+                        <img alt="friend-avatar" :src="room.avatar2" />
+                      </v-avatar>
+                      <h3 class="mt-1 info--text">
+                        {{ room.player2 }}
+                      </h3>
+                      <v-btn text color="accent" @click="join(room.roomname)">
+                        join
+                      </v-btn>
+                    </div>
                   </div>
                 </v-col>
               </v-row>
@@ -109,7 +125,7 @@ export default Vue.extend({
     return {
       intervalID: {} as NodeJS.Timer,
       tabs: null,
-      tab: ["Player waiting for opponent", "Players playing a game"],
+      tab: ["Play a game", "Watch a game"],
       rooms: [
         {
           roomname: "",
