@@ -25,7 +25,7 @@
             width="800px"
             style="row-gap: 50px"
           >
-            <h1>What do you to do ?</h1>
+            <h1>What do you want to do ?</h1>
             <div>
               <v-btn color="accent" class="mr-5" @click="e1 = 2">
                 Create a new game
@@ -45,7 +45,7 @@
             height="600px"
             width="800px"
           >
-            <GameRoomDifficulty />
+            <GameRoomDifficulty v-if="e1 === 2" />
           </v-card>
         </v-stepper-content>
 
@@ -57,7 +57,7 @@
             width="800px"
             style="row-gap: 50px"
           >
-            <GameRoomList />
+            <GameRoomList v-if="e1 === 3" />
           </v-card>
         </v-stepper-content>
       </v-stepper-items>

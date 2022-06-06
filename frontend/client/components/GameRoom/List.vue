@@ -1,24 +1,119 @@
 <template>
-  <div>
-    <li v-for="room in rooms" :key="room.roomname">
-      <p>roomid : {{ room.roomname }}</p>
-      <p>Player1 : {{ room.player1 }} || Player2 : {{ room.player2 }}</p>
-      <v-avatar size="50px" class="m-10 mr-5">
-        <img :src="room.avatar1" alt="avatar" />
-      </v-avatar>
-      <v-avatar size="50px" class="m-10 mr-5">
-        <img :src="room.avatar2" alt="avatar" />
-      </v-avatar>
-      <v-btn color="success" class="mr-2" @click="join(room.roomname)">
-        join
-      </v-btn>
-    </li>
+  <div style="width: 100%; height: 100%">
+    <v-toolbar color="primary" height="12px" flat>
+      <template v-slot:extension>
+        <v-tabs v-model="tabs" color="info" fixed-tabs>
+          <v-tab v-for="n in 2" :key="n" class="font-weight-bold">
+            {{ tab[n - 1] }}
+          </v-tab>
+        </v-tabs>
+      </template>
+    </v-toolbar>
+
+    <v-tabs-items v-model="tabs">
+      <v-tab-item>
+        <v-card flat color="secondary" class="py-10">
+          <v-simple-table class="secondary">
+            <template v-slot:default>
+              <v-row class="mx-1">
+                <v-col
+                  v-for="room in rooms"
+                  :key="room.roomname"
+                  class="d-flex align-content-space-around justify-space-around"
+                  cols="4"
+                >
+                  <div v-if="!room.player1 || !room.player2">
+                    <div
+                      v-if="room.player1 && !room.player2"
+                      class="d-flex flex-column align-center"
+                    >
+                      <v-avatar size="100">
+                        <img alt="friend-avatar" :src="room.avatar1" />
+                      </v-avatar>
+                      <h3 class="mt-1 info--text">
+                        {{ room.player1 }}
+                      </h3>
+                      <v-btn text color="accent" @click="join(room.roomname)">
+                        join
+                      </v-btn>
+                    </div>
+
+                    <div
+                      v-if="!room.player1 && room.player2"
+                      class="d-flex flex-column align-center"
+                    >
+                      <v-avatar size="100">
+                        <img alt="friend-avatar" :src="room.avatar2" />
+                      </v-avatar>
+                      <h3 class="mt-1 info--text">
+                        {{ room.player2 }}
+                      </h3>
+                      <v-btn text color="accent" @click="join(room.roomname)">
+                        join
+                      </v-btn>
+                    </div>
+                  </div>
+                </v-col>
+              </v-row>
+            </template>
+          </v-simple-table>
+        </v-card>
+      </v-tab-item>
+
+      <v-tab-item>
+        <v-card flat color="secondary" class="py-10">
+          <v-simple-table class="secondary">
+            <template v-slot:default>
+              <v-row class="mx-1">
+                <v-col
+                  v-for="room in rooms"
+                  :key="room.roomname"
+                  class="d-flex align-content-space-around justify-space-around"
+                  cols="4"
+                >
+                  <div
+                    v-if="room.player1 && room.player2"
+                    class="d-flex flex-column align-center"
+                  >
+                    <div class="d-flex align-center">
+                      <div class="d-flex flex-column align-center">
+                        <v-avatar size="80">
+                          <img alt="friend-avatar" :src="room.avatar1" />
+                        </v-avatar>
+                        <h4 class="mt-1 info--text">
+                          {{ room.player1 }}
+                        </h4>
+                      </div>
+
+                      <h3 class="info--text">VS</h3>
+
+                      <div class="d-flex flex-column align-center">
+                        <v-avatar size="80">
+                          <img alt="friend-avatar" :src="room.avatar2" />
+                        </v-avatar>
+                        <h4 class="mt-1 info--text">
+                          {{ room.player2 }}
+                        </h4>
+                      </div>
+                    </div>
+
+                    <v-btn text color="accent" @click="join(room.roomname)">
+                      join
+                    </v-btn>
+                  </div>
+                </v-col>
+              </v-row>
+            </template>
+          </v-simple-table>
+        </v-card>
+      </v-tab-item>
+    </v-tabs-items>
   </div>
 </template>
 
 <style scoped>
-li {
-  margin-top: 10px;
+.v-window {
+  background-color: rgb(81, 45, 168) !important;
 }
 </style>
 
@@ -29,6 +124,8 @@ export default Vue.extend({
   data() {
     return {
       intervalID: {} as NodeJS.Timer,
+      tabs: null,
+      tab: ["Play a game", "Watch a game"],
       rooms: [
         {
           roomname: "",
