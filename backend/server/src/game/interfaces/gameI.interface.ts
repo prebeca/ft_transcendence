@@ -14,5 +14,7 @@ export default interface GameI {
 	score1: number,
 	score2: number,
 
+	looserPoint: string,
+
 	status: string,
 }
