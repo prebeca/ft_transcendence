@@ -31,8 +31,8 @@
 </template>
 
 <script lang="ts">
+import type { NuxtSocket } from "nuxt-socket-io";
 import Vue from "vue";
-import io from "socket.io-client";
 
 export default Vue.extend({
   name: "GameRoom",
@@ -40,7 +40,7 @@ export default Vue.extend({
     return {
       ready: 0,
       roomid: "",
-      socket: io(),
+      socket: {} as NuxtSocket,
       counter: 0,
       player1: {
         username: "",
@@ -67,8 +67,10 @@ export default Vue.extend({
   },
   created() {
     console.log("created");
-    this.socket = io(process.env.API_SOCKET_GAMEROOM, {
+    this.socket = this.$nuxtSocket({
+      name: "gameroom",
       withCredentials: true,
+      persist: "myGameSocket",
     });
   },
   beforeMount() {

@@ -28,7 +28,6 @@ import { SocketModule } from './chat/socket/socket.module';
 	controllers: [AppController],
 	providers: [
 		AppService,
-		GameGateway,
 	],
 })
 export class AppModule implements NestModule {

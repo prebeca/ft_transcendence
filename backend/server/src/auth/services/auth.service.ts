@@ -30,7 +30,6 @@ export class AuthService {
 	}
 
 	async createCookie(response: Response, is42: boolean, code: string, user?: User): Promise<{ response: Response, istwofa: boolean }> {
-		console.log(is42);
 		var token_client: string;
 		var userCookie: User = user;
 		if (is42) {
@@ -41,7 +40,6 @@ export class AuthService {
 		else {
 			token_client = (await this.jwtGenerate({ email: user.email, id: user.id, isTwoFactorEnable: user.twofauser })).access_token;
 		}
-		console.log("outsideif: " + JSON.stringify(userCookie));
 
 		if (!token_client)
 			return null;
@@ -146,7 +144,6 @@ export class AuthService {
 	}
 
 	async validateUser(loginPayload: LoginInterface): Promise<User> {
-		console.log('email = ' + loginPayload.email + ', password = ' + loginPayload.password);
 		const user: User = await this.usersService.findOneByEmail(loginPayload.email);
 		if (user) {
 			const passIsCorrect = await this.validatePassword(user, loginPayload.password);
@@ -162,7 +159,6 @@ export class AuthService {
 	}
 
 	async registerUser(registerUser: RegisterInterface): Promise<User> {
-		console.log('email = ' + registerUser.email + ', password = ' + registerUser.password);
 		try {
 			const salt_pass = await bcrypt.genSalt();
 			const hash_pass = await bcrypt.hash(registerUser.password, salt_pass);

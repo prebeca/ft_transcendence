@@ -6,6 +6,7 @@ import { Game } from "../entities/game.entity";
 import BallI from "../interfaces/ballI.interface";
 import GameI from "../interfaces/gameI.interface";
 import PadI from "../interfaces/padI.interface";
+import { GameRoomService } from "../services/gameroom.service";
 
 export enum GameStatus {
 	WAITING = "waiting",
@@ -18,15 +19,15 @@ export enum GameStatus {
 	ENDED = "ended",
 }
 
-const	gameWidth = 640;
-const	gameHeight = 480;
-const	padWidth = 10;
-const	padHeight = 100;
-const	ballRadius = 7;
-const	ballSpeed = 1;
-const	padSpeed = 20;
-const	pointToWin = 10;
-let		looserPoint = "";
+const gameWidth = 640;
+const gameHeight = 480;
+const padWidth = 10;
+const padHeight = 100;
+const ballRadius = 7;
+const ballSpeed = 1;
+const padSpeed = 20;
+const pointToWin = 10;
+let looserPoint = "";
 
 function random_x_start(side: string) {
 	let x = Math.random() * 0.5 + 0.5;
@@ -87,7 +88,7 @@ function checkCollision(game: GameI) {
 			if ((game.ball.y - game.ball.r < game.pad1.y + game.pad1.height && game.ball.y + game.ball.r > game.pad1.y + game.pad1.height ||
 				game.ball.y + game.ball.r > game.pad1.y && game.ball.y - game.ball.r < game.pad1.y) &&
 				game.ball.x - game.ball.r < game.pad1.x + game.pad1.width) {
-					game.ball.dir.y *= -1;
+				game.ball.dir.y *= -1;
 			}
 		}
 	}
@@ -99,7 +100,7 @@ function checkCollision(game: GameI) {
 			if ((game.ball.y - game.ball.r < game.pad2.y + game.pad2.height && game.ball.y + game.ball.r > game.pad2.y + game.pad2.height ||
 				game.ball.y + game.ball.r > game.pad2.y && game.ball.y - game.ball.r < game.pad2.y) &&
 				game.ball.x + game.ball.r > game.pad2.x) {
-					game.ball.dir.y *= -1;
+				game.ball.dir.y *= -1;
 			}
 		}
 	}
@@ -148,20 +149,38 @@ function initGame(game: GameI,) {
 	looserPoint = game.pad1.id;
 }
 
-@WebSocketGateway(42042, {
+@WebSocketGateway(42041, {
 	cors: {
 		origin: process.env.APPLICATION_REDIRECT_URI,
 		credentials: true
 	}
 })
 export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
+	constructor(
+		private gameRoomService: GameRoomService,
+	) { }
 
+	/*
+	** Testing it like this because if it is the same server we are using, they will be both initialized together
+	** it means One method for both gateways
+	*/
+	/*public game: GameI = {
+		gameWidth: 0,
+		gameHeight: 0,
+		pad1: {} as PadI,
+		pad2: {} as PadI,
+		ball: {} as BallI,
+		score1: 0,
+		score2: 0,
+		status: ""
+	};*/
 	game = {} as GameI;
 
 	@WebSocketServer() server: Server;
 	private logger: Logger = new Logger("gameGateway");
 
 	afterInit(server: Server) {
+		this.gameRoomService.clear();
 		this.logger.log("game socket init !");
 		this.game.pad1 = {} as PadI;
 		this.game.pad2 = {} as PadI;
@@ -169,12 +188,17 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
 	}
 
 	handleDisconnect(client: Socket) {
-		console.log(`Client disconnected: ${client.id}`);
+		console.log(`Client ${client.id} disconnected from game`);
 		this.leaveGame(client);
 	}
 
 	handleConnection(client: Socket, ...args: any[]) {
-		console.log(`Client connected id:			${client.id}`);
+		console.log(`Client ${client.id} connected to game gateway`);
+	}
+
+	@SubscribeMessage('joinGame')
+	joinGame(client: Socket) {
+		console.log(`Client ${client.id} joined the game`);
 
 		if (!this.game.pad1.id) {
 			this.game.pad1.id = client.id;
@@ -233,7 +257,7 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
 			// if (this.game.status === GameStatus.PLAYER1WON || this.game.status === GameStatus.PLAYER2WON)
 			// 	this.server.emit("end", this.game);
 			// else
-				this.server.emit("updateGame", this.game);
+			this.server.emit("updateGame", this.game);
 		}, 1000 / 30);
 	}
 
@@ -247,18 +271,19 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
 			this.game.status = GameStatus.PLAYER2LEAVE;
 			this.server.emit('updateStatus', this.game.status);
 		}
+		client.disconnect(true);
 	}
 
 	@SubscribeMessage('arrowUp')
 	padUp(client: Socket, data: GameI) {
 		if (!this.game.pad1.id || !this.game.pad2.id)
-			return ;
+			return;
 		let pad: PadI;
 		if (this.game.pad1.id === client.id)
 			pad = this.game.pad1;
 		if (this.game.pad2.id === client.id)
 			pad = this.game.pad2;
-		if (pad){
+		if (pad) {
 			if (data.status === GameStatus.WAITING && looserPoint === pad.id) {
 				this.startGame(client);
 			}
@@ -275,13 +300,13 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
 	@SubscribeMessage('arrowDown')
 	padDown(client: Socket, data: GameI) {
 		if (!this.game.pad1.id || !this.game.pad2.id)
-			return ;
+			return;
 		let pad: PadI;
 		if (this.game.pad1.id === client.id)
 			pad = this.game.pad1;
 		if (this.game.pad2.id === client.id)
 			pad = this.game.pad2;
-		if (pad){
+		if (pad) {
 			if (data.status === GameStatus.WAITING && looserPoint === pad.id) {
 				this.startGame(client);
 			}

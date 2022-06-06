@@ -5,11 +5,13 @@ import { CreateChannelDto } from './dto/channels.dto';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { Channel } from 'src/typeorm';
 import { UsersModule } from 'src/users/users.module';
+import { CreateMessageDto } from './dto/messages.dto';
+import { Message } from './entities/message.entity';
 
 @Module({
-	imports: [TypeOrmModule.forFeature([Channel]), forwardRef(() => UsersModule)],
+	imports: [TypeOrmModule.forFeature([Channel, Message]), forwardRef(() => UsersModule)],
 	controllers: [ChannelsController],
-	providers: [ChannelsService, CreateChannelDto],
-	exports: [ChannelsService, CreateChannelDto]
+	providers: [ChannelsService, CreateChannelDto, CreateMessageDto],
+	exports: [ChannelsService, CreateChannelDto, CreateMessageDto]
 })
 export class ChannelsModule { }
