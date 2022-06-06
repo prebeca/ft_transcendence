@@ -18,8 +18,8 @@ export class AuthController {
 	@Redirect('https://api.intra.42.fr/oauth/authorize', 302)
 	redirect42API(): { url: string } {
 		// Pour tpierre
-		return { url: 'https://api.intra.42.fr/oauth/authorize?client_id=9636f7cfa95d97b39cb1692f878d8d528cdacb742d07235819f04aee71f38232&redirect_uri=http%3A%2F%2F176.144.250.217%3A3000%2Fauth%2F42callback&response_type=code&scopepublic&state='};
-		// return this.authService.get42OAuthURL();
+		//return { url: 'https://api.intra.42.fr/oauth/authorize?client_id=9636f7cfa95d97b39cb1692f878d8d528cdacb742d07235819f04aee71f38232&redirect_uri=http%3A%2F%2F176.144.250.217%3A3000%2Fauth%2F42callback&response_type=code&scopepublic&state='};
+		return this.authService.get42OAuthURL();
 	}
 
 	@Get('42callback')
