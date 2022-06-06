@@ -24,7 +24,7 @@ export class GameRoomGateway implements OnGatewayConnection, OnGatewayDisconnect
 
 	handleDisconnect(@ConnectedSocket() client: Socket) {
 		console.log(`Client ${client.id} disconnected from room`);
-		this.gameRoomService.removePlayerFromRooms(client.id);
+		// this.gameRoomService.removePlayerFromRooms(client.id);
 	}
 
 	handleConnection(client: Socket, ...args: any[]) {
@@ -53,7 +53,6 @@ export class GameRoomGateway implements OnGatewayConnection, OnGatewayDisconnect
 	@UseGuards(WsJwtAuthGuard)
 	@SubscribeMessage('leaveRoom')
 	leaveRoom(@MessageBody() data: string, @ConnectedSocket() client: Socket) {
-		client.leave(data);
 		let gameRoom: GameRoomClass = this.gameRoomService.getRoomById(data);
 		if (gameRoom === undefined)
 			throw new InternalServerErrorException("The room does not exist anymore");
@@ -62,6 +61,7 @@ export class GameRoomGateway implements OnGatewayConnection, OnGatewayDisconnect
 			return;
 		}
 		else {
+			client.leave(data);
 			const player: PlayerClass = gameRoom.getPlayerById(client.id);
 			if (player) {
 				console.log("sending pleaving");

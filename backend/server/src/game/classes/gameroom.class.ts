@@ -1,7 +1,11 @@
 import { Injectable } from "@nestjs/common";
 import { User } from "src/users/entities/user.entity";
 import { CreateGameDto } from "../dto/create-game.dto";
+import BallI from "../interfaces/ballI.interface";
+import GameI from "../interfaces/gameI.interface";
+import PadI from "../interfaces/padI.interface";
 import { PlayerInfo } from "../interfaces/playerinfo.interface";
+import { GameService } from "../services/game.service";
 import { PlayerClass } from "./player.class";
 
 export enum GAMEROOMSTATUS { WAITING = "WAITING", FULL = "FULL", INGAME = "INGAME" };
@@ -16,6 +20,17 @@ export class GameRoomClass {
 	public roomname: string = null;
 	public status: string = GAMEROOMSTATUS.WAITING;
 	public difficulty: number = 0; // 1 (easy) - 3 (hard) - speed of ball and maybe height of pads
+	public game: GameI = {
+		gameWidth: 0,
+		gameHeight: 0,
+		pad1: {} as PadI,
+		pad2: {} as PadI,
+		ball: {} as BallI,
+		score1: 0,
+		score2: 0,
+		looserPoint: "",
+		status: ""
+	};
 
 	setOptions(roomname: string, createGameDto: CreateGameDto) {
 		this.difficulty = createGameDto.difficulty;
@@ -26,6 +41,10 @@ export class GameRoomClass {
 		for (let key of this.mapPlayers.keys()) {
 			console.log("player: " + key);
 		}
+	}
+
+	getGame(): GameI {
+		return this.game;
 	}
 
 	getPlayerById(player_id: string): PlayerClass {
