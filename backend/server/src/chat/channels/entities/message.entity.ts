@@ -18,21 +18,15 @@ export class Message {
 	})
 	id: number;
 
-	@Column({ unique: true })
-	type: string;
-
-	@Column({ unique: true })
+	@Column()
 	user_id: number;
 
-	@Column({ unique: true })
-	username: string;
+	@Column()
+	user_name: string;
 
-	@Column({ unique: true })
+	@Column()
 	channel_id: number;
 
-	@Column({ unique: true })
-	channel_name: string;
-
-	@Column({ unique: true })
+	@Column()
 	content: string;
 }

@@ -3,22 +3,35 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Channel, User } from 'src/typeorm';
 import { Any, Repository } from 'typeorm';
 import { CreateChannelDto } from 'src/chat/channels/dto/channels.dto';
-import { MessageData } from '../entities/message.entity';
+import { Message, MessageData } from '../entities/message.entity';
 import { channel } from 'diagnostics_channel';
 import { UsersService } from 'src/users/services/users.service';
+import { CreateMessageDto } from '../dto/messages.dto';
 
 @Injectable()
 export class ChannelsService {
 	constructor(
-		@InjectRepository(Channel) private readonly channelRepository: Repository<Channel>, private readonly userService: UsersService
+		@InjectRepository(Channel) private readonly channelRepository: Repository<Channel>,
+		@InjectRepository(Message) private readonly messagesRepository: Repository<Message>,
+		private readonly userService: UsersService
 	) { }
 
 	getChannels(): Promise<Channel[]> {
 		return this.channelRepository.find();
 	}
 
-	async getMessages(id: number) {
-		return (await this.channelRepository.findOne(id)).messages;
+	async getMessages(channel_id: number): Promise<Message[]> {
+		return (this.messagesRepository.find({ where: { channel_id: channel_id } }));
+	}
+
+	async deleteMessage(id: number) {
+		let message = await this.messagesRepository.findOne(id);
+		if (message)
+			this.messagesRepository.remove(message);
+	}
+
+	async deleteMessages(channel_id: number) {
+		this.messagesRepository.createQueryBuilder().delete().where({ channel_id: channel_id }).execute();
 	}
 
 	async createChannel(createChannelDto: CreateChannelDto) {
@@ -90,30 +103,30 @@ export class ChannelsService {
 		await this.channelRepository.save(channel);
 	}
 
-	async addMessageToChannel(id: number, msg: MessageData) {
-		let channel = await this.channelRepository.findOne(id);
-		try {
-			channel.messages.push(msg);
-			await this.channelRepository.save(channel);
-		} catch (error) {
-			console.log(error);
-		}
-	}
+	// async addMessageToChannel(id: number, msg: MessageData) {
+	// 	let channel = await this.channelRepository.findOne(id);
+	// 	try {
+	// 		channel.messages.push(msg);
+	// 		await this.channelRepository.save(channel);
+	// 	} catch (error) {
+	// 		console.log(error);
+	// 	}
+	// }
 
-	async clearChat(id: number): Promise<MessageData> {
-		let channel = await this.channelRepository.findOne(id);
-		let nb_msg = channel.messages.length;
-		channel.messages = [];
-		await this.channelRepository.save(channel);
-		return ({
-			type: "info",
-			user_id: 0,
-			username: "Clear",
-			channel_id: id,
-			channel_name: channel.name,
-			content: nb_msg + " messages cleared !",
-		})
-	}
+	// async clearChat(id: number): Promise<MessageData> {
+	// 	let channel = await this.channelRepository.findOne(id);
+	// 	let nb_msg = channel.messages.length;
+	// 	channel.messages = [];
+	// 	await this.channelRepository.save(channel);
+	// 	return ({
+	// 		type: "info",
+	// 		user_id: 0,
+	// 		username: "Clear",
+	// 		channel_id: id,
+	// 		channel_name: channel.name,
+	// 		content: nb_msg + " messages cleared !",
+	// 	})
+	// }
 
 	async joinChannel(data: MessageData): Promise<Channel> {
 		const channel: Channel = await this.findOneById(data.channel_id);
@@ -134,11 +147,14 @@ export class ChannelsService {
 		return channel;
 	}
 
-	async handleMessage(channel: Channel, user: User, message: MessageData) {
-		if (message.content[0] == '/')
+	async handleMessage(channel: Channel, user: User, messageDto: CreateMessageDto) {
+		if (messageDto.content[0] == '/')
 			console.log("handle commands")
-		else
-			channel.messages.push(message);
-		await this.channelRepository.save(channel);
+		else {
+			let message = this.messagesRepository.create(messageDto)
+			message.user_name = user.username;
+			message.user_id = user.id;
+			await this.messagesRepository.save(message);
+		}
 	}
 }

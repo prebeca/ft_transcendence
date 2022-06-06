@@ -18,6 +18,7 @@ import { Request } from 'express';
 import { JwtAuthGuard } from 'src/auth/guards/jwt-auth.guard';
 import { UsersService } from 'src/users/services/users.service';
 import { CreateChannelDto } from '../dto/channels.dto';
+import { CreateMessageDto } from '../dto/messages.dto';
 import { Channel } from '../entities/channel.entity';
 import { MessageData } from '../entities/message.entity';
 import { ChannelsService } from '../services/channels.service';
@@ -99,8 +100,8 @@ export class ChannelsController {
 
 	@UseGuards(JwtAuthGuard)
 	@Post('handleMessage')
-	async handleMessage(@Req() req: Request, @Body() message: MessageData) {
-		let channel = await this.channelService.findOneById(message.channel_id);
+	async handleMessage(@Req() req: Request, @Body() messageDto: CreateMessageDto) {
+		let channel = await this.channelService.findOneById(messageDto.channel_id);
 		let user = await this.userService.findUsersById(req.user["id"]);
 		if (channel == null)
 			throw new InternalServerErrorException("No such channel");
@@ -108,6 +109,6 @@ export class ChannelsController {
 			throw new InternalServerErrorException("Request from unknown user");
 		if (channel.users_ids.find(e => e == user.id) == undefined)
 			throw new InternalServerErrorException("User not in channel");
-		await this.channelService.handleMessage(channel, user, message);
+		await this.channelService.handleMessage(channel, user, messageDto);
 	}
 }

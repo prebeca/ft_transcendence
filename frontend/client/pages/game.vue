@@ -19,8 +19,8 @@
 </template>
 
 <script lang="ts">
+import type { NuxtSocket } from "nuxt-socket-io";
 import Vue from "vue";
-import io from "socket.io-client";
 import GameI from "../types/interfaces/gameI.interface";
 import PadI from "../types/interfaces/padI.interface";
 import BallI from "../types/interfaces/ballI.interface";
@@ -40,7 +40,11 @@ export default Vue.extend({
   name: "Game",
   data() {
     return {
-      socket: io(),
+      socket: this.$nuxtSocket({
+        name: "gameroom",
+        withCredentials: true,
+        persist: "myGameSocket",
+      }),
       canvas: {} as HTMLElement | null,
       context: {} as CanvasRenderingContext2D | null,
       game: {} as GameI,
@@ -59,7 +63,11 @@ export default Vue.extend({
     this.game.pad2 = {} as PadI;
     this.game.ball = {} as BallI;
     this.game.status = GameStatus.WAITING;
-    this.socket = io(process.env.API_SOCKET_GAME, { withCredentials: true });
+    // this.socket = this.$nuxtSocket({
+    //   name: "gameroom",
+    //   withCredentials: true,
+    //   persist: "myGameSocket",
+    // });
   },
   beforeMount() {
     this.socket.on("print", (data) => {
@@ -80,6 +88,7 @@ export default Vue.extend({
     });
   },
   mounted() {
+    this.socket.emit("joinGame");
     this.canvas = document.getElementById("canvas");
     if (!this.canvas) {
       return;

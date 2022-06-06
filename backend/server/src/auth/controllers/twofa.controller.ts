@@ -40,7 +40,6 @@ export class TwoFactorAuthController {
 	@UseGuards(JwtAuthGuard)
 	async authenticate(@Res({ passthrough: true }) response: Response, @Req() req: Request, @Body(ValidationPipe) twoFaAuthDto: TwoFaAuthDto): Promise<boolean> {
 		const user: User = { ... (req.user as User) };
-		console.log(user);
 		const isCodeValid: boolean = await this.twoFactorAuthService.verifyTwoFaCode(twoFaAuthDto.code, user);
 		if (!isCodeValid) {
 			throw new UnauthorizedException('Invalid authentication code');

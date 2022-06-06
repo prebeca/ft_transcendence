@@ -46,7 +46,4 @@ export class Channel {
 
 	@Column("bigint", { default: [], array: true })
 	users_ids: number[];
-
-	@Column("json", { default: [] })
-	messages: MessageData[];
 }
