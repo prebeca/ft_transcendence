@@ -10,6 +10,7 @@ import { PlayerController } from './controllers/player.controller';
 import { PlayerService } from './services/player.service';
 import { Player } from './entities/player.entity';
 import { TypeOrmModule } from '@nestjs/typeorm';
+import { GameGateway } from './gateways/game.gateway';
 
 @Module({
   imports: [
@@ -17,7 +18,7 @@ import { TypeOrmModule } from '@nestjs/typeorm';
   ],
   controllers: [GameController, GameRoomController, PlayerController],
   providers: [
-    GameRoomGateway, GameService, GameRoomService, PlayerService, GameRoomClass, PlayerClass
+    GameRoomGateway, GameGateway, GameService, GameRoomService, PlayerService, GameRoomClass, PlayerClass
   ]
 })
 export class GameModule { }

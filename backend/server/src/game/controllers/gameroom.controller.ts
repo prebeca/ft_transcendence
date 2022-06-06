@@ -18,10 +18,9 @@ export class GameRoomController {
 
 	@UseGuards(JwtAuthGuard)
 	@Get('list')
-	list(): { roomname: string, player1: string, player2: string }[] {
+	list(): { roomname: string, player1: string, avatar1: string, player2: string, avatar2: string }[] {
 		const rooms: string[] = this.gameRoomService.getRooms();
-		const ppr: { roomname: string, player1: string, player2: string }[] = this.gameRoomService.getPlayersInRooms();
-		return ppr;
+		return this.gameRoomService.getPlayersInRooms();
 	}
 
 	@Get('clear')

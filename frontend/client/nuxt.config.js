@@ -56,7 +56,8 @@ export default {
   io: {
     // module options
     sockets: [
-      { name: 'chat', url: process.env.API_URL }
+      { name: 'chat', url: process.env.API_URL },
+      { name: 'gameroom', url: process.env.API_SOCKET_GAMEROOM }
     ],
   },
 

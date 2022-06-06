@@ -24,7 +24,6 @@ export class UsersService {
 	}
 
 	async createUser(userDto: UserDto): Promise<User> {
-		console.log(userDto);
 		try {
 			const player = new Player();
 			const newuser: User = this.userRepository.create(userDto);
@@ -95,7 +94,6 @@ export class UsersService {
 	}
 
 	async updateAvatar(user: User, filename: string): Promise<User> {
-		console.log("updateAvatar in service (): " + user.id);
 		if (filename) {
 			const fs = require('fs');
 			const ancient_filename: string = await this.getAvatarUrl(user.id);

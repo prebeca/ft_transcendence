@@ -15,5 +15,4 @@ export default interface GameI {
 	score2: number,
 
 	status: string,
-
 }
