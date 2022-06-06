@@ -1,17 +1,32 @@
 <template>
   <div
     id="myGameRoom"
-    style="height: 80vh; max-height: 100%; column-gap: 20px"
-    class="d-flex justify-center align-center"
+    style="height: 80vh; max-height: 100%; row-gap: 50px"
+    class="d-flex flex-column justify-center align-center"
   >
-    <GameRoomPlayerCard v-if="player1.username.length > 0" :player="player1" />
-    <GameRoomWaitingCard v-else />
-    <h1>VS</h1>
-    <GameRoomPlayerCard v-if="player2.username.length > 0" :player="player2" />
-    <GameRoomWaitingCard v-else />
-    <v-row>
-      <v-btn color="success" class="mr-4" @click="gameOn"> PLAY </v-btn>
-    </v-row>
+    <div class="d-flex align-center" style="column-gap: 20px">
+      <GameRoomPlayerCard
+        v-if="player1.username.length > 0"
+        :player="player1"
+      />
+      <GameRoomWaitingCard v-else />
+      <h1>VS</h1>
+      <GameRoomPlayerCard
+        v-if="player2.username.length > 0"
+        :player="player2"
+      />
+      <GameRoomWaitingCard v-else />
+    </div>
+    <div class="d-block">
+      <v-btn
+        v-if="player1.username.length > 0 && player2.username.length > 0"
+        x-large
+        color="accent"
+        @click="gameOn"
+      >
+        Ready !
+      </v-btn>
+    </div>
   </div>
 </template>
 
@@ -23,6 +38,7 @@ export default Vue.extend({
   name: "GameRoom",
   data() {
     return {
+      ready: 0,
       roomid: "",
       socket: {} as NuxtSocket,
       counter: 0,
