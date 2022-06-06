@@ -51,7 +51,11 @@ export default Vue.extend({
   },
   created() {
     console.log("created");
-    this.socket = this.$nuxtSocket({ name: "chat", withCredentials: true });
+    this.socket = this.$nuxtSocket({
+      name: "gameroom",
+      withCredentials: true,
+      persist: "myGameSocket",
+    });
   },
   beforeMount() {
     console.log("beforeMount");

@@ -40,7 +40,11 @@ export default Vue.extend({
   name: "Game",
   data() {
     return {
-      socket: {} as NuxtSocket,
+      socket: this.$nuxtSocket({
+        name: "gameroom",
+        withCredentials: true,
+        persist: "myGameSocket",
+      }),
       canvas: {} as HTMLElement | null,
       context: {} as CanvasRenderingContext2D | null,
       game: {} as GameI,
@@ -59,7 +63,11 @@ export default Vue.extend({
     this.game.pad2 = {} as PadI;
     this.game.ball = {} as BallI;
     this.game.status = GameStatus.WAITING;
-    this.socket = this.$nuxtSocket({ name: "chat", withCredentials: true });
+    // this.socket = this.$nuxtSocket({
+    //   name: "gameroom",
+    //   withCredentials: true,
+    //   persist: "myGameSocket",
+    // });
   },
   beforeMount() {
     this.socket.on("print", (data) => {
@@ -80,6 +88,7 @@ export default Vue.extend({
     });
   },
   mounted() {
+    this.socket.emit("joinGame");
     this.canvas = document.getElementById("canvas");
     if (!this.canvas) {
       return;
