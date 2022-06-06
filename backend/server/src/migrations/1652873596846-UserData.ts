@@ -34,7 +34,6 @@ export class UserData1652873596846 implements MigrationInterface {
         const players: Player[] = await queryRunner.connection.getRepository(Player).find();
         await userRepo.insert([
             {
-                id: 1,
                 login: 'alexandre',
                 email: 'alexandre@mail.com',
                 username: 'alexandre',
@@ -43,7 +42,6 @@ export class UserData1652873596846 implements MigrationInterface {
                 player: players[0],
             },
             {
-                id: 2,
                 login: 'thomas',
                 email: 'thomas@mail.com',
                 username: 'thomas',
@@ -52,7 +50,6 @@ export class UserData1652873596846 implements MigrationInterface {
                 player: players[1]
             },
             {
-                id: 3,
                 login: 'amelie',
                 email: 'amelie@mail.com',
                 username: 'amelie',
@@ -61,7 +58,6 @@ export class UserData1652873596846 implements MigrationInterface {
                 player: players[2]
             },
             {
-                id: 4,
                 login: 'pierre',
                 email: 'pierre@mail.com',
                 username: 'pierre',
