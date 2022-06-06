@@ -3,83 +3,52 @@
     style="height: 80vh; max-height: 100%"
     class="d-flex flex-column justify-center align-center"
   >
-  <v-card 
-    color="secondary" 
-    width="500px" 
-    height="550px" 
-    elevation="20"
-  >
-
-    <v-toolbar 
-      color="primary" 
-      class="d-flex justify-center"
-    >
-      <v-toolbar-title
-        class="font-weight-black info--text"
-        style="font-size: 20px"
-      >
-        SET UP YOUR TWO-FACTOR AUTHENTIFICATION
-      </v-toolbar-title>
-    </v-toolbar>
-
-    <v-row 
-      class="pt-12 pb-2" 
-      justify="center" 
-      align="center"
-    >
-      <img style="height: 244px; width: 244px" :src="qr_code" />
-    </v-row>
-
-    <v-form 
-      ref="form"
-    >
-
-      <div class="ma-auto" style="max-width: 400px">
-      <v-otp-input
-        :length="length"
-        v-model="code"
-        required
-        class="pa-10"
-      ></v-otp-input>
-      </div>
-
-      <v-divider></v-divider>
-      <v-card-actions 
-        class="d-flex justify-center align-center"
-      >
-        <v-btn
-          :disabled="!isActive"
-          color="accent" 
-          text
-          @click="validate"
-        > 
-          Validate
-        </v-btn>
-      </v-card-actions>
-    </v-form>
-
-    <v-snackbar
-      v-model="snackbar"
-      :vertical="vertical"
-      color='accent'
-      centered
-    >
-      <span>
-        OTP is either expired or not valid.
-        A new QR Code will be generated.
-      </span>
-      <template v-slot:action="{ attrs }">
-        <v-btn
-          text
-          v-bind="attrs"
-          @click="snackbar = false"
+    <v-card color="secondary" width="500px" height="550px" elevation="20">
+      <v-toolbar color="primary" class="d-flex justify-center">
+        <v-toolbar-title
+          class="font-weight-black info--text"
+          style="font-size: 20px"
         >
-          Close
-        </v-btn>
-      </template>
-    </v-snackbar>
+          SET UP YOUR TWO-FACTOR AUTHENTIFICATION
+        </v-toolbar-title>
+      </v-toolbar>
 
-  </v-card>
+      <v-row class="pt-12 pb-2" justify="center" align="center">
+        <img style="height: 244px; width: 244px" :src="qr_code" />
+      </v-row>
+
+      <v-form ref="form">
+        <div class="ma-auto" style="max-width: 400px">
+          <v-otp-input
+            :length="length"
+            v-model="code"
+            required
+            class="pa-10"
+          ></v-otp-input>
+        </div>
+
+        <v-divider></v-divider>
+        <v-card-actions class="d-flex justify-center align-center">
+          <v-btn :disabled="!isActive" color="accent" text @click="validate">
+            Validate
+          </v-btn>
+        </v-card-actions>
+      </v-form>
+
+      <v-snackbar
+        v-model="snackbar"
+        :vertical="vertical"
+        color="accent"
+        centered
+      >
+        <span>
+          OTP is either expired or not valid. A new QR Code will be generated.
+        </span>
+        <template v-slot:action="{ attrs }">
+          <v-btn text v-bind="attrs" @click="snackbar = false"> Close </v-btn>
+        </template>
+      </v-snackbar>
+    </v-card>
   </div>
 </template>
 
@@ -90,8 +59,8 @@ export default Vue.extend({
   data() {
     return {
       qr_code: "",
-      code: "",
-      length: 6,
+      code: "" as string,
+      length: 6 as number,
       snackbar: false,
       vertical: true,
     };
@@ -101,7 +70,7 @@ export default Vue.extend({
   },
   computed: {
     isActive() {
-      return this.code.length === this.length
+      return this.code.length === this.length;
     },
   },
   methods: {
@@ -149,8 +118,7 @@ export default Vue.extend({
         })
         .catch((error) => {
           this.snackbar = true;
-          this.code = '',
-          this.generateQr();
+          (this.code = ""), this.generateQr();
         });
     },
   },

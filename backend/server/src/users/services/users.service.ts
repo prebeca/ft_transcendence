@@ -1,4 +1,4 @@
-import { Injectable, InternalServerErrorException, StreamableFile, UnauthorizedException } from '@nestjs/common';
+import { HttpException, HttpStatus, Injectable, InternalServerErrorException, StreamableFile, UnauthorizedException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { User } from 'src/users/entities/user.entity';
 import { Repository } from 'typeorm';
@@ -69,7 +69,7 @@ export class UsersService {
 	async updateUserinfo(user: User, new_username: string, istwofa?: boolean): Promise<void> {
 		if (istwofa === undefined)
 			this.updateTwoFAUser(user, istwofa);
-		this.updateUsername(user, new_username);
+		return this.updateUsername(user, new_username);
 	}
 
 	async updateSecret2FA(user: User, new_secret: string): Promise<void> {
@@ -84,7 +84,7 @@ export class UsersService {
 	}
 	async updateUsername(user: User, new_username: string): Promise<void> {
 		if (!new_username)
-			throw new UnauthorizedException("Fill in the new username please");
+			throw new HttpException('Username cannot be empty', HttpStatus.FORBIDDEN);
 		try {
 			this.updateUsersById(user, { username: new_username })
 		}
@@ -102,7 +102,7 @@ export class UsersService {
 			try {
 				await this.updateUsersById(user, { avatar: filename });
 			} catch (error) {
-				throw new InternalServerErrorException("Update of avatar does not work");
+				throw new HttpException('Forbidden', HttpStatus.FORBIDDEN);
 			}
 			if (ancient_filename !== 'default.png') {
 				try {

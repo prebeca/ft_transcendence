@@ -86,13 +86,15 @@ export default Vue.extend({
         scope: "",
         expires_in: 0,
         created_at: 0,
-        username: "",
+        username: "" as string | null,
         avatar: "",
       },
       rules: {
-        counter_max: (value) => value.length <= 15 || "Max 15 characters",
-        counter_min: (value) => value.length >= 5 || "Min 5 characters",
-        required: (value) => !!value || "Required",
+        counter_max: (value: string | null) =>
+          (value && value.length <= 15) || "Max 15 characters",
+        counter_min: (value: string | null) =>
+          (value && value.length >= 5) || "Min 5 characters",
+        required: (value: string | null) => !!value || "Required",
       },
     };
   },
@@ -131,7 +133,6 @@ export default Vue.extend({
       this.saving = true;
     },
     async saveUsername() {
-      const { username } = this;
       console.log(this.user.username);
       this.$axios
         .post("/users/profile/update/username", {

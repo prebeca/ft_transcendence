@@ -18,19 +18,21 @@ export class AuthController {
 	@Redirect('https://api.intra.42.fr/oauth/authorize', 302)
 	redirect42API(): { url: string } {
 		// Pour tpierre
-		return { url: 'https://api.intra.42.fr/oauth/authorize?client_id=9636f7cfa95d97b39cb1692f878d8d528cdacb742d07235819f04aee71f38232&redirect_uri=http%3A%2F%2F176.144.250.217%3A3000%2Fauth%2F42callback&response_type=code&scopepublic&state='};
-		// return this.authService.get42OAuthURL();
+		//return { url: 'https://api.intra.42.fr/oauth/authorize?client_id=9636f7cfa95d97b39cb1692f878d8d528cdacb742d07235819f04aee71f38232&redirect_uri=http%3A%2F%2F176.144.250.217%3A3000%2Fauth%2F42callback&response_type=code&scopepublic&state='};
+		return this.authService.get42OAuthURL();
 	}
 
 	@Get('42callback')
 	@Redirect(`${process.env.APPLICATION_REDIRECT_URI}/login/complete-profile`, 302)
 	async authenticate42User(@Res({ passthrough: true }) response: Response, @Query('code') code: string) {
-		const ret: { response: Response, istwofa: boolean } = await this.authService.createCookie(response, true, code, null);
+		const ret: { response: Response, created: boolean, istwofa: boolean } = await this.authService.createCookie(response, true, code, null);
 		response = ret.response;
 		if (!response)
 			throw new UnauthorizedException("JWT Generation error");
 		if (ret.istwofa)
 			return { url: `${process.env.APPLICATION_REDIRECT_URI}/login/2fa` };
+		else if (!ret.created)
+			return { url: `${process.env.APPLICATION_REDIRECT_URI}/home` };
 	}
 
 

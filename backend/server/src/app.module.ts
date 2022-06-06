@@ -13,6 +13,7 @@ import { GameModule } from './game/game.module';
 import { GameGateway } from './game/gateways/game.gateway';
 import { GameRoomGateway } from './game/gateways/gameroom.gateway';
 import { SocketModule } from './chat/socket/socket.module';
+import { FriendsModule } from './friends/friends.module';
 
 @Module({
 	imports: [
@@ -23,7 +24,8 @@ import { SocketModule } from './chat/socket/socket.module';
 		ChannelsModule,
 		ScoresModule,
 		GameModule,
-		SocketModule
+		SocketModule,
+		FriendsModule
 	],
 	controllers: [AppController],
 	providers: [

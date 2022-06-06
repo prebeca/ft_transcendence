@@ -11,8 +11,7 @@ export class UserDto {
 
 	refresh_token?: string;
 
-	@IsNotEmpty()
-	username: string;
+	username?: string;
 
 	password?: string;
 
