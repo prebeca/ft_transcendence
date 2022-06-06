@@ -3,6 +3,7 @@
     style="height: 80vh; max-height: 100%"
     class="d-flex flex-column justify-center align-center"
   >
+    <p>{{ this.socket.id }}</p>
     <v-card
       class="d-flex flex-column justify-center align-center"
       color="secondary"
@@ -45,34 +46,18 @@ export default Vue.extend({
         withCredentials: true,
         persist: "myGameSocket",
       }),
+      roomid: "",
       canvas: {} as HTMLElement | null,
       context: {} as CanvasRenderingContext2D | null,
       game: {} as GameI,
-      pad1: {} as PadI,
-      pad2: {} as PadI,
-      ball: {} as BallI,
-      // score1: {} as number,
-      // score2: {} as number,
-      // status: GameStatus.INCOMPLETE,
       ratiox: {} as number,
       ratioy: {} as number,
     };
   },
   created() {
-    this.game.pad1 = {} as PadI;
-    this.game.pad2 = {} as PadI;
-    this.game.ball = {} as BallI;
     this.game.status = GameStatus.WAITING;
-    // this.socket = this.$nuxtSocket({
-    //   name: "gameroom",
-    //   withCredentials: true,
-    //   persist: "myGameSocket",
-    // });
   },
   beforeMount() {
-    this.socket.on("print", (data) => {
-      this.myPrint(data);
-    });
     this.socket.on("initDone", (data: GameI) => {
       this.update(data);
     });
@@ -88,7 +73,8 @@ export default Vue.extend({
     });
   },
   mounted() {
-    this.socket.emit("joinGame");
+    this.roomid = this.$route.query.roomid as string;
+    this.socket.emit("joinGame", this.roomid);
     this.canvas = document.getElementById("canvas");
     if (!this.canvas) {
       return;
@@ -101,12 +87,15 @@ export default Vue.extend({
   destroyed() {
     window.removeEventListener("keydown", this.handleKeyDown);
     window.removeEventListener("resize", this.handleResize);
-    this.socket.emit("leaveGame");
+    this.socket.emit("leaveGame", this.roomid);
   },
   methods: {
     handleKeyDown: function (event: any) {
-      if (event.key === "ArrowUp") this.socket.emit("arrowUp", this.game);
-      if (event.key === "ArrowDown") this.socket.emit("arrowDown", this.game);
+      console.log("roomid = " + this.roomid);
+      if (event.key === "ArrowUp")
+        this.socket.emit("arrowUp", { data: this.game, id: this.roomid });
+      if (event.key === "ArrowDown")
+        this.socket.emit("arrowDown", { data: this.game, id: this.roomid });
     },
     handleResize() {
       this.canvas.width = window.innerWidth / 1.5;
@@ -181,9 +170,6 @@ export default Vue.extend({
         this.canvas.width / 2,
         this.canvas.height / 4
       );
-    },
-    myPrint(data) {
-      console.log(data);
     },
   },
 });

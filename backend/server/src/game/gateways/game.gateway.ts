@@ -1,7 +1,8 @@
 import { Logger } from "@nestjs/common";
-import { OnGatewayConnection, OnGatewayDisconnect, SubscribeMessage, WebSocketGateway, WebSocketServer } from "@nestjs/websockets";
+import { ConnectedSocket, MessageBody, OnGatewayConnection, OnGatewayDisconnect, SubscribeMessage, WebSocketGateway, WebSocketServer } from "@nestjs/websockets";
 import { time, timeLog } from "console";
 import { Server, Socket } from "socket.io";
+import { GameRoomClass } from "../classes/gameroom.class";
 import { Game } from "../entities/game.entity";
 import BallI from "../interfaces/ballI.interface";
 import GameI from "../interfaces/gameI.interface";
@@ -27,7 +28,6 @@ const ballRadius = 7;
 const ballSpeed = 1;
 const padSpeed = 20;
 const pointToWin = 10;
-let looserPoint = "";
 
 function random_x_start(side: string) {
 	let x = Math.random() * 0.5 + 0.5;
@@ -70,14 +70,14 @@ function checkCollision(game: GameI) {
 		game.score2++;
 		if (game.score2 === pointToWin)
 			return GameStatus.PLAYER2WON;
-		looserPoint = game.pad1.id;
+		game.looserPoint = game.pad1.id;
 		return resetAfterPoint(game, "left");
 	}
 	else if (game.ball.x + game.ball.r >= game.gameWidth) {
 		game.score1++;
 		if (game.score1 === pointToWin)
 			return GameStatus.PLAYER1WON;
-		looserPoint = game.pad2.id;
+		game.looserPoint = game.pad2.id;
 		return resetAfterPoint(game, "right");
 	}
 	else if (game.ball.x - game.ball.r <= game.pad1.x + game.pad1.width && game.ball.x + game.ball.r >= game.pad1.x) {
@@ -120,7 +120,7 @@ function moveBall(game: GameI) {
 	game.ball.y += game.ball.dir.y * game.ball.speed;
 }
 
-function initGame(game: GameI,) {
+function initGame(game: GameI) {
 	game.gameWidth = gameWidth;
 	game.gameHeight = gameHeight;
 
@@ -146,7 +146,7 @@ function initGame(game: GameI,) {
 	game.score2 = 0;
 
 	game.status = GameStatus.WAITING;
-	looserPoint = game.pad1.id;
+	game.looserPoint = game.pad1.id;
 }
 
 @WebSocketGateway(42041, {
@@ -160,36 +160,17 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
 		private gameRoomService: GameRoomService,
 	) { }
 
-	/*
-	** Testing it like this because if it is the same server we are using, they will be both initialized together
-	** it means One method for both gateways
-	*/
-	/*public game: GameI = {
-		gameWidth: 0,
-		gameHeight: 0,
-		pad1: {} as PadI,
-		pad2: {} as PadI,
-		ball: {} as BallI,
-		score1: 0,
-		score2: 0,
-		status: ""
-	};*/
-	game = {} as GameI;
-
 	@WebSocketServer() server: Server;
 	private logger: Logger = new Logger("gameGateway");
 
 	afterInit(server: Server) {
 		this.gameRoomService.clear();
 		this.logger.log("game socket init !");
-		this.game.pad1 = {} as PadI;
-		this.game.pad2 = {} as PadI;
-		this.game.ball = {} as BallI;
 	}
 
 	handleDisconnect(client: Socket) {
 		console.log(`Client ${client.id} disconnected from game`);
-		this.leaveGame(client);
+		this.leaveGame(client, this.gameRoomService.getRoomNameByPlayerId(client.id));
 	}
 
 	handleConnection(client: Socket, ...args: any[]) {
@@ -197,125 +178,100 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
 	}
 
 	@SubscribeMessage('joinGame')
-	joinGame(client: Socket) {
+	joinGame(@ConnectedSocket() client: Socket, @MessageBody() id: string) {
 		console.log(`Client ${client.id} joined the game`);
 
-		if (!this.game.pad1.id) {
-			this.game.pad1.id = client.id;
-			initGame(this.game);
+		let gameRoom: GameRoomClass = this.gameRoomService.getRoomById(id);
+		let game: GameI = gameRoom.getGame();
+
+		if (!game.pad1.id || !game.pad2.id) {
+			if (gameRoom.getPlayerInfoById(client.id).player_number === 1) {
+				game.pad1.id = client.id;
+				initGame(game);
+			}
+			else if (gameRoom.getPlayerInfoById(client.id).player_number === 2)
+				game.pad2.id = client.id;
 		}
-		else if (!this.game.pad2.id)
-			this.game.pad2.id = client.id;
-		client.emit("initDone", this.game);
+		client.emit("initDone", game);
 	}
 
-	@SubscribeMessage('startGame')
-	startGame(client: Socket) {
-		this.game.status = GameStatus.INPROGRESS;
-
+	startGame(@ConnectedSocket() client: Socket, @MessageBody() id: string) {
+		let game: GameI = this.gameRoomService.getRoomById(id).getGame();
 		let moveInterval: NodeJS.Timer;
 
+		game.status = GameStatus.INPROGRESS;
 		moveInterval = setInterval(async () => {
-			moveBall(this.game);
-
-			if (this.game.status === GameStatus.INPROGRESS)
-				this.game.status = checkCollision(this.game);
-
-			//   if (ret == "n")
-			// 	return ;
-			//   else if (ret == "b") {
-			// const watchers: JoinedGameI[] = await this.joinedGameService.findByGame(game.id);
-			// for (const watcher of watchers) {
-			//   this.server.to(watcher.socketId).emit('updateBall', { gameId: game.id, ball: game.ball, direction: game.direction});
-			// }
-			//   }
-			//   if (ret == "s"){
-			// 	const watchers: JoinedGameI[] = await this.joinedGameService.findByGame(game.id);
-			// 	  for (const watcher of watchers) {
-			// 		this.server.to(watcher.socketId).emit('updateScore', { gameId: game.id, score1: game.score1, score2: game.score2, ball: game.ball, direction: game.direction });
-			// 	  }
-			//   }
-			//   else if (ret == "e") {
-			// 	  this.closeGame(game);
-			// 	  const watchers: JoinedGameI[] = await this.joinedGameService.findByGame(game.id);
-			// 	  for (const watcher of watchers) {
-			// 		this.server.to(watcher.socketId).emit('endGame', { gameId: game.id, status: game.status });
-			// 	  }
-			// 	  clearInterval(moveInterval);
-			// 	  this.games.delete(game.id);
-			// 	  this.server.emit('games', this.getGames())
-			//   }
-			//   else if (game.status != GameStatus.INPROGRESS) {
-
-			// clearInterval(moveInterval);
-			// 	this.games.delete(game.id);
-			// 	this.server.emit('games', this.getGames())
-			//   }
-
-			if (this.game.status != GameStatus.INPROGRESS)
+			moveBall(game);
+			if (game.status === GameStatus.INPROGRESS)
+				game.status = checkCollision(game);
+			if (game.status != GameStatus.INPROGRESS)
 				clearInterval(moveInterval);
 			// if (this.game.status === GameStatus.PLAYER1WON || this.game.status === GameStatus.PLAYER2WON)
 			// 	this.server.emit("end", this.game);
 			// else
-			this.server.emit("updateGame", this.game);
+			this.server.to(id).emit("updateGame", game);
 		}, 1000 / 30);
 	}
 
 	@SubscribeMessage('leaveGame')
-	leaveGame(client: Socket) {
-		if (this.game.pad1.id === client.id) {
-			this.game.status = GameStatus.PLAYER1LEAVE;
-			this.server.emit('updateStatus', this.game.status);
+	leaveGame(@ConnectedSocket() client: Socket, @MessageBody() id: string) {
+		console.log("leave = " + id);
+		let game: GameI = this.gameRoomService.getRoomById(id).getGame();
+		if (game.pad1.id === client.id) {
+			game.status = GameStatus.PLAYER1LEAVE;
+			this.server.to(id).emit('updateStatus', game.status);
 		}
-		if (this.game.pad2.id === client.id) {
-			this.game.status = GameStatus.PLAYER2LEAVE;
-			this.server.emit('updateStatus', this.game.status);
+		if (game.pad2.id === client.id) {
+			game.status = GameStatus.PLAYER2LEAVE;
+			this.server.to(id).emit('updateStatus', game.status);
 		}
 		client.disconnect(true);
 	}
 
 	@SubscribeMessage('arrowUp')
-	padUp(client: Socket, data: GameI) {
-		if (!this.game.pad1.id || !this.game.pad2.id)
+	padUp(@ConnectedSocket() client: Socket, @MessageBody('data') data: GameI, @MessageBody('id') id: string) {
+		let game: GameI = this.gameRoomService.getRoomById(id).getGame();
+		if (!game.pad1.id || !game.pad2.id)
 			return;
 		let pad: PadI;
-		if (this.game.pad1.id === client.id)
-			pad = this.game.pad1;
-		if (this.game.pad2.id === client.id)
-			pad = this.game.pad2;
+		if (game.pad1.id === client.id)
+			pad = game.pad1;
+		if (game.pad2.id === client.id)
+			pad = game.pad2;
 		if (pad) {
-			if (data.status === GameStatus.WAITING && looserPoint === pad.id) {
-				this.startGame(client);
+			if (data.status === GameStatus.WAITING && game.looserPoint === pad.id) {
+				this.startGame(client, id);
 			}
-			if (this.game.status === GameStatus.INPROGRESS) {
+			if (game.status === GameStatus.INPROGRESS) {
 				if (pad.y > pad.speed)
 					pad.y -= pad.speed;
 				else
 					pad.y = 0;
-				this.server.emit("updateGame", this.game);
+				this.server.to(id).emit("updateGame", game);
 			}
 		}
 	}
 
 	@SubscribeMessage('arrowDown')
-	padDown(client: Socket, data: GameI) {
-		if (!this.game.pad1.id || !this.game.pad2.id)
+	padDown(@ConnectedSocket() client: Socket, @MessageBody('data') data: GameI, @MessageBody('id') id: string) {
+		let game: GameI = this.gameRoomService.getRoomById(id).getGame();
+		if (!game.pad1.id || !game.pad2.id)
 			return;
 		let pad: PadI;
-		if (this.game.pad1.id === client.id)
-			pad = this.game.pad1;
-		if (this.game.pad2.id === client.id)
-			pad = this.game.pad2;
+		if (game.pad1.id === client.id)
+			pad = game.pad1;
+		if (game.pad2.id === client.id)
+			pad = game.pad2;
 		if (pad) {
-			if (data.status === GameStatus.WAITING && looserPoint === pad.id) {
-				this.startGame(client);
+			if (data.status === GameStatus.WAITING && game.looserPoint === pad.id) {
+				this.startGame(client, id);
 			}
-			if (this.game.status === GameStatus.INPROGRESS) {
-				if (pad.y < this.game.gameHeight - pad.height - pad.speed)
+			if (game.status === GameStatus.INPROGRESS) {
+				if (pad.y < game.gameHeight - pad.height - pad.speed)
 					pad.y += pad.speed;
 				else
-					pad.y = this.game.gameHeight - pad.height;
-				this.server.emit("updateGame", this.game);
+					pad.y = game.gameHeight - pad.height;
+				this.server.to(id).emit("updateGame", game);
 			}
 		}
 	}

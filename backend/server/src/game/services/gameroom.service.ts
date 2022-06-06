@@ -28,6 +28,14 @@ export class GameRoomService {
 		return this.rooms;
 	}
 
+	getRoomNameByPlayerId(idPlayer: string): string {
+		for (const [keyroom, gameroom] of this.gameRooms) {
+			if (gameroom.getPlayerById(idPlayer))
+				return keyroom;
+		}
+		return null;
+	}
+
 	getRoomById(id_room: string): GameRoomClass {
 		return this.gameRooms.get(id_room);
 	}
