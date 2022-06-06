@@ -39,12 +39,7 @@
     </v-row>
     <v-card id="chat" height="400" class="scroll">
       <li v-for="(message, index) in messages" style="list-style: none">
-        <p v-if="message.type == 'info'">
-          {{ message.content }}
-        </p>
-        <p v-if="message.type == 'message'">
-          {{ message.username }}: {{ message.content }}
-        </p>
+        <p>{{ message.user_name }}: {{ message.content }}</p>
       </li>
     </v-card>
     <v-row>
@@ -212,11 +207,7 @@ export default {
         .post(
           "channels/handleMessage",
           {
-            type: type,
-            user_id: this.user.id,
-            username: this.user.username,
             channel_id: channel_id,
-            channel_name: this.channel,
             content: this.message,
           },
           {

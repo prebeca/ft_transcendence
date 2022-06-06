@@ -271,6 +271,7 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
 			this.game.status = GameStatus.PLAYER2LEAVE;
 			this.server.emit('updateStatus', this.game.status);
 		}
+		client.disconnect(true);
 	}
 
 	@SubscribeMessage('arrowUp')
