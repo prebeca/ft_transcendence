@@ -29,7 +29,7 @@ export class AuthService {
 		};
 	}
 
-	async createCookie(response: Response, is42: boolean, code: string, user?: User): Promise<{ response: Response, istwofa: boolean }> {
+	async createCookie(response: Response, is42: boolean, code: string, user?: User): Promise<{ response: Response, created: boolean, istwofa: boolean }> {
 		var token_client: string;
 		var userCookie: User = user;
 		if (is42) {
@@ -48,10 +48,13 @@ export class AuthService {
 			httpOnly: true,
 			path: '/',
 			maxAge: 1000 * 60 * 200,
+			sameSite: "strict",
 			/* secure: true, -> only for localhost AND https */
 		});
+		let created: boolean = (userCookie.username) ? false : true;
 		return {
 			response: response,
+			created: created,
 			istwofa: userCookie.twofauser
 		}
 	}
@@ -80,7 +83,6 @@ export class AuthService {
 			...createUserDto,
 			login: res2.data.login,
 			email: res2.data.email,
-			username: res2.data.login
 		};
 
 		var user: User = await this.usersService.findOne(createUserDto.login);

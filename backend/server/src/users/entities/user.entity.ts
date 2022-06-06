@@ -1,5 +1,5 @@
 import { Player } from 'src/game/entities/player.entity';
-import { Column, Entity, JoinColumn, OneToOne, PrimaryGeneratedColumn } from 'typeorm';
+import { Column, Entity, JoinColumn, JoinTable, ManyToMany, OneToOne, PrimaryGeneratedColumn } from 'typeorm';
 
 @Entity()
 export class User {
@@ -21,7 +21,7 @@ export class User {
 	@Column('text', { default: "default.png" })
 	avatar: string;
 
-	@Column({ unique: true })
+	@Column({ unique: true, nullable: true })
 	username: string;
 
 	@Column({ nullable: true })
@@ -45,6 +45,11 @@ export class User {
 	@OneToOne(() => Player, {
 		cascade: ["insert"],
 	})
+
 	@JoinColumn()
 	player: Player;
+
+	@ManyToMany(() => User)
+	@JoinTable()
+	friends: User[]
 }

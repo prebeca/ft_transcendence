@@ -45,8 +45,8 @@ export default Vue.extend({
         withCredentials: true,
         persist: "myGameSocket",
       }),
-      canvas: {} as HTMLElement | null,
-      context: {} as CanvasRenderingContext2D | null,
+      canvas: {} as HTMLCanvasElement,
+      context: {} as CanvasRenderingContext2D,
       game: {} as GameI,
       pad1: {} as PadI,
       pad2: {} as PadI,
@@ -182,7 +182,7 @@ export default Vue.extend({
         this.canvas.height / 4
       );
     },
-    myPrint(data) {
+    myPrint(data: any) {
       console.log(data);
     },
   },

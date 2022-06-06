@@ -165,18 +165,18 @@ export default Vue.extend({
     loginPassword: "",
     loginEmail: "",
     loginEmailRules: [
-      (v) => !!v || "Required",
-      (v) => /.+@.+\..+/.test(v) || "E-mail must be valid",
+      (v: string) => !!v || "Required",
+      (v: string) => /.+@.+\..+/.test(v) || "E-mail must be valid",
     ],
     emailRules: [
-      (v) => !!v || "Required",
-      (v) => /.+@.+\..+/.test(v) || "E-mail must be valid",
+      (v: string) => !!v || "Required",
+      (v: string) => /.+@.+\..+/.test(v) || "E-mail must be valid",
     ],
 
     show1: false,
     rules: {
-      required: (value) => !!value || "Required.",
-      min: (v) => (v && v.length >= 8) || "Min 8 characters",
+      required: (value: string) => !!value || "Required.",
+      min: (v: string) => (v && v.length >= 8) || "Min 8 characters",
     },
   }),
   computed: {

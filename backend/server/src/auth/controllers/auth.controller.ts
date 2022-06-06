@@ -25,12 +25,14 @@ export class AuthController {
 	@Get('42callback')
 	@Redirect(`${process.env.APPLICATION_REDIRECT_URI}/login/complete-profile`, 302)
 	async authenticate42User(@Res({ passthrough: true }) response: Response, @Query('code') code: string) {
-		const ret: { response: Response, istwofa: boolean } = await this.authService.createCookie(response, true, code, null);
+		const ret: { response: Response, created: boolean, istwofa: boolean } = await this.authService.createCookie(response, true, code, null);
 		response = ret.response;
 		if (!response)
 			throw new UnauthorizedException("JWT Generation error");
 		if (ret.istwofa)
 			return { url: `${process.env.APPLICATION_REDIRECT_URI}/login/2fa` };
+		else if (!ret.created)
+			return { url: `${process.env.APPLICATION_REDIRECT_URI}/home` };
 	}
 
 
