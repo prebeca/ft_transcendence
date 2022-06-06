@@ -73,7 +73,7 @@ export class GameRoomGateway implements OnGatewayConnection, OnGatewayDisconnect
 	}
 
 	/*
-	** Client joins room 
+	** Client joins room
 	** The first two client will be players
 	** The following ones (if there are) will be spectators
 	*/
