@@ -68,8 +68,12 @@ export class GameRoomGateway implements OnGatewayConnection, OnGatewayDisconnect
 				this.server.to(data).emit("p" + player.player_number + "leaving", {});
 			}
 			gameRoom.deletePlayer(client.id);
+			if (gameRoom.nbPlayer === 1)
+				gameRoom.status = GAMEROOMSTATUS.WAITING;
+			else
+				this.gameRoomService.deleteRoom(data);
 		}
-		client.disconnect(true);
+		// client.disconnect(true);
 	}
 
 	/*
@@ -88,6 +92,9 @@ export class GameRoomGateway implements OnGatewayConnection, OnGatewayDisconnect
 		if (gameRoom.nbPlayer < this.gameRoomService.getPPG()) {
 			const user: User = { ... (req.user as User) };
 			gameRoom.addPlayerToRoom(client.id, user);
+			if (gameRoom.nbPlayer === 2) {
+				gameRoom.status = GAMEROOMSTATUS.FULL;
+			}
 		}
 		console.log(gameRoom);
 		this.emitPlayersToRoom(roomid, gameRoom);

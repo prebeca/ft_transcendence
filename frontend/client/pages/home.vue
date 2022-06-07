@@ -22,7 +22,16 @@
 import Vue from "vue";
 export default Vue.extend({
   methods: {
-    async matchmaking() {},
+    async matchmaking() {
+      this.$axios
+        .get("/gameroom/matchmaking")
+        .then((res) => {
+          console.log(res.data);
+        })
+        .catch((error) => {
+          console.error(error);
+        });
+    },
   },
 });
 </script>
