@@ -105,8 +105,8 @@ export class AuthService {
 		var res: AxiosResponse;
 
 		formData.append('grant_type', 'authorization_code');
-		formData.append('client_id', this.config.get<string>('APPLICATION_UID'));
-		formData.append('client_secret', this.config.get<string>('APPLICATION_SECRET'));
+		formData.append('client_id', this.config.get<string>('NEW_APPLICATION_UID'));
+		formData.append('client_secret', this.config.get<string>('NEW_APPLICATION_SECRET'));
 		formData.append('code', code_api);
 		formData.append('redirect_uri', this.config.get<string>('BASE_URL') + '/auth/42callback');
 
@@ -135,7 +135,7 @@ export class AuthService {
 	get42OAuthURL(): { url: string } {
 		return {
 			url: 'https://api.intra.42.fr/oauth/authorize?client_id='
-				+ this.config.get<string>('APPLICATION_UID')
+				+ this.config.get<string>('NEW_APPLICATION_UID')
 				+ '&redirect_uri=http%3A%2F%2Flocalhost%3A3000%2Fauth%2F42callback'
 				+ '&response_type=code&scopepublic'
 		};

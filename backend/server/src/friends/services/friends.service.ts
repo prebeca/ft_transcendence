@@ -15,8 +15,8 @@ export class FriendsService {
 		return this.userRepository.find({ relations: ["friends"] });
 	}
 
-	async removeFriend(): Promise<void> {
-		return;
+	async removeFriend(user: User, user_id_to_remove: number): Promise<void> {
+		//const user: User = 
 	}
 
 	async addFriend(): Promise<void> {
