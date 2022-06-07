@@ -13,20 +13,23 @@ export class FriendsController {
 	/*
 	** Listing
 	*/
+	@UseGuards(JwtAuthGuard)
 	@Get()
 	async getFriends(@Req() req: Request): Promise<User[]> {
 		const user: User = { ... (req.user as User) };
 		return await this.friendsService.getFriends(user);
 	}
 
+	@UseGuards(JwtAuthGuard)
 	@Post('add')
 	async addFriend(@Req() req: Request) {
 		return await this.friendsService.addFriend();
 	}
 
+	@UseGuards(JwtAuthGuard)
 	@Post('remove')
 	async removeFriend(@Req() req: Request) {
-		return await this.friendsService.removeFriend();
+		return await this.friendsService.removeFriend(req.user as User, req["user_id_to_remove"]);
 	}
 	/*
 	** ADD - REMOVE
