@@ -28,6 +28,7 @@
           </v-simple-table>
         </v-card>
       </v-tab-item>
+
       <v-tab-item color="secondary">
         <v-card flat color="secondary">
           <v-simple-table class="secondary">
@@ -131,7 +132,7 @@ export default Vue.extend({
         console.error(error);
       });
     this.$axios
-      .get("/users")
+      .get("/friends")
       .then((res) => {
         console.log(res.data);
         this.friends_list = res.data;

@@ -12,12 +12,28 @@
     >
       <span class="font-weight-black" style="font-size: 30px">Play Now</span>
     </v-btn>
+    <v-btn color="accent" class="mr-5" @click="matchmaking">
+      Matchmaking
+    </v-btn>
   </div>
 </template>
 
 <script lang="ts">
 import Vue from "vue";
-export default Vue.extend({});
+export default Vue.extend({
+  methods: {
+    async matchmaking() {
+      this.$axios
+        .get("/gameroom/matchmaking")
+        .then((res) => {
+          console.log(res.data);
+        })
+        .catch((error) => {
+          console.error(error);
+        });
+    },
+  },
+});
 </script>
 
 <style scoped lang="scss">
