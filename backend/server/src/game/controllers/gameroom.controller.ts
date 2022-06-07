@@ -27,4 +27,16 @@ export class GameRoomController {
 	clear(): void {
 		return this.gameRoomService.clear();
 	}
+
+	/*
+	** 1. get all rooms
+	** 2. filter them to the ones who are not full
+	** 3. take the one where the mmr is the closest
+	** 4. return the name of it
+	*/
+	@UseGuards(JwtAuthGuard)
+	@Get('matchmaking')
+	matchmake(@Req() req: Request) {
+		const rooms: string[] = this.gameRoomService.getRooms();
+	}
 }

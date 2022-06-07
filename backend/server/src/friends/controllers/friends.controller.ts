@@ -23,7 +23,7 @@ export class FriendsController {
 	@UseGuards(JwtAuthGuard)
 	@Post('add')
 	async addFriend(@Req() req: Request) {
-		return await this.friendsService.addFriend();
+		return await this.friendsService.addFriend(req.user as User, req["user_id_to_add"]);
 	}
 
 	@UseGuards(JwtAuthGuard)
