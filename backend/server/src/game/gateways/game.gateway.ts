@@ -176,6 +176,8 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
 	@SubscribeMessage('leaveGame')
 	leaveGame(@ConnectedSocket() client: Socket, @MessageBody() id: string) {
 		console.log("leave = " + id);
+		if (id === null)
+			return;
 		let game: GameI = this.gameRoomService.getRoomById(id).getGame();
 		if (game.pad1.id === client.id) {
 			game.status = GameStatus.PLAYER1LEAVE;
@@ -185,7 +187,7 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
 			game.status = GameStatus.PLAYER2LEAVE;
 			this.server.to(id).emit('updateStatus', game.status);
 		}
-		client.disconnect(true);
+		//client.disconnect(true);
 	}
 
 	handleConnection(client: Socket, ...args: any[]) {
