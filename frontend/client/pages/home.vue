@@ -26,7 +26,7 @@ export default Vue.extend({
       this.$axios
         .get("/gameroom/matchmaking")
         .then((res) => {
-          console.log(res.data);
+          this.$router.push({ path: "/groom/room", query: { name: res.data } });
         })
         .catch((error) => {
           console.error(error);

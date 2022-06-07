@@ -173,6 +173,21 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
 		this.leaveGame(client, this.gameRoomService.getRoomNameByPlayerId(client.id));
 	}
 
+	@SubscribeMessage('leaveGame')
+	leaveGame(@ConnectedSocket() client: Socket, @MessageBody() id: string) {
+		console.log("leave = " + id);
+		let game: GameI = this.gameRoomService.getRoomById(id).getGame();
+		if (game.pad1.id === client.id) {
+			game.status = GameStatus.PLAYER1LEAVE;
+			this.server.to(id).emit('updateStatus', game.status);
+		}
+		if (game.pad2.id === client.id) {
+			game.status = GameStatus.PLAYER2LEAVE;
+			this.server.to(id).emit('updateStatus', game.status);
+		}
+		client.disconnect(true);
+	}
+
 	handleConnection(client: Socket, ...args: any[]) {
 		console.log(`Client ${client.id} connected to game gateway`);
 	}
@@ -211,21 +226,6 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
 			// else
 			this.server.to(id).emit("updateGame", game);
 		}, 1000 / 30);
-	}
-
-	@SubscribeMessage('leaveGame')
-	leaveGame(@ConnectedSocket() client: Socket, @MessageBody() id: string) {
-		console.log("leave = " + id);
-		let game: GameI = this.gameRoomService.getRoomById(id).getGame();
-		if (game.pad1.id === client.id) {
-			game.status = GameStatus.PLAYER1LEAVE;
-			this.server.to(id).emit('updateStatus', game.status);
-		}
-		if (game.pad2.id === client.id) {
-			game.status = GameStatus.PLAYER2LEAVE;
-			this.server.to(id).emit('updateStatus', game.status);
-		}
-		client.disconnect(true);
 	}
 
 	@SubscribeMessage('arrowUp')
