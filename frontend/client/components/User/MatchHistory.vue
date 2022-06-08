@@ -40,16 +40,7 @@
                   class="d-flex align-content-space-around justify-space-around"
                   cols="4"
                 >
-                  <router-link to="/home" class="text-decoration-none">
-                    <div class="d-flex flex-column align-center">
-                      <v-avatar size="80">
-                        <img alt="friend-avatar" :src="friend.avatar" />
-                      </v-avatar>
-                      <h3 class="mt-2 info--text">
-                        {{ friend.username }}
-                      </h3>
-                    </div>
-                  </router-link>
+                  <UserFriendCard :friend="friend" />
                 </v-col>
               </v-row>
             </template>

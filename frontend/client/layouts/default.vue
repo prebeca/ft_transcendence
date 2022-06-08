@@ -9,10 +9,7 @@
       <v-menu bottom min-width="200px" rounded offset-y>
         <template v-slot:activator="{ on }">
           <v-btn icon x-large v-on="on">
-            <!-- <v-avatar>
-              <v-img :src="avatar"></v-img>
-            </v-avatar> -->
-            <UserAvatarStatus :size="sizeOfAvatar" :user="user" />
+            <UserAvatarStatus :size="sizeOfAvatar" :user="user" :offset="18" />
           </v-btn>
         </template>
         <LayoutUserCard />
@@ -48,7 +45,7 @@ export default Vue.extend({
   data() {
     return {
       title: "PONG GAME",
-      sizeOfAvatar: "48px",
+      sizeOfAvatar: "50px",
       user: {
         avatar: "",
       },

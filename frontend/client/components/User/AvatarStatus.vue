@@ -1,9 +1,11 @@
 <template>
   <div>
-    <v-avatar :size="size">
-      <img :src="user.avatar" alt="avatar" />
-    </v-avatar>
-    <p>{{ this.status }}</p>
+    <v-badge color="green" bottom :offset-x="offset" :offset-y="offset">
+      <v-avatar :size="size">
+        <img :src="user.avatar" alt="avatar" />
+      </v-avatar>
+      <!-- <p>{{ this.status }}</p> -->
+    </v-badge>
   </div>
 </template>
 
@@ -32,6 +34,9 @@ export default Vue.extend({
     },
     user: {
       type: Object,
+      required: true,
+    },
+    offset: {
       required: true,
     },
   },
