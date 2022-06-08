@@ -2,7 +2,7 @@
   <tr class="leaderboard__item">
     <td class="leaderboard__index">{{ index + 1 }}</td>
     <v-avatar size="60px" class="m-10 mr-5">
-      <img :src="user.avatar" alt="avatar" />
+      <img :src="this.user.avatar" alt="avatar" />
     </v-avatar>
     <td class="leaderboard__user">{{ user.username }}</td>
     <div v-if="!isUser">
@@ -52,10 +52,15 @@ export default {
     },
   },
   created: function () {
+    console.log("created Item from leaderboard");
+  },
+  mounted: function () {
     this.$axios
       .get("/users/profile")
       .then((res) => {
+        console.log("mounted + " + this.$props.user.id);
         this.thisUser = res.data;
+        console.log(JSON.stringify(this.thisUser));
         if (this.thisUser.id === this.user.id) {
           this.isUser = true;
         }
