@@ -196,7 +196,7 @@ export class UsersService {
 		let user = await this.userRepository.findOne(user_id);
 		if (user == null)
 			return
-		if (user.channels.find((e) => e == chan_id) === undefined)
+		if (user.channels.find((e) => { return e == chan_id }) != undefined)
 			return
 		user.channels.push(chan_id)
 		this.userRepository.save(user);
@@ -206,9 +206,9 @@ export class UsersService {
 		let user = await this.userRepository.findOne(user_id);
 		if (user == null)
 			return
-		if (user.channels.find((e) => e == chan_id) === undefined)
+		if (user.channels.find((e) => { return e == chan_id }) === undefined)
 			return
-		let index = user.channels.findIndex(e => e == chan_id);
+		let index = user.channels.findIndex(e => { return e == chan_id });
 		user.channels.splice(index, 1);
 		this.userRepository.save(user);
 	}
@@ -222,7 +222,7 @@ export class UsersService {
 		let target = await this.userRepository.findOne(id);
 
 		if (target == null) return // wrong id
-		if (user.blocked.find(e => e == id) != undefined) return // already blocked
+		if (user.blocked.find(e => { return e == id }) != undefined) return // already blocked
 
 		user.blocked.push(id);
 		this.userRepository.save(user);
@@ -234,7 +234,7 @@ export class UsersService {
 		if (target == null) return // wrong id
 		if (user.blocked.find(e => e == id) == undefined) return // not blocked
 
-		let index = user.blocked.findIndex(e => e == id);
+		let index = user.blocked.findIndex(e => { return e == id });
 		user.blocked.splice(index, 1);
 		this.userRepository.save(user);
 	}

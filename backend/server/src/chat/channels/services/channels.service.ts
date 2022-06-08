@@ -34,7 +34,8 @@ export class ChannelsService {
 
 		channel.owner = user.id;
 		channel.admin_ids.push(user.id);
-		channel.users_ids.push(user.id);
+		if (channel.scope == "private")
+			this.addInvite(channel.id, user.id)
 		this.userService.addChannel(user.id, channel.id);
 		return this.channelRepository.save(channel);
 	}
@@ -110,7 +111,7 @@ export class ChannelsService {
 
 	async addInvite(channel_id: number, user_id: number) {
 		let channel: Channel = await this.channelRepository.findOne(channel_id);
-		let index: number = channel.invited_ids.findIndex(e => e == user_id);
+		let index: number = channel.invited_ids.findIndex(e => { return e == user_id });
 		if (index != -1)
 			return
 		channel.invited_ids.push(user_id);
@@ -119,7 +120,7 @@ export class ChannelsService {
 
 	async removeInvite(channel_id: number, user_id: number) {
 		let channel: Channel = await this.channelRepository.findOne(channel_id);
-		let index: number = channel.invited_ids.findIndex(e => e == user_id);
+		let index: number = channel.invited_ids.findIndex(e => { return e == user_id });
 		if (index == -1)
 			return
 		channel.invited_ids.splice(index, 1);
@@ -128,10 +129,12 @@ export class ChannelsService {
 
 	async addUser(channel_id: number, user_id: number) {
 		let channel = await this.channelRepository.findOne(channel_id);
+
 		if (channel == null)
 			return;
-		if (channel.users_ids.find(e => e == user_id) === undefined)
-			channel.users_ids.push(user_id);
+		if (channel.users_ids.find(e => { return e == user_id }) != undefined) return
+
+		channel.users_ids.push(user_id);
 		await this.channelRepository.save(channel);
 	}
 
@@ -139,9 +142,9 @@ export class ChannelsService {
 		let channel = await this.channelRepository.findOne(channel_id);
 		if (channel == null)
 			return;
-		if (channel.users_ids.find(e => e == user_id) === undefined) return
+		if (channel.users_ids.find(e => { return e == user_id }) === undefined) return
 
-		let index = channel.users_ids.findIndex(e => e == user_id);
+		let index = channel.users_ids.findIndex(e => { return e == user_id });
 		channel.users_ids.splice(index, 1);
 
 		if (channel.owner == user_id)
@@ -150,35 +153,37 @@ export class ChannelsService {
 		await this.channelRepository.save(channel);
 	}
 
-	async joinChannel(user: User, data: MessageData): Promise<Channel> {
+	async joinChannel(user: User, data: CreateMessageDto): Promise<Channel> {
 		const channel: Channel = await this.findOneById(data.target_id);
+		const message: Message = await this.createMessage(user, data);
 
-		if (channel.users_ids.find(e => e == data.user_id) != undefined)
+		if (channel.users_ids.find(e => { return e == message.user_id }) != undefined)
+			return channel;
+		if (channel.scope == "protected" && channel.password != message.content)
 			return null;
-		if (channel.scope == "protected" && channel.password != data.content)
-			return null;
-		if (channel.scope == "private" && channel.invited_ids.find((e: number) => e == data.user_id) == undefined)
+		if (channel.scope == "private" && channel.invited_ids.find((e: number) => { return e == message.user_id }) == undefined)
 			return null;
 
-		this.addUser(data.target_id, user.id)					// add user to channel members
-		this.userService.addChannel(user.id, data.target_id)	// add channel to the user's channels list
-		this.removeInvite(data.target_id, user.id);
+		this.addUser(message.target_id, user.id)					// add user to channel members
+		this.userService.addChannel(user.id, message.target_id)	// add channel to the user's channels list
+		this.removeInvite(message.target_id, user.id);
 		return channel;
 	}
 
-	async leaveChannel(user: User, data: MessageData): Promise<Channel> {
+	async leaveChannel(user: User, data: CreateMessageDto): Promise<Channel> {
 		const channel: Channel = await this.findOneById(data.target_id);
+		const message: Message = await this.createMessage(user, data);
 
-		if (channel.users_ids.find(e => e == data.user_id) == undefined)
+		if (channel.users_ids.find(e => e == message.user_id) == undefined)
 			return null;
 
-		this.removeUser(data.target_id, data.user_id)					// remove user from channel members and remove ownership
-		this.userService.removeChannel(data.user_id, data.target_id)	// remove channel to the user's channels list
-		this.removeInvite(data.target_id, data.user_id);
+		this.removeUser(message.target_id, message.user_id)					// remove user from channel members and remove ownership
+		this.userService.removeChannel(message.user_id, message.target_id)	// remove channel to the user's channels list
+		this.removeInvite(message.target_id, message.user_id);
 		return channel;
 	}
 
-	async createMEssage(user: User, messageDto: CreateMessageDto): Promise<Message> {
+	async createMessage(user: User, messageDto: CreateMessageDto): Promise<Message> {
 		let message = this.messagesRepository.create(messageDto)
 		message.user_name = user.username;
 		message.user_id = user.id;
@@ -193,7 +198,7 @@ export class ChannelsService {
 			throw new InternalServerErrorException("Request from unknown user");
 		if (channel.users_ids.find(e => e == user.id) == undefined)
 			throw new InternalServerErrorException("User not in channel");
-		let message = await this.createMEssage(user, messageDto);
+		let message = await this.createMessage(user, messageDto);
 		return this.messagesRepository.save(message);
 	}
 

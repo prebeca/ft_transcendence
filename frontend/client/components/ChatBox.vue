@@ -72,6 +72,8 @@
 </template>
 
 <script lang="ts">
+import { Channel } from "diagnostics_channel";
+import { log } from "util";
 interface Message {
   target_id: number;
   user_id: number;
@@ -136,11 +138,12 @@ export default {
 
     this.socket.on("connect", async (msg, cb) => {
       console.log("Connection !");
-      await this.joinChannels();
+      this.joinChannels();
     });
 
     this.socket.on("disconnect", async (msg, cb) => {
       console.log("Disconnection !");
+      this.leaveChannels();
     });
 
     this.socket.on("PrivateMessage", async (msg, cb) => {
@@ -164,9 +167,25 @@ export default {
   methods: {
     async joinChannels() {
       for (let i = 0; i < this.channels.length; ++i) {
-        let res = await this.socket.emit("JoinChan", {
+        this.socket.emit(
+          "JoinChan",
+          {
+            target_id: this.channels[i].id,
+            content: "",
+          },
+          (rep) => {
+            if (rep != null) console.log("chan joined");
+            else console.log("cannot join chan");
+          }
+        );
+      }
+    },
+
+    async leaveChannels() {
+      for (let i = 0; i < this.channels.length; ++i) {
+        this.socket.emit("LeaveChan", {
           target_id: this.channels[i].id,
-          channel_name: this.channels[i].name,
+          content: "",
         });
       }
     },
@@ -179,7 +198,7 @@ export default {
           "/channels/create",
           {
             name: this.channel_input,
-            scope: "private",
+            scope: "public",
             password: "asd asdasd",
           },
           {
@@ -187,10 +206,17 @@ export default {
           }
         )
         .then(async (res) => {
-          await this.socket.emit("JoinChan", {
-            target_id: res.data.id,
-            channel_name: res.data.name,
-          });
+          this.socket.emit(
+            "JoinChan",
+            {
+              target_id: res.data.id,
+              content: "",
+            },
+            (rep) => {
+              if (rep != null) console.log("chan joined");
+              else console.log("cannot join chan");
+            }
+          );
           res.data.messages = [];
           await this.$axios
             .get("channels/" + res.data.id + "/messages")
@@ -222,14 +248,13 @@ export default {
       if (this.channels.length == 0) return;
       if (this.channel.length == 0) return;
 
-      let type = "message";
-      if (this.message_input[0] == "/") type = "cmd";
-
       let channel = this.channels.find((e) => {
         return e.name == this.channel;
       });
 
       if (channel == undefined) return;
+
+      console.log("message sent");
 
       await this.socket.emit("NewMessage", {
         target_id: channel.id,
@@ -237,6 +262,7 @@ export default {
       });
       this.message_input = "";
     },
+
     async privateMessage() {
       if (this.channel_input.length == 0) return;
       this.socket.emit("PrivateMessage", {
