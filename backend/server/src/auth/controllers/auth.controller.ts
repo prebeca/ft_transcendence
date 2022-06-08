@@ -6,6 +6,8 @@ import { UseGuards } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 import { RegisterAuthDto } from '../dto/register-auth.dto';
 import { User } from 'src/users/entities/user.entity';
+import { AvatarStatusGateway } from 'src/users/gateways/avatarstatus.gateway';
+import { UsersService } from 'src/users/services/users.service';
 
 @Controller('auth')
 export class AuthController {
@@ -13,6 +15,9 @@ export class AuthController {
 
 	@Inject(ConfigService)
 	private readonly config: ConfigService;
+
+	@Inject(AvatarStatusGateway)
+	private gatewayStatus: AvatarStatusGateway;
 
 	@Get('42login')
 	@Redirect('https://api.intra.42.fr/oauth/authorize', 302)
@@ -25,14 +30,16 @@ export class AuthController {
 	@Get('42callback')
 	@Redirect(`${process.env.APPLICATION_REDIRECT_URI}/login/complete-profile`, 302)
 	async authenticate42User(@Res({ passthrough: true }) response: Response, @Query('code') code: string) {
-		const ret: { response: Response, created: boolean, istwofa: boolean } = await this.authService.createCookie(response, true, code, null);
+		const ret: { user: User, response: Response, created: boolean, istwofa: boolean } = await this.authService.createCookie(response, true, code, null);
 		response = ret.response;
 		if (!response)
 			throw new UnauthorizedException("JWT Generation error");
 		if (ret.istwofa)
 			return { url: `${process.env.APPLICATION_REDIRECT_URI}/login/2fa` };
-		else if (!ret.created)
+		else if (!ret.created) {
+			this.gatewayStatus.onConnection(ret.user);
 			return { url: `${process.env.APPLICATION_REDIRECT_URI}/home` };
+		}
 	}
 
 
@@ -53,6 +60,7 @@ export class AuthController {
 		response = ret.response;
 		if (!response)
 			throw new UnauthorizedException("JWT Generation error");
+		this.gatewayStatus.onConnection(user);
 		return ret.istwofa;
 	}
 }

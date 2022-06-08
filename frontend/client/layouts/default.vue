@@ -12,7 +12,11 @@
             <!-- <v-avatar>
               <v-img :src="avatar"></v-img>
             </v-avatar> -->
-            <UserAvatarStatus :size="sizeOfAvatar" :user="user" />
+            <UserAvatarStatus
+              v-if="user.id !== 0"
+              :size="sizeOfAvatar"
+              :user="user"
+            />
           </v-btn>
         </template>
         <LayoutUserCard />
@@ -50,6 +54,7 @@ export default Vue.extend({
       title: "PONG GAME",
       sizeOfAvatar: "48px",
       user: {
+        id: 0,
         avatar: "",
       },
       drawer: false,
@@ -79,11 +84,13 @@ export default Vue.extend({
       ],
     };
   },
-  created: function () {
-    this.$axios
+  created: async function () {
+    await this.$axios
       .get("/users/profile")
       .then((res) => {
         console.log(res.data);
+        this.user.id = res.data.id;
+        console.log(this.user.id);
         this.changeAvatar(res.data.avatar);
       })
       .catch((error) => {
