@@ -28,7 +28,7 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
 	async validate(payload: JwtPayload): Promise<User> {
 		if (!payload)
 			throw new UnauthorizedException("No credentials cookie found");
-		const user: User = await this.userService.findUsersById(payload.id);
+		const user: User = await this.userService.findUsersByIdWithRelations(payload.id);
 		if (!user)
 			throw new UnauthorizedException("No match for current session");
 		return user;

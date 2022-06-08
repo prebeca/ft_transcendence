@@ -9,9 +9,10 @@
       <v-menu bottom min-width="200px" rounded offset-y>
         <template v-slot:activator="{ on }">
           <v-btn icon x-large v-on="on">
-            <v-avatar>
+            <!-- <v-avatar>
               <v-img :src="avatar"></v-img>
-            </v-avatar>
+            </v-avatar> -->
+            <UserAvatarStatus :size="sizeOfAvatar" :user="user" />
           </v-btn>
         </template>
         <LayoutUserCard />
@@ -47,6 +48,10 @@ export default Vue.extend({
   data() {
     return {
       title: "PONG GAME",
+      sizeOfAvatar: "48px",
+      user: {
+        avatar: "",
+      },
       drawer: false,
       avatar: "",
       cacheKey: +new Date(),
@@ -59,7 +64,7 @@ export default Vue.extend({
         {
           title: "Game",
           icon: "gamepad-variant",
-          url: "/game",
+          url: "/groom/selection",
         },
         {
           title: "Community",
@@ -79,7 +84,6 @@ export default Vue.extend({
       .get("/users/profile")
       .then((res) => {
         console.log(res.data);
-        this.user = res.data;
         this.changeAvatar(res.data.avatar);
       })
       .catch((error) => {
@@ -88,7 +92,8 @@ export default Vue.extend({
   },
   methods: {
     changeAvatar(filename: string) {
-      this.avatar = `${process.env.API_URL}/users/profile/avatar/` + filename;
+      this.user.avatar =
+        `${process.env.API_URL}/users/profile/avatar/` + filename;
     },
   },
 });

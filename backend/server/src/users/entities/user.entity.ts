@@ -1,3 +1,4 @@
+import { Exclude } from 'class-transformer';
 import { Player } from 'src/game/entities/player.entity';
 import { Column, Entity, JoinColumn, JoinTable, ManyToMany, OneToOne, PrimaryGeneratedColumn } from 'typeorm';
 
@@ -9,12 +10,15 @@ export class User {
 	})
 	id: number;
 
+	@Exclude()
 	@Column({ unique: true })
 	login: string;
 
+	@Exclude()
 	@Column({ unique: true })
 	email: string;
 
+	@Exclude()
 	@Column({ unique: true, nullable: true })
 	refresh_token: string;
 
@@ -24,18 +28,22 @@ export class User {
 	@Column({ unique: true, nullable: true })
 	username: string;
 
+	@Exclude()
 	@Column({ nullable: true })
 	password: string;
 
+	@Exclude()
 	@Column({ nullable: true })
 	salt: string;
 
+	@Exclude()
 	@Column({ default: false })
 	fortytwouser: boolean;
 
 	@Column({ default: false })
 	twofauser: boolean;
 
+	@Exclude()
 	@Column({ nullable: true })
 	twofasecret: string
 

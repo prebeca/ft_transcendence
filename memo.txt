@@ -137,3 +137,66 @@ avant de modifier ou d'inserer un element.
 
 Les modules eux, permettent simplement d'autoriser ou non l'exportation de tout ces fichiers
 et de choisir des modules a importer pour le bon fonctionnement du module (une partie d'applciation)
+
+Notes on matchmaking: reason
+MATCHMAKING (SINGLE PAGE APP)
+
+
+Two ways:
+
+Controller or Gateway
+
+
+One means, the backen has to return the name of the room to join (filter the ones that are not plenty) and the frontend
+ has to push to the room where one is waiting (DOES it launch automatically ?)
+
+.
+
+Pros:
+
+The controller can access to the map of the rooms so it is not complicated at all to access it and return the results
+
+
+Cons:
+
+How are the games launched ? Should the users be launched directly in the game, if so how does that even work ?
+Or should I redirect the second one in the waiting room where the first player has to set it to ready ?
+
+
+The pros outweight the cons here.
+
+Second means the socket has to be connected from beginning even if he doesnt want to play at the game,
+ it s a bit ... strange I guess.
+
+
+Notes on Avatar and Status:
+
+The status has to show if the user (in friends list or in leaderboard) is in Game, is connected or is offline.
+
+The use of sockets is here obvious. Either that or spam the server with 2 Request / seconds.
+
+Using sockets:
+
+ Same as the ones in game ?
+
+Other ones ?
+
+When one has three friends and connects to the game. To whom should the server send the information.
+Those who the leaderboard or the friendlist on front, right ? And to the user itself actually
+
+Should the three friends be notified ?
+
+Admittedly yes, it means, we should use a service to notify every friend the user has in case ?
+
+(it means store the sockets id in a map as value, the key will be the user id)
+
+--- (for key is friends.id) send notification to value of key.
+
+Admittedly it works like this. It means there will only be rooms of sockets for users that are watching the leaderboard
+
+Other problem :
+	If the user goes in game. How should the Gameroom Gateway or the Game Gateway send the info to the StatusGateway ?
+	OR should we send a notification to the StatusGateway with another socket ? That will work but it's not really something I want to do.
+
+
+    
