@@ -27,7 +27,7 @@ export class UsersController {
 		return await this.userService.getUsers();
 	}
 
-	@UseGuards(JwtTwoFactorAuthGuard)
+	@UseGuards(JwtAuthGuard)
 	@Get('profile')
 	getProfile(@Req() req: Request): User {
 		const user: User = { ... (req.user as User) };

@@ -7,6 +7,7 @@ import { User } from 'src/typeorm';
 import { MulterModule } from '@nestjs/platform-express';
 import { ChannelsModule } from 'src/chat/channels/channels.module';
 import { Player } from 'src/game/entities/player.entity';
+import { AvatarStatusGateway } from './gateways/avatarstatus.gateway';
 
 @Module({
 	imports: [
@@ -17,7 +18,7 @@ import { Player } from 'src/game/entities/player.entity';
 		ChannelsModule
 	],
 	controllers: [UsersController],
-	providers: [UsersService, UserDto],
+	providers: [UsersService, UserDto, AvatarStatusGateway],
 	exports: [UsersService, UserDto]
 })
 export class UsersModule { }

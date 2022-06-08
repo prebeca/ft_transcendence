@@ -10,6 +10,7 @@ export class User {
 	})
 	id: number;
 
+	@Exclude()
 	@Column({ unique: true })
 	login: string;
 
@@ -17,6 +18,7 @@ export class User {
 	@Column({ unique: true })
 	email: string;
 
+	@Exclude()
 	@Column({ unique: true, nullable: true })
 	refresh_token: string;
 
@@ -30,15 +32,18 @@ export class User {
 	@Column({ nullable: true })
 	password: string;
 
+	@Exclude()
 	@Column({ nullable: true })
 	salt: string;
 
+	@Exclude()
 	@Column({ default: false })
 	fortytwouser: boolean;
 
 	@Column({ default: false })
 	twofauser: boolean;
 
+	@Exclude()
 	@Column({ nullable: true })
 	twofasecret: string
 
