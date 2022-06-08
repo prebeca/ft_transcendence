@@ -26,7 +26,6 @@ export class GameRoomGateway implements OnGatewayConnection, OnGatewayDisconnect
 	handleDisconnect(@ConnectedSocket() client: Socket) {
 		console.log(`Client ${client.id} disconnected from room`);
 		this.leaveRoom(this.gameRoomService.getRoomNameByPlayerId(client.id), client);
-		// this.gameRoomService.removePlayerFromRooms(client.id);
 	}
 
 	handleConnection(client: Socket, ...args: any[]) {

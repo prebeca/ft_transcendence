@@ -1,9 +1,8 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, Req, UseGuards } from '@nestjs/common';
+import { Controller, Get, Post, Body, Req, UseGuards } from '@nestjs/common';
 import { GameRoomService } from '../services/gameroom.service';
 import { Request } from 'express';
 import { JwtAuthGuard } from 'src/auth/guards/jwt-auth.guard';
 import { CreateGameDto } from '../dto/create-game.dto';
-import { PlayerClass } from '../classes/player.class';
 import { GameRoomClass } from '../classes/gameroom.class';
 import { User } from 'src/users/entities/user.entity';
 
@@ -22,7 +21,6 @@ export class GameRoomController {
 	@UseGuards(JwtAuthGuard)
 	@Get('list')
 	list(): { roomname: string, player1: string, avatar1: string, player2: string, avatar2: string }[] {
-		const rooms: string[] = this.gameRoomService.getRooms();
 		return this.gameRoomService.getPlayersInRooms();
 	}
 
@@ -32,10 +30,9 @@ export class GameRoomController {
 	}
 
 	/*
-	** 1. get all rooms
-	** 2. filter them to the ones who are not full
-	** 3. take the one where the mmr is the closest
-	** 4. return the name of it
+	** 1. get all rooms & filter them to the ones who are not full (in gameRoomService)
+	** 2. take the one where the mmr is the closest
+	** 3. return the name of it
 	*/
 	@UseGuards(JwtAuthGuard)
 	@Get('matchmaking')
@@ -51,9 +48,6 @@ export class GameRoomController {
 		{
 			return rooms[0];
 		} else {
-			/*
-			** Return the roomid where a player has the closest mmr from player
-			*/
 			const players_mmr: number[] = [];
 			const players_id: string[] = [];
 			for (var i: number = 0; i < rooms.length; i++) {

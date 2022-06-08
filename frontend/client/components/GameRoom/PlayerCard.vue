@@ -32,8 +32,6 @@
 </template>
 
 <script>
-import GameRoomVue from "../../pages/groom/room.vue";
-
 export default {
   name: "GameRoomPlayerCard",
   props: {
