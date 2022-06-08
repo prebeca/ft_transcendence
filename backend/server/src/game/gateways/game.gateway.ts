@@ -185,9 +185,9 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
 		let game: GameI = gameRoom.getGame();
 
 		if (!game.pad1.id || !game.pad2.id) {
+			initGame(game);
 			if (gameRoom.getPlayerInfoById(client.id).player_number === 1) {
 				game.pad1.id = client.id;
-				initGame(game);
 			}
 			else if (gameRoom.getPlayerInfoById(client.id).player_number === 2)
 				game.pad2.id = client.id;
