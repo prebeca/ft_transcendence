@@ -28,13 +28,14 @@
           </v-simple-table>
         </v-card>
       </v-tab-item>
+
       <v-tab-item color="secondary">
         <v-card flat color="secondary">
           <v-simple-table class="secondary">
             <template v-slot:default>
               <v-row class="my-10 mx-2">
                 <v-col
-                  v-for="friend in friends_list"
+                  v-for="friend in user.friends"
                   :key="friend.username"
                   class="d-flex align-content-space-around justify-space-around"
                   cols="4"
@@ -69,6 +70,12 @@ export default Vue.extend({
       user: {
         avatar: "",
         username: "",
+        friends: [
+          {
+            username: "",
+            avatar: "",
+          },
+        ],
       },
       tabs: null,
       tab: ["Match History", "Friends List"],
@@ -116,7 +123,6 @@ export default Vue.extend({
           player2Score: 12,
         },
       ],
-      friends_list: [],
     };
   },
   created: function () {
@@ -131,11 +137,11 @@ export default Vue.extend({
         console.error(error);
       });
     this.$axios
-      .get("/users")
+      .get("/friends")
       .then((res) => {
         console.log(res.data);
-        this.friends_list = res.data;
-        for (let i = 0; i < this.friends_list.length; i++)
+        this.user.friends = res.data;
+        for (let i = 0; i < this.user.friends.length; i++)
           this.changeFriendAvatar(res.data[i].avatar, i);
       })
       .catch((error) => {
@@ -148,7 +154,7 @@ export default Vue.extend({
         `${process.env.API_URL}/users/profile/avatar/` + filename;
     },
     changeFriendAvatar(filename: string, i: number) {
-      this.friends_list[i].avatar =
+      this.user.friends[i].avatar =
         `${process.env.API_URL}/users/profile/avatar/` + filename;
     },
   },

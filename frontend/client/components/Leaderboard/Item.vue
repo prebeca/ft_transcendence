@@ -2,10 +2,17 @@
   <tr class="leaderboard__item">
     <td class="leaderboard__index">{{ index + 1 }}</td>
     <v-avatar size="60px" class="m-10 mr-5">
-      <img :src="user.avatar" alt="avatar" />
+      <img :src="this.user.avatar" alt="avatar" />
     </v-avatar>
     <td class="leaderboard__user">{{ user.username }}</td>
-    <v-btn text color="accent">add Friend</v-btn>
+    <div v-if="!isUser">
+      <v-btn v-if="isFriend === false" text color="green" @click="addFriend"
+        >add Friend</v-btn
+      >
+      <v-btn v-else text color="error" @click="removeFriend"
+        >remove Friend</v-btn
+      >
+    </div>
     <v-spacer></v-spacer>
     <td class="leaderboard__text">level</td>
     <td class="leaderboard__level">
@@ -14,12 +21,26 @@
   </tr>
 </template>
 
-<script>
+<script lang="ts">
 import Vue from "vue";
 import leaderboardVue from "../../pages/leaderboard.vue";
 
 export default {
   name: "LeaderboardItem",
+  data() {
+    return {
+      isFriend: false,
+      isUser: false,
+      thisUser: {
+        id: "",
+        friends: [
+          {
+            id: "",
+          },
+        ],
+      },
+    };
+  },
   props: {
     user: {
       type: Object,
@@ -28,6 +49,56 @@ export default {
     index: {
       type: Number,
       required: true,
+    },
+  },
+  created: function () {
+    console.log("created Item from leaderboard");
+  },
+  mounted: function () {
+    this.$axios
+      .get("/users/profile")
+      .then((res) => {
+        console.log("mounted + " + this.$props.user.id);
+        this.thisUser = res.data;
+        console.log(JSON.stringify(this.thisUser));
+        if (this.thisUser.id === this.user.id) {
+          this.isUser = true;
+        }
+        for (let i = 0; i < this.thisUser.friends.length; i++) {
+          if (this.thisUser.friends[i].id === this.user.id)
+            this.isFriend = true;
+        }
+      })
+      .catch((error) => {
+        console.error(error);
+      });
+  },
+  methods: {
+    async addFriend() {
+      this.$axios
+        .post("/friends/add", {
+          user_id_to_add: this.user.id,
+        })
+        .then((res) => {
+          console.log(res);
+          this.isFriend = true;
+        })
+        .catch((error) => {
+          console.log(error);
+        });
+    },
+    async removeFriend() {
+      await this.$axios
+        .post("/friends/remove", {
+          user_id_to_remove: this.user.id,
+        })
+        .then((res) => {
+          console.log(res);
+          this.isFriend = false;
+        })
+        .catch((error) => {
+          console.log(error);
+        });
     },
   },
 };

@@ -1,4 +1,4 @@
-import { InternalServerErrorException, Logger, Req, UseGuards } from "@nestjs/common";
+import { Logger, Req, UseGuards } from "@nestjs/common";
 import { ConnectedSocket, MessageBody, OnGatewayConnection, OnGatewayDisconnect, SubscribeMessage, WebSocketGateway, WebSocketServer, WsResponse } from "@nestjs/websockets";
 import { Server, Socket } from "socket.io";
 import { WsJwtAuthGuard } from "src/auth/guards/ws-jwt-auth.guard";
@@ -7,6 +7,7 @@ import { GameRoomClass, GAMEROOMSTATUS } from "../classes/gameroom.class";
 import { PlayerClass } from "../classes/player.class";
 import { GameRoomService } from "../services/gameroom.service";
 import { PlayerInfo } from "../interfaces/playerinfo.interface";
+import { Request } from "express";
 
 @WebSocketGateway(42041, {
 	cors: {
@@ -24,7 +25,7 @@ export class GameRoomGateway implements OnGatewayConnection, OnGatewayDisconnect
 
 	handleDisconnect(@ConnectedSocket() client: Socket) {
 		console.log(`Client ${client.id} disconnected from room`);
-		// this.gameRoomService.removePlayerFromRooms(client.id);
+		this.leaveRoom(this.gameRoomService.getRoomNameByPlayerId(client.id), client);
 	}
 
 	handleConnection(client: Socket, ...args: any[]) {
@@ -54,8 +55,10 @@ export class GameRoomGateway implements OnGatewayConnection, OnGatewayDisconnect
 	@SubscribeMessage('leaveRoom')
 	leaveRoom(@MessageBody() data: string, @ConnectedSocket() client: Socket) {
 		let gameRoom: GameRoomClass = this.gameRoomService.getRoomById(data);
-		if (gameRoom === undefined)
-			throw new InternalServerErrorException("The room does not exist anymore");
+		if (gameRoom === undefined) {
+			console.log("The room does not exist anymore")
+			return;
+		}
 		if (gameRoom.status === GAMEROOMSTATUS.INGAME) {
 			console.log("starting game");
 			return;
@@ -68,8 +71,12 @@ export class GameRoomGateway implements OnGatewayConnection, OnGatewayDisconnect
 				this.server.to(data).emit("p" + player.player_number + "leaving", {});
 			}
 			gameRoom.deletePlayer(client.id);
+			if (gameRoom.nbPlayer === 1)
+				gameRoom.status = GAMEROOMSTATUS.WAITING;
+			else
+				this.gameRoomService.deleteRoom(data);
 		}
-		client.disconnect(true);
+		// client.disconnect(true);
 	}
 
 	/*
@@ -79,15 +86,21 @@ export class GameRoomGateway implements OnGatewayConnection, OnGatewayDisconnect
 	*/
 	@UseGuards(WsJwtAuthGuard)
 	@SubscribeMessage('joinRoom')
-	joinRoom(@Req() req, @MessageBody() roomid: string, @ConnectedSocket() client: Socket) {
-		client.join(roomid);
+	joinRoom(@Req() req: Request, @MessageBody() roomid: string, @ConnectedSocket() client: Socket) {
 		let gameRoom: GameRoomClass = this.gameRoomService.getRoomById(roomid);
-		if (gameRoom === undefined)
-			throw new InternalServerErrorException("The room does not exist anymore");
+		if (gameRoom === undefined) {
+			client.emit("change_room");
+			console.log("The room does not exist anymore")
+			return;
+		}
+		client.join(roomid);
 		gameRoom.status = GAMEROOMSTATUS.WAITING;
 		if (gameRoom.nbPlayer < this.gameRoomService.getPPG()) {
 			const user: User = { ... (req.user as User) };
 			gameRoom.addPlayerToRoom(client.id, user);
+			if (gameRoom.nbPlayer === 2) {
+				gameRoom.status = GAMEROOMSTATUS.FULL;
+			}
 		}
 		console.log(gameRoom);
 		this.emitPlayersToRoom(roomid, gameRoom);

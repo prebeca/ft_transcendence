@@ -18,7 +18,7 @@ export class UsersService {
 
 	async getUsers(): Promise<User[]> {
 		try {
-			return this.userRepository.find({ relations: ["player"] });
+			return this.userRepository.find({ relations: ["player", "friends"] });
 		} catch (error) {
 			throw new InternalServerErrorException("Query to find every users failed");
 		}
@@ -37,7 +37,7 @@ export class UsersService {
 
 	async findUsersById(id: number): Promise<User> {
 		try {
-			const { password, salt, ...user } = await this.userRepository.findOne(id);
+			const { password, salt, ...user } = await this.userRepository.findOne(id, { relations: ["friends"] });
 			if (!(user as User))
 				return null;
 			return user as User;
@@ -48,7 +48,7 @@ export class UsersService {
 
 	async findUsersByIdWithRelations(id: number): Promise<User> {
 		try {
-			const { password, salt, ...user } = await this.userRepository.findOne(id, { relations: ["player"] });
+			const { password, salt, ...user } = await this.userRepository.findOne(id, { relations: ["player", "friends"] });
 			if (!(user as User))
 				return null;
 			return user as User;

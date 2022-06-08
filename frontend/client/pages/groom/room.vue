@@ -92,6 +92,9 @@ export default Vue.extend({
         losses: 0,
       };
     });
+    this.socket.on("change_room", (data) => {
+      this.$router.push("/groom/selection");
+    });
     this.socket.on("p2leaving", (data) => {
       console.log("p2leaving");
       this.player2 = {

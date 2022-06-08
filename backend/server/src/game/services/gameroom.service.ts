@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { GameRoomClass } from '../classes/gameroom.class';
+import { GameRoomClass, GAMEROOMSTATUS } from '../classes/gameroom.class';
 import { CreateGameDto } from '../dto/create-game.dto';
 import { v4 as uuid } from 'uuid';
 
@@ -26,6 +26,15 @@ export class GameRoomService {
 
 	getRooms(): string[] {
 		return this.rooms;
+	}
+
+	getRoomsNotFull(): string[] {
+		let rooms: string[] = [];
+		for (const [keyroom, gameroom] of this.gameRooms) {
+			if (gameroom.status === GAMEROOMSTATUS.WAITING)
+				rooms.push(keyroom);
+		}
+		return rooms;
 	}
 
 	getRoomNameByPlayerId(idPlayer: string): string {
@@ -75,6 +84,11 @@ export class GameRoomService {
 	clear() {
 		this.rooms = [];
 		this.gameRooms.clear();
+	}
+	deleteRoom(roomid: string) {
+		this.rooms = this.rooms.splice(this.rooms.indexOf(roomid), 1);
+		this.gameRooms.get(roomid).clearPlayers();
+		this.gameRooms.delete(roomid);
 	}
 
 	getPPG(): number {

@@ -79,6 +79,14 @@ export class GameRoomClass {
 		return players;
 	}
 
+	getPlayersId(): string[] {
+		let players_id: string[] = [];
+		for (const [sid, player] of this.mapPlayers) {
+			players_id.push(sid);
+		}
+		return players_id;
+	}
+
 	getPlayersAvatars(): string[] {
 		let avatars: string[] = [];
 		for (const [sid, player] of this.mapPlayers) {

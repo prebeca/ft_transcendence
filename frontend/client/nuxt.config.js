@@ -57,7 +57,8 @@ export default {
     // module options
     sockets: [
       { name: 'chat', url: process.env.API_URL },
-      { name: 'gameroom', url: process.env.API_SOCKET_GAMEROOM }
+      { name: 'gameroom', url: process.env.API_SOCKET_GAMEROOM },
+      { name: 'avatarstatus', url: process.env.API_URL }
     ],
   },
 
