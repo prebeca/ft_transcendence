@@ -59,7 +59,7 @@ export default Vue.extend({
         {
           title: "Game",
           icon: "gamepad-variant",
-          url: "/game",
+          url: "/groom/selection",
         },
         {
           title: "Community",
@@ -79,7 +79,6 @@ export default Vue.extend({
       .get("/users/profile")
       .then((res) => {
         console.log(res.data);
-        this.user = res.data;
         this.changeAvatar(res.data.avatar);
       })
       .catch((error) => {
