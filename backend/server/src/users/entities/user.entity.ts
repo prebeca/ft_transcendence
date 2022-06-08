@@ -1,3 +1,4 @@
+import { Socket } from 'socket.io';
 import { Player } from 'src/game/entities/player.entity';
 import { Column, Entity, JoinColumn, JoinTable, ManyToMany, OneToOne, PrimaryGeneratedColumn } from 'typeorm';
 
@@ -52,4 +53,10 @@ export class User {
 	@ManyToMany(() => User)
 	@JoinTable()
 	friends: User[]
+
+	@Column("bigint", { default: {}, array: true })
+	blocked: number[];
+
+	@Column({ nullable: true })
+	socket_id: string
 }

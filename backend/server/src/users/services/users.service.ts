@@ -7,6 +7,7 @@ import { createReadStream } from 'fs';
 import { ReadStream } from 'typeorm/platform/PlatformTools';
 import { UpdateUserDto } from '../dto/updateUser.dto';
 import { Player } from 'src/game/entities/player.entity';
+import { Socket } from 'socket.io';
 
 @Injectable()
 export class UsersService {
@@ -195,13 +196,46 @@ export class UsersService {
 		let user = await this.userRepository.findOne(user_id);
 		if (user == null)
 			return
-		if (user.channels.find((e) => e == chan_id) === undefined) {
-			user.channels.push(chan_id)
-		}
-		try {
-			this.userRepository.save(user);
-		} catch (error) {
-			throw new InternalServerErrorException("addChannel does not work");
-		}
+		if (user.channels.find((e) => e == chan_id) === undefined)
+			return
+		user.channels.push(chan_id)
+		this.userRepository.save(user);
+	}
+
+	async removeChannel(user_id: number, chan_id: number): Promise<void> {
+		let user = await this.userRepository.findOne(user_id);
+		if (user == null)
+			return
+		if (user.channels.find((e) => e == chan_id) === undefined)
+			return
+		let index = user.channels.findIndex(e => e == chan_id);
+		user.channels.splice(index, 1);
+		this.userRepository.save(user);
+	}
+
+	async updateSocket(user: User, socket_id: string) {
+		user.socket_id = socket_id;
+		this.userRepository.save(user);
+	}
+
+	async addToBlocked(user: User, id: number) {
+		let target = await this.userRepository.findOne(id);
+
+		if (target == null) return // wrong id
+		if (user.blocked.find(e => e == id) != undefined) return // already blocked
+
+		user.blocked.push(id);
+		this.userRepository.save(user);
+	}
+
+	async removeFromBlocked(user: User, id: number) {
+		let target = await this.userRepository.findOne(id);
+
+		if (target == null) return // wrong id
+		if (user.blocked.find(e => e == id) == undefined) return // not blocked
+
+		let index = user.blocked.findIndex(e => e == id);
+		user.blocked.splice(index, 1);
+		this.userRepository.save(user);
 	}
 }

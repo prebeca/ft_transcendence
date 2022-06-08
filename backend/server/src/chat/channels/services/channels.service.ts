@@ -16,36 +16,31 @@ export class ChannelsService {
 		private readonly userService: UsersService
 	) { }
 
+
+	async createChannel(user: User, createChannelDto: CreateChannelDto) {
+		let channel = await this.channelRepository.findOne({ where: { name: createChannelDto.name } })
+
+		if (channel != null)
+			throw new InternalServerErrorException("Channel already exist");
+		if (createChannelDto.scope == 'protected' && createChannelDto.password.length == 0)
+			throw new InternalServerErrorException("Empty password for Protected Channel");
+
+
+		channel = this.channelRepository.create(createChannelDto);
+		channel = await this.channelRepository.save(channel)
+
+		if (channel.scope != 'protected')
+			channel.password = null
+
+		channel.owner = user.id;
+		channel.admin_ids.push(user.id);
+		channel.users_ids.push(user.id);
+		this.userService.addChannel(user.id, channel.id);
+		return this.channelRepository.save(channel);
+	}
+
 	getChannels(): Promise<Channel[]> {
 		return this.channelRepository.find();
-	}
-
-	async getMessages(channel_id: number): Promise<Message[]> {
-		return (this.messagesRepository.find({ where: { channel_id: channel_id } }));
-	}
-
-	async deleteMessage(id: number) {
-		let message = await this.messagesRepository.findOne(id);
-		if (message)
-			this.messagesRepository.remove(message);
-	}
-
-	async deleteMessages(channel_id: number) {
-		this.messagesRepository.createQueryBuilder().delete().where({ channel_id: channel_id }).execute();
-	}
-
-	async createChannel(createChannelDto: CreateChannelDto) {
-		if (await this.channelRepository.findOne({ where: { name: createChannelDto.name } }) != null)
-			return null;
-		let channel = this.channelRepository.create(createChannelDto);
-		return await this.channelRepository.save(channel);
-	}
-
-	async updateChannel(channel: Channel) {
-		if (await this.channelRepository.findOne(channel.id) == null)
-			return null;
-		console.log("update channel " + channel.name)
-		return this.channelRepository.save(channel);
 	}
 
 	async getChannelsById(ids: number[]): Promise<Channel[]> {
@@ -58,9 +53,46 @@ export class ChannelsService {
 		return channels;
 	}
 
-	async remove(id: number): Promise<Channel[]> {
-		await this.channelRepository.delete(id);
-		return this.getChannels();
+	async getUsers(channel_id: number): Promise<string[]> {
+		const channel = await this.channelRepository.findOne(channel_id);
+		let userList = [];
+		for (let i = 0; i < channel.users_ids.length; ++i) {
+			userList.push((await this.userService.findUsersById(channel.users_ids[i])).login);
+		}
+		return userList;
+	}
+
+	async getMessages(channel_id: number): Promise<Message[]> {
+		return (this.messagesRepository.find({ where: { target_id: channel_id } }));
+	}
+
+	async deleteMessage(id: number) {
+		let message = await this.messagesRepository.findOne(id);
+		if (message)
+			this.messagesRepository.remove(message);
+	}
+
+	async deleteMessages(channel_id: number) {
+		this.messagesRepository.createQueryBuilder().delete().where({ target_id: channel_id }).execute();
+	}
+
+
+	async updateChannel(channel: Channel) {
+		if (await this.channelRepository.findOne(channel.id) == null)
+			return null;
+		return this.channelRepository.save(channel);
+	}
+
+	async remove(id: number) {
+		let channel = await this.findOneById(id)
+		if (channel == null) return;
+		for (let i = 0; i < channel.users_ids.length; ++i) {
+			let user = await this.userService.findUsersById(channel.users_ids[i])
+			if (user == null) continue
+			let index = user.channels.findIndex(e => e == channel.id)
+			user.channels.splice(index, 1);
+		}
+		this.channelRepository.delete(id);
 	}
 
 	async removeAll(): Promise<Channel[]> {
@@ -103,58 +135,71 @@ export class ChannelsService {
 		await this.channelRepository.save(channel);
 	}
 
-	// async addMessageToChannel(id: number, msg: MessageData) {
-	// 	let channel = await this.channelRepository.findOne(id);
-	// 	try {
-	// 		channel.messages.push(msg);
-	// 		await this.channelRepository.save(channel);
-	// 	} catch (error) {
-	// 		console.log(error);
-	// 	}
-	// }
+	async removeUser(channel_id: number, user_id: number) {
+		let channel = await this.channelRepository.findOne(channel_id);
+		if (channel == null)
+			return;
+		if (channel.users_ids.find(e => e == user_id) === undefined) return
 
-	// async clearChat(id: number): Promise<MessageData> {
-	// 	let channel = await this.channelRepository.findOne(id);
-	// 	let nb_msg = channel.messages.length;
-	// 	channel.messages = [];
-	// 	await this.channelRepository.save(channel);
-	// 	return ({
-	// 		type: "info",
-	// 		user_id: 0,
-	// 		username: "Clear",
-	// 		channel_id: id,
-	// 		channel_name: channel.name,
-	// 		content: nb_msg + " messages cleared !",
-	// 	})
-	// }
+		let index = channel.users_ids.findIndex(e => e == user_id);
+		channel.users_ids.splice(index, 1);
 
-	async joinChannel(data: MessageData): Promise<Channel> {
-		const channel: Channel = await this.findOneById(data.channel_id);
+		if (channel.owner == user_id)
+			channel.owner = null;
 
-		if (channel.users_ids.find(e => e == data.user_id) != undefined) {
-			throw new InternalServerErrorException("Error: already in channel");
-		}
-		if (channel.scope == "protected" && channel.password != data.content) {
-			throw new InternalServerErrorException("Error: bad password");
-		}
-		if (channel.scope == "private" && channel.invited_ids.find((e: number) => e == data.user_id) == undefined) {
-			throw new InternalServerErrorException("Error: not invited");
-		}
+		await this.channelRepository.save(channel);
+	}
 
-		await this.addUser(data.channel_id, data.user_id)					// add user to channel members
-		await this.userService.addChannel(data.user_id, data.channel_id)	// add channel to the user's channels list
-		await this.removeInvite(data.channel_id, data.user_id);
+	async joinChannel(user: User, data: MessageData): Promise<Channel> {
+		const channel: Channel = await this.findOneById(data.target_id);
+
+		if (channel.users_ids.find(e => e == data.user_id) != undefined)
+			return null;
+		if (channel.scope == "protected" && channel.password != data.content)
+			return null;
+		if (channel.scope == "private" && channel.invited_ids.find((e: number) => e == data.user_id) == undefined)
+			return null;
+
+		this.addUser(data.target_id, user.id)					// add user to channel members
+		this.userService.addChannel(user.id, data.target_id)	// add channel to the user's channels list
+		this.removeInvite(data.target_id, user.id);
 		return channel;
 	}
 
-	async handleMessage(channel: Channel, user: User, messageDto: CreateMessageDto) {
-		if (messageDto.content[0] == '/')
-			console.log("handle commands")
-		else {
-			let message = this.messagesRepository.create(messageDto)
-			message.user_name = user.username;
-			message.user_id = user.id;
-			await this.messagesRepository.save(message);
-		}
+	async leaveChannel(user: User, data: MessageData): Promise<Channel> {
+		const channel: Channel = await this.findOneById(data.target_id);
+
+		if (channel.users_ids.find(e => e == data.user_id) == undefined)
+			return null;
+
+		this.removeUser(data.target_id, data.user_id)					// remove user from channel members and remove ownership
+		this.userService.removeChannel(data.user_id, data.target_id)	// remove channel to the user's channels list
+		this.removeInvite(data.target_id, data.user_id);
+		return channel;
+	}
+
+	async createMEssage(user: User, messageDto: CreateMessageDto): Promise<Message> {
+		let message = this.messagesRepository.create(messageDto)
+		message.user_name = user.username;
+		message.user_id = user.id;
+		return message
+	}
+
+	async handleMessage(user: User, messageDto: CreateMessageDto): Promise<Message> {
+		let channel = await this.findOneById(messageDto.target_id);
+		if (channel == null)
+			throw new InternalServerErrorException("No such channel");
+		if (user == null)
+			throw new InternalServerErrorException("Request from unknown user");
+		if (channel.users_ids.find(e => e == user.id) == undefined)
+			throw new InternalServerErrorException("User not in channel");
+		let message = await this.createMEssage(user, messageDto);
+		return this.messagesRepository.save(message);
+	}
+
+	async checkBlock(user: User, message: Message): Promise<Message> {
+		if (user.blocked.find(e => e == message.user_id))
+			return (null);
+		return (message);
 	}
 }

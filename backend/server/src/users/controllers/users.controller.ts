@@ -14,6 +14,8 @@ import { User } from '../entities/user.entity';
 import { ChannelsService } from 'src/chat/channels/services/channels.service';
 import { Channel } from 'src/typeorm';
 import { JwtTwoFactorAuthGuard } from 'src/auth/guards/jwt-twofa.guard';
+import { MessageBody } from '@nestjs/websockets';
+import { Socket } from 'socket.io';
 
 @Controller('users')
 export class UsersController {
@@ -85,7 +87,7 @@ export class UsersController {
 	@Get('channels')
 	async getChannels(@Req() req: Request): Promise<Channel[]> {
 		const channels: number[] = (await this.userService.findUsersById(req.user["id"])).channels;
-		return await this.channelService.getChannelsById(channels);
+		return this.channelService.getChannelsById(channels);
 	}
 
 	@Post('create')
@@ -97,5 +99,15 @@ export class UsersController {
 	@Get('deleteall')
 	async deleteUsers(): Promise<User[]> {
 		return await this.userService.removeAll();
+	}
+
+	@Post('block/:id')
+	async addToBlocked(@Req() req: Request, @Param('id') id: number) {
+		return this.userService.addToBlocked(req.user as User, id);
+	}
+
+	@Post('unblock/:id')
+	async removeFromBlocked(@Req() req: Request, @Param('id') id: number) {
+		return this.userService.addToBlocked(req.user as User, id);
 	}
 }

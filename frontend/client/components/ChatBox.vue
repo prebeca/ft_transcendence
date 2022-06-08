@@ -5,7 +5,7 @@
         <v-text-field
           label="join/create channel"
           solo
-          v-model="new_channel"
+          v-model="channel_input"
         ></v-text-field>
       </v-col>
       <v-col cols="1">
@@ -15,7 +15,7 @@
           dark
           medium
           color="blue"
-          v-on:click="addChannel"
+          v-on:click="privateMessage"
         >
           <v-icon dark> mdi-chat-plus </v-icon>
         </v-btn>
@@ -28,7 +28,7 @@
           label="Channels"
           v-model="channel"
           solo
-          @input="reloadMessages"
+          @input="changeMessages"
         ></v-select>
       </v-col>
       <v-col cols="1">
@@ -38,7 +38,7 @@
       </v-col>
     </v-row>
     <v-card id="chat" height="400" class="scroll">
-      <li v-for="(message, index) in messages" style="list-style: none">
+      <li v-for="(message, index) in messages_items" style="list-style: none">
         <p>{{ message.user_name }}: {{ message.content }}</p>
       </li>
     </v-card>
@@ -51,7 +51,7 @@
           label="Message"
           rows="2"
           row-height="15"
-          v-model="message"
+          v-model="message_input"
           v-on:keyup.enter="sendMessage"
         ></v-textarea>
       </v-col>
@@ -72,18 +72,30 @@
 </template>
 
 <script lang="ts">
+interface Message {
+  target_id: number;
+  user_id: number;
+  user_name: number;
+  content: string;
+}
+interface Channel {
+  id: number;
+  name: string;
+  messages: Message[];
+}
 export default {
   data: () => ({
     user: {},
-    channels_name: [],
-    channels: [],
-    messages: [],
-    message: "",
-    channel: "",
-    new_channel: "",
+    channels_name: [] as string[],
+    channels: [] as Channel[],
+    messages_items: [] as Message[],
+    message_input: "",
+    channel: "" as string,
+    channel_input: "",
   }),
 
   async created() {
+    // fetch users profile
     await this.$axios
       .get("/users/profile")
       .then((res) => {
@@ -93,6 +105,7 @@ export default {
         console.error(error);
       });
 
+    // fetch users channels
     await this.$axios
       .get("/users/channels")
       .then((res) => {
@@ -102,21 +115,46 @@ export default {
         console.error(error);
       });
 
-    for (let i = 0; i < this.channels.length; i++)
+    // fetch channels messages
+    for (let i = 0; i < this.channels.length; i++) {
+      this.channels[i].messages = [];
+      await this.$axios
+        .get("channels/" + this.channels[i].id + "/messages")
+        .then((res) => {
+          this.channels[i].messages = res.data;
+        })
+        .catch((error) => {
+          console.error(error);
+        });
       this.channels_name.push(this.channels[i].name);
+    }
 
+    // setup client socket
     this.socket = this.$nuxtSocket({ name: "chat", withCredentials: true });
 
+    this.socket.emit("SetSocket");
+
     this.socket.on("connect", async (msg, cb) => {
-      //   console.log("Connection !");
+      console.log("Connection !");
       await this.joinChannels();
+    });
+
+    this.socket.on("disconnect", async (msg, cb) => {
+      console.log("Disconnection !");
+    });
+
+    this.socket.on("PrivateMessage", async (msg, cb) => {
+      console.log(msg.user_name + ": " + msg.content);
     });
 
     this.socket.on("NewMessage", async (msg, cb) => {
       console.log("New message received !");
-      await this.reloadMessages();
       if (msg != null) {
-        this.messages.push(msg);
+        this.channels
+          .find((e) => {
+            return e.id == msg.target_id;
+          })
+          ?.messages.push(msg);
         if (document.getElementById("chat").lastChild != null)
           document.getElementById("chat").lastChild.scrollIntoView(false);
       }
@@ -127,103 +165,85 @@ export default {
     async joinChannels() {
       for (let i = 0; i < this.channels.length; ++i) {
         let res = await this.socket.emit("JoinChan", {
-          channel_id: this.channels[i].id,
+          target_id: this.channels[i].id,
           channel_name: this.channels[i].name,
         });
-        console.log(res);
       }
     },
 
     async addChannel() {
-      if (this.new_channel.length == 0) return;
+      if (this.channel_input.length == 0) return;
 
       await this.$axios
         .post(
           "/channels/create",
           {
-            name: this.new_channel,
-            scope: "public",
+            name: this.channel_input,
+            scope: "private",
+            password: "asd asdasd",
           },
           {
             "Content-Type": "application/json",
           }
         )
         .then(async (res) => {
-          console.log(res.data);
           await this.socket.emit("JoinChan", {
-            channel_id: res.data.id,
+            target_id: res.data.id,
             channel_name: res.data.name,
           });
+          res.data.messages = [];
           await this.$axios
-            .get("/users/channels")
-            .then((res) => {
-              this.channels = res.data;
+            .get("channels/" + res.data.id + "/messages")
+            .then((res2) => {
+              res.data.messages = res2.data;
             })
             .catch((error) => {
               console.error(error);
             });
-
-          for (let i = 0; i < this.channels.length; i++)
-            this.channels_name.push(this.channels[i].name);
+          this.channels.push(res.data);
+          this.channels_name.push(res.data.name);
         })
         .catch((error) => {
           console.error(error);
         });
+      this.channel_input = "";
     },
 
-    async reloadMessages() {
-      if (this.channel.length == 0) return;
-      await this.$axios
-        .get(
-          "/channels/messages/" +
-            (
-              await this.channels.find((e) => e.name == this.channel)
-            ).id
-        )
-        .then((res) => {
-          this.messages = res.data;
-          console.log(res.data);
-        })
-        .catch((error) => {
-          console.error(error);
-        });
-      if (document.getElementById("chat").lastChild != null)
-        document.getElementById("chat").lastChild.scrollIntoView(false);
+    async changeMessages() {
+      let channel = this.channels.find((e) => {
+        return e.name === this.channel;
+      });
+      if (channel == undefined) return;
+      this.messages_items = channel.messages;
     },
 
     async sendMessage() {
-      /* Emit events */
-      if (this.message.length == 0) return;
+      if (this.message_input.length == 0) return;
       if (this.channels.length == 0) return;
       if (this.channel.length == 0) return;
 
       let type = "message";
-      if (this.message[0] == "/") type = "cmd";
+      if (this.message_input[0] == "/") type = "cmd";
 
-      let channel_id = (await this.channels.find((e) => e.name == this.channel))
-        .id;
+      let channel = this.channels.find((e) => {
+        return e.name == this.channel;
+      });
 
-      await this.$axios
-        .post(
-          "channels/handleMessage",
-          {
-            channel_id: channel_id,
-            content: this.message,
-          },
-          {
-            "Content-Type": "application/json",
-          }
-        )
-        .then(async (res) => {
-          await this.socket.emit("NewMessage", {
-            channel_id: channel_id,
-          });
-          console.log("Message sent !");
-        })
-        .catch((error) => {
-          console.error(error);
-        });
-      this.message = "";
+      if (channel == undefined) return;
+
+      await this.socket.emit("NewMessage", {
+        target_id: channel.id,
+        content: this.message_input,
+      });
+      this.message_input = "";
+    },
+    async privateMessage() {
+      if (this.channel_input.length == 0) return;
+      this.socket.emit("PrivateMessage", {
+        target_id: 5,
+        content: this.message_input,
+      });
+      this.channel_input = "";
     },
   },
 };
