@@ -2,7 +2,7 @@
   <tr class="leaderboard__item">
     <td class="leaderboard__index">{{ index + 1 }}</td>
     <v-avatar size="60px" class="m-10 mr-5">
-      <img :src="this.user.avatar" alt="avatar" />
+      <img :src="user.avatar" alt="avatar" />
     </v-avatar>
     <td class="leaderboard__user">{{ user.username }}</td>
     <div v-if="!isUser">
@@ -25,7 +25,7 @@
 import Vue from "vue";
 import leaderboardVue from "../../pages/leaderboard.vue";
 
-export default {
+export default Vue.extend({
   name: "LeaderboardItem",
   data() {
     return {
@@ -35,6 +35,7 @@ export default {
         id: "",
         friends: [
           {
+            type: Object,
             id: "",
           },
         ],
@@ -52,15 +53,11 @@ export default {
     },
   },
   created: function () {
-    console.log("created Item from leaderboard");
-  },
-  mounted: function () {
     this.$axios
       .get("/users/profile")
       .then((res) => {
-        console.log("mounted + " + this.$props.user.id);
         this.thisUser = res.data;
-        console.log(JSON.stringify(this.thisUser));
+        this.thisUser.friends = res.data.friends;
         if (this.thisUser.id === this.user.id) {
           this.isUser = true;
         }
@@ -101,7 +98,12 @@ export default {
         });
     },
   },
-};
+  computed: {
+    userProfile(): string {
+      return `/profile/${this.user.username}`;
+    },
+  },
+});
 </script>
 
 <style scoped>

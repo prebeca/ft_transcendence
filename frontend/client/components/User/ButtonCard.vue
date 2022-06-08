@@ -20,24 +20,7 @@
             @click="sendRequest"
             :loading="loading1"
           >
-            Send Friend Request
-          </v-btn>
-          <v-btn
-            color="success"
-            width="200px"
-            v-else-if="!isFriend && requestReceived"
-            @click="acceptRequest"
-            :loading="loading1"
-          >
-            Accept Friend Request
-          </v-btn>
-          <v-btn
-            color="primary"
-            width="200px"
-            v-else-if="!isFriend && requestSent"
-            style="pointer-events: none"
-          >
-            Friend Request Sent
+            Add Friend
           </v-btn>
           <v-btn
             color="primary"
@@ -74,7 +57,9 @@
     </v-card-actions>
 
     <v-card-actions v-else>
-      <v-btn color="primary" width="200px"> EDIT YOUR PROFILE </v-btn>
+      <v-btn to="/user/edit" color="primary" width="200px">
+        EDIT YOUR PROFILE
+      </v-btn>
     </v-card-actions>
   </v-card>
 </template>
@@ -93,28 +78,32 @@ export default Vue.extend({
       requestReceived: false,
       loading1: false,
       loading2: false,
-      user: {
-        avatar: "",
+      currentUser: {
+        id: "",
       },
     };
+  },
+  props: {
+    user: {
+      type: Object,
+      required: true,
+    },
   },
   created: function () {
     this.$axios
       .get("/users/profile")
       .then((res) => {
         console.log(res.data);
-        this.user = res.data;
-        this.changeAvatar(res.data.avatar);
+        this.currentUser = res.data;
+        if (res.data.id === this.user.id) {
+          this.isUser = true;
+        }
       })
       .catch((error) => {
         console.error(error);
       });
   },
   methods: {
-    changeAvatar(filename: string) {
-      this.user.avatar =
-        `${process.env.API_URL}/users/profile/avatar/` + filename;
-    },
     async sendRequest() {
       this.loading1 = true;
       await new Promise((resolve) => setTimeout(resolve, 3000));
