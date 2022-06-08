@@ -5,8 +5,14 @@
       <img :src="user.avatar" alt="avatar" />
     </v-avatar>
     <td class="leaderboard__user">{{ user.username }}</td>
-    <v-btn text color="green" @click="addFriend">add Friend</v-btn>
-    <v-btn text color="error" @click="removeFriend">remove Friend</v-btn>
+    <div v-if="!isUser">
+      <v-btn v-if="isFriend === false" text color="green" @click="addFriend"
+        >add Friend</v-btn
+      >
+      <v-btn v-else text color="error" @click="removeFriend"
+        >remove Friend</v-btn
+      >
+    </div>
     <v-spacer></v-spacer>
     <td class="leaderboard__text">level</td>
     <td class="leaderboard__level">
@@ -15,12 +21,26 @@
   </tr>
 </template>
 
-<script>
+<script lang="ts">
 import Vue from "vue";
 import leaderboardVue from "../../pages/leaderboard.vue";
 
 export default {
   name: "LeaderboardItem",
+  data() {
+    return {
+      isFriend: false,
+      isUser: false,
+      thisUser: {
+        id: "",
+        friends: [
+          {
+            id: "",
+          },
+        ],
+      },
+    };
+  },
   props: {
     user: {
       type: Object,
@@ -31,6 +51,23 @@ export default {
       required: true,
     },
   },
+  created: function () {
+    this.$axios
+      .get("/users/profile")
+      .then((res) => {
+        this.thisUser = res.data;
+        if (this.thisUser.id === this.user.id) {
+          this.isUser = true;
+        }
+        for (let i = 0; i < this.thisUser.friends.length; i++) {
+          if (this.thisUser.friends[i].id === this.user.id)
+            this.isFriend = true;
+        }
+      })
+      .catch((error) => {
+        console.error(error);
+      });
+  },
   methods: {
     async addFriend() {
       this.$axios
@@ -39,6 +76,7 @@ export default {
         })
         .then((res) => {
           console.log(res);
+          this.isFriend = true;
         })
         .catch((error) => {
           console.log(error);
@@ -51,6 +89,7 @@ export default {
         })
         .then((res) => {
           console.log(res);
+          this.isFriend = false;
         })
         .catch((error) => {
           console.log(error);
