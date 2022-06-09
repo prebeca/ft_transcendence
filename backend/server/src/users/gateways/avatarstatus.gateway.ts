@@ -58,6 +58,11 @@ export class AvatarStatusGateway implements OnGatewayConnection, OnGatewayDiscon
 		this.server.emit("changeStatus" + userid, this.status.get(userid));
 	}
 
+	backToConnected(userid: number) {
+		this.status.set(userid, "connected");
+		this.server.emit("changeStatus" + userid, this.status.get(userid));
+	}
+
 	inGame(userid: number) {
 		console.log("inGame " + userid);
 		this.status.set(userid, "inGame");
