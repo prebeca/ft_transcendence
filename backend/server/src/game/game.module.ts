@@ -11,10 +11,12 @@ import { PlayerService } from './services/player.service';
 import { Player } from './entities/player.entity';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { GameGateway } from './gateways/game.gateway';
+import { UsersModule } from 'src/users/users.module';
 
 @Module({
   imports: [
     TypeOrmModule.forFeature([Player]),
+    UsersModule,
   ],
   controllers: [GameController, GameRoomController, PlayerController],
   providers: [

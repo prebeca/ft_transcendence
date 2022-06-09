@@ -9,7 +9,15 @@
       <v-menu bottom min-width="200px" rounded offset-y>
         <template v-slot:activator="{ on }">
           <v-btn icon x-large v-on="on">
-            <UserAvatarStatus :size="sizeOfAvatar" :user="user" :offset="18" />
+            <!-- <v-avatar>
+              <v-img :src="avatar"></v-img>
+            </v-avatar> -->
+            <UserAvatarStatus
+              v-if="user.id !== 0"
+              :size="sizeOfAvatar"
+              :user="user"
+              :offset="20"
+            />
           </v-btn>
         </template>
         <LayoutUserCard />
@@ -47,6 +55,7 @@ export default Vue.extend({
       title: "PONG GAME",
       sizeOfAvatar: "50px",
       user: {
+        id: 0,
         avatar: "",
       },
       drawer: false,
@@ -76,11 +85,13 @@ export default Vue.extend({
       ],
     };
   },
-  created: function () {
-    this.$axios
+  created: async function () {
+    await this.$axios
       .get("/users/profile")
       .then((res) => {
         console.log(res.data);
+        this.user.id = res.data.id;
+        console.log(this.user.id);
         this.changeAvatar(res.data.avatar);
       })
       .catch((error) => {

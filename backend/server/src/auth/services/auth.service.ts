@@ -29,15 +29,18 @@ export class AuthService {
 		};
 	}
 
-	async createCookie(response: Response, is42: boolean, code: string, user?: User): Promise<{ response: Response, created: boolean, istwofa: boolean }> {
+	async createCookie(response: Response, is42: boolean, code: string, user?: User): Promise<{ userid: number, response: Response, created: boolean, istwofa: boolean }> {
 		var token_client: string;
 		var userCookie: User = user;
+		var userid: number;
 		if (is42) {
 			const result: { jwt: { access_token: string }, user: User } = (await this.get42APIToken(code));
+			userid = result.user.id;
 			token_client = result.jwt.access_token;
 			var userCookie: User = { ...result.user as User };
 		}
 		else {
+			userid = user.id;
 			token_client = (await this.jwtGenerate({ email: user.email, id: user.id, isTwoFactorEnable: user.twofauser })).access_token;
 		}
 
@@ -53,6 +56,7 @@ export class AuthService {
 		});
 		let created: boolean = (userCookie.username) ? false : true;
 		return {
+			userid: userid,
 			response: response,
 			created: created,
 			istwofa: userCookie.twofauser

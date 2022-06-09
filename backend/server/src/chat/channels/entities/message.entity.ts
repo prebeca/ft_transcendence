@@ -5,7 +5,7 @@ export class MessageData {
 	type: string;
 	user_id: number;
 	username: string;
-	channel_id: number;
+	target_id: number;
 	channel_name: string;
 	content: string;
 }
@@ -24,8 +24,9 @@ export class Message {
 	@Column()
 	user_name: string;
 
+	// target_id can be either channel_id or user_id
 	@Column()
-	channel_id: number;
+	target_id: number;
 
 	@Column()
 	content: string;

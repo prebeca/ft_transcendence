@@ -35,6 +35,8 @@ export class WsJwtStrategy extends PassportStrategy(Strategy, "ws-jwt") {
 		});
 	}
 
+	public cookieExtractorAccessor = cookieExtractorWs;
+
 	async validate(payload: JwtPayload): Promise<User> {
 		if (!payload)
 			throw new UnauthorizedException("No credentials cookie found");
