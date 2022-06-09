@@ -1,7 +1,7 @@
 import { WebSocketGateway, WebSocketServer, OnGatewayConnection, OnGatewayDisconnect, SubscribeMessage, ConnectedSocket, MessageBody } from '@nestjs/websockets';
 import { Socket } from 'socket.io';
 import { Server } from 'socket.io';
-import { Inject, Logger, Req, UseGuards } from '@nestjs/common';
+import { Logger, Req, UseGuards } from '@nestjs/common';
 import { Request } from 'express';
 import { WsJwtAuthGuard } from 'src/auth/guards/ws-jwt-auth.guard';
 import { User } from '../entities/user.entity';
@@ -19,13 +19,14 @@ export class AvatarStatusGateway implements OnGatewayConnection, OnGatewayDiscon
 	@WebSocketServer()
 	server: Server;
 	private logger: Logger = new Logger("avatarStatusGateway");
-	public user_socket: Map<number, string> = new Map<number, string>();
+	private user_socket: Map<number, string> = new Map<number, string>();
+	private status: Map<number, string> = new Map<number, string>();
 
 	afterInit(server: Server) {
 		this.logger.log("avatar status socket init !");
 	}
 
-	handleDisconnect(client: Socket,) {
+	handleDisconnect(client: Socket) {
 		// const user: User = { ...req.user } as User;
 		// this.server.emit("changeStatus" + user.id, "deconnected");
 		console.log(`Client ${client.id} disconnected from avatar status`);
@@ -34,6 +35,7 @@ export class AvatarStatusGateway implements OnGatewayConnection, OnGatewayDiscon
 				console.log();
 				this.server.emit("changeStatus" + key, "disconnected")
 				this.user_socket.delete(key);
+				this.status.delete(key);
 			}
 		}
 	}
@@ -48,12 +50,24 @@ export class AvatarStatusGateway implements OnGatewayConnection, OnGatewayDiscon
 	** When one just logged itself, the server spread the information to
 	** the components that are listening to it
 	*/
-	onConnection(user: User) {
-		console.log("onConnection " + user.id);
-		const client_id: string = this.user_socket.get(user.id);
-		this.user_socket.set(user.id, "");
-		console.log("reseting new client id for user " + user.id);
-		this.server.emit("changeStatus" + user.id, "connected");
+	onConnection(userid: number) {
+		console.log("onConnection " + userid);
+		this.user_socket.set(userid, "");
+		this.status.set(userid, "connected");
+		console.log("reseting new client id for user " + userid);
+		this.server.emit("changeStatus" + userid, this.status.get(userid));
+	}
+
+	inGame(userid: number) {
+		console.log("inGame " + userid);
+		this.status.set(userid, "inGame");
+		this.server.emit("changeStatus" + userid, this.status.get(userid));
+	}
+
+	waiting(userid: number) {
+		console.log("inGameRoom " + userid);
+		this.status.set(userid, "inGameRoom");
+		this.server.emit("changeStatus" + userid, this.status.get(userid));
 	}
 
 	/*
@@ -70,7 +84,7 @@ export class AvatarStatusGateway implements OnGatewayConnection, OnGatewayDiscon
 		var status: string = "";
 		if (this.user_socket.has(user_id)) // if the user_id is in map (currently connected)
 		{
-			status = "connected";
+			status = this.status.get(user_id);
 		} else {
 			status = "disconnected";
 		}

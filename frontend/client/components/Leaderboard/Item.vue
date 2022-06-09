@@ -25,7 +25,6 @@
 <script lang="ts">
 import Vue from "vue";
 import leaderboardVue from "../../pages/leaderboard.vue";
-import { NuxtSocket } from "nuxt-socket-io";
 
 export default {
   name: "LeaderboardItem",

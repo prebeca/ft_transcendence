@@ -30,14 +30,14 @@ export class AuthController {
 	@Get('42callback')
 	@Redirect(`${process.env.APPLICATION_REDIRECT_URI}/login/complete-profile`, 302)
 	async authenticate42User(@Res({ passthrough: true }) response: Response, @Query('code') code: string) {
-		const ret: { user: User, response: Response, created: boolean, istwofa: boolean } = await this.authService.createCookie(response, true, code, null);
+		const ret: { userid: number, response: Response, created: boolean, istwofa: boolean } = await this.authService.createCookie(response, true, code, null);
 		response = ret.response;
 		if (!response)
 			throw new UnauthorizedException("JWT Generation error");
 		if (ret.istwofa)
 			return { url: `${process.env.APPLICATION_REDIRECT_URI}/login/2fa` };
 		else if (!ret.created) {
-			this.gatewayStatus.onConnection(ret.user);
+			this.gatewayStatus.onConnection(ret.userid);
 			return { url: `${process.env.APPLICATION_REDIRECT_URI}/home` };
 		}
 	}
@@ -56,11 +56,11 @@ export class AuthController {
 		const user: User = { ...req.user as User };
 		if (!user)
 			throw new UnauthorizedException("Credentials don't match");
-		const ret: { response: Response, istwofa: boolean } = await this.authService.createCookie(response, false, null, user);
+		const ret: { userid: number, response: Response, created: boolean, istwofa: boolean } = await this.authService.createCookie(response, false, null, user);
 		response = ret.response;
 		if (!response)
 			throw new UnauthorizedException("JWT Generation error");
-		this.gatewayStatus.onConnection(user);
+		this.gatewayStatus.onConnection(ret.userid);
 		return ret.istwofa;
 	}
 }
