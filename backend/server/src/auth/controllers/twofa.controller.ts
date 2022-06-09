@@ -1,12 +1,10 @@
 import { Body, ClassSerializerInterceptor, Controller, Post, Req, Res, UnauthorizedException, UseGuards, UseInterceptors, ValidationPipe } from "@nestjs/common";
-import { ApiBearerAuth, ApiTags } from "@nestjs/swagger";
 import { JwtAuthGuard } from "../guards/jwt-auth.guard";
 import { User } from "src/users/entities/user.entity";
 import { TwoFactorAuthService } from "../services/twofa.service";
 import { TwoFaAuthDto } from "../dto/twofa-auth.dto";
 import { Request, Response } from "express";
 
-@ApiTags('Two FA')
 @Controller('2fa')
 @UseInterceptors(ClassSerializerInterceptor)
 export class TwoFactorAuthController {
@@ -44,7 +42,6 @@ export class TwoFactorAuthController {
 		if (!isCodeValid) {
 			throw new UnauthorizedException('Invalid authentication code');
 		}
-		console.log("code valid");
 		await this.twoFactorAuthService.signIn(user, true, response);
 		return isCodeValid;
 	}

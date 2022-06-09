@@ -1,8 +1,6 @@
 import {
-	Body, Controller, Get, Req, Param, Post, UsePipes, ValidationPipe,
-	UploadedFile, UseInterceptors, StreamableFile, Res
+	Controller, Get, Req, Param, Post, UploadedFile, UseInterceptors, StreamableFile, Res
 } from '@nestjs/common';
-import { UserDto } from '../dto/users.dto';
 import { UsersService } from 'src/users/services/users.service';
 import { UseGuards } from '@nestjs/common';
 import { JwtAuthGuard } from 'src/auth/guards/jwt-auth.guard';
@@ -14,8 +12,6 @@ import { User } from '../entities/user.entity';
 import { ChannelsService } from 'src/chat/channels/services/channels.service';
 import { Channel } from 'src/typeorm';
 import { JwtTwoFactorAuthGuard } from 'src/auth/guards/jwt-twofa.guard';
-import { MessageBody } from '@nestjs/websockets';
-import { Socket } from 'socket.io';
 
 @Controller('users')
 export class UsersController {
@@ -29,7 +25,7 @@ export class UsersController {
 		return await this.userService.getUsers();
 	}
 
-	@UseGuards(JwtAuthGuard)
+	@UseGuards(JwtTwoFactorAuthGuard)
 	@Get('profile')
 	getProfile(@Req() req: Request): User {
 		const user: User = { ... (req.user as User) };
@@ -88,12 +84,6 @@ export class UsersController {
 	async getChannels(@Req() req: Request): Promise<Channel[]> {
 		const channels: number[] = (await this.userService.findUsersById(req.user["id"])).channels;
 		return this.channelService.getChannelsById(channels);
-	}
-
-	@Post('create')
-	@UsePipes(ValidationPipe)
-	createUsers(@Body() userDto: UserDto): Promise<User> {
-		return this.userService.createUser(userDto);
 	}
 
 	@Get('deleteall')

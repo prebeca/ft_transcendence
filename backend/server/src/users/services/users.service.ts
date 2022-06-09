@@ -7,7 +7,6 @@ import { createReadStream } from 'fs';
 import { ReadStream } from 'typeorm/platform/PlatformTools';
 import { UpdateUserDto } from '../dto/updateUser.dto';
 import { Player } from 'src/game/entities/player.entity';
-import { Socket } from 'socket.io';
 
 @Injectable()
 export class UsersService {

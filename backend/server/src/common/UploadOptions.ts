@@ -1,16 +1,16 @@
 import { extname } from 'path';
 import { existsSync, mkdirSync } from 'fs';
-import { diskStorage } from 'multer';
+import { diskStorage, StorageEngine } from 'multer';
 import { v4 as uuid } from 'uuid';
 import { HttpException, HttpStatus } from '@nestjs/common';
 
 // Multer configuration
-export const multerConfig = {
+export const multerConfig: { dest: string } = {
     dest: 'src/avatar/',
 };
 
 // Multer upload options
-export const multerOptions = {
+export const multerOptions: { limits: { fileSize: number }, fileFilter: any, storage: StorageEngine } = {
     // Enable file size limits
     limits: {
         fileSize: 400000,

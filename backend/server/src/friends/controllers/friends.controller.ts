@@ -1,5 +1,5 @@
 import { Controller, Get, Post, Req, UseGuards } from '@nestjs/common';
-import { JwtAuthGuard } from 'src/auth/guards/jwt-auth.guard';
+import { JwtTwoFactorAuthGuard } from 'src/auth/guards/jwt-twofa.guard';
 import { User } from 'src/users/entities/user.entity';
 import { FriendsService } from '../services/friends.service';
 import { Request } from 'express';
@@ -10,30 +10,22 @@ export class FriendsController {
 		private readonly friendsService: FriendsService,
 	) { }
 
-	/*
-	** Listing
-	*/
-	@UseGuards(JwtAuthGuard)
+	@UseGuards(JwtTwoFactorAuthGuard)
 	@Get()
 	getFriends(@Req() req: Request): User[] {
 		const user: User = { ... (req.user as User) };
 		return this.friendsService.getFriends(user);
 	}
 
-	@UseGuards(JwtAuthGuard)
+	@UseGuards(JwtTwoFactorAuthGuard)
 	@Post('add')
-	async addFriend(@Req() req: Request) {
-		console.log(req.body);
+	async addFriend(@Req() req: Request): Promise<void> {
 		return await this.friendsService.addFriend(req.user as User, req.body.user_id_to_add);
 	}
 
-	@UseGuards(JwtAuthGuard)
+	@UseGuards(JwtTwoFactorAuthGuard)
 	@Post('remove')
-	async removeFriend(@Req() req: Request) {
-		console.log(req.body);
+	async removeFriend(@Req() req: Request): Promise<void> {
 		return await this.friendsService.removeFriend(req.user as User, req.body.user_id_to_remove);
 	}
-	/*
-	** ADD - REMOVE
-	*/
 }

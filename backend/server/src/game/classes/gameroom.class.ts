@@ -5,7 +5,6 @@ import BallI from "../interfaces/ballI.interface";
 import GameI from "../interfaces/gameI.interface";
 import PadI from "../interfaces/padI.interface";
 import { PlayerInfo } from "../interfaces/playerinfo.interface";
-import { GameService } from "../services/game.service";
 import { PlayerClass } from "./player.class";
 
 export enum GAMEROOMSTATUS { WAITING = "WAITING", FULL = "FULL", INGAME = "INGAME" };

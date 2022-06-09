@@ -26,8 +26,7 @@ export class JwtTwoFaStrategy extends PassportStrategy(Strategy, 'jwt-twofa') {
 	}
 
 	async validate(payload: JwtPayload): Promise<User> {
-		const { email } = payload;
-		const user = await this.userService.findOneByEmail(email);
+		const user = await this.userService.findUsersByIdWithRelations(payload.id);
 
 		if (!user) {
 			throw new UnauthorizedException("user not found")

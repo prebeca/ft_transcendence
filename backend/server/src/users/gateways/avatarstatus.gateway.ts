@@ -22,17 +22,14 @@ export class AvatarStatusGateway implements OnGatewayConnection, OnGatewayDiscon
 	private user_socket: Map<number, string> = new Map<number, string>();
 	private status: Map<number, string> = new Map<number, string>();
 
-	afterInit(server: Server) {
+	afterInit(server: Server): void {
 		this.logger.log("avatar status socket init !");
 	}
 
-	handleDisconnect(client: Socket) {
-		// const user: User = { ...req.user } as User;
-		// this.server.emit("changeStatus" + user.id, "deconnected");
-		console.log(`Client ${client.id} disconnected from avatar status`);
+	handleDisconnect(client: Socket): void {
+		this.logger.log(`Client ${client.id} disconnected from avatar status`);
 		for (const [key, value] of this.user_socket) {
 			if (value === client.id) {
-				console.log();
 				this.server.emit("changeStatus" + key, "disconnected")
 				this.user_socket.delete(key);
 				this.status.delete(key);
@@ -40,37 +37,35 @@ export class AvatarStatusGateway implements OnGatewayConnection, OnGatewayDiscon
 		}
 	}
 
-	handleConnection(client: Socket, ...args: any[]) {
-		// const user: User = { ...req.user } as User;
-		// this.server.emit("changeStatus" + user.id, "connected");
-		console.log(`Client ${client.id} connected to avatar status`);
+	handleConnection(client: Socket, ...args: any[]): void {
+		this.logger.log(`Client ${client.id} connected to avatar status`);
 	}
 
 	/*
 	** When one just logged itself, the server spread the information to
 	** the components that are listening to it
 	*/
-	onConnection(userid: number) {
-		console.log("onConnection " + userid);
+	onConnection(userid: number): void {
+		this.logger.log("onConnection " + userid);
 		this.user_socket.set(userid, "");
 		this.status.set(userid, "connected");
-		console.log("reseting new client id for user " + userid);
+		this.logger.log("reseting new client id for user " + userid);
 		this.server.emit("changeStatus" + userid, this.status.get(userid));
 	}
 
-	backToConnected(userid: number) {
+	backToConnected(userid: number): void {
 		this.status.set(userid, "connected");
 		this.server.emit("changeStatus" + userid, this.status.get(userid));
 	}
 
-	inGame(userid: number) {
-		console.log("inGame " + userid);
+	inGame(userid: number): void {
+		this.logger.log("inGame " + userid);
 		this.status.set(userid, "inGame");
 		this.server.emit("changeStatus" + userid, this.status.get(userid));
 	}
 
-	waiting(userid: number) {
-		console.log("inGameRoom " + userid);
+	waiting(userid: number): void {
+		this.logger.log("inGameRoom " + userid);
 		this.status.set(userid, "inGameRoom");
 		this.server.emit("changeStatus" + userid, this.status.get(userid));
 	}
@@ -80,19 +75,17 @@ export class AvatarStatusGateway implements OnGatewayConnection, OnGatewayDiscon
 	*/
 	@UseGuards(WsJwtAuthGuard)
 	@SubscribeMessage("information")
-	emitInformationToUser(@Req() req: Request, @MessageBody() user_id: number, @ConnectedSocket() client: Socket) {
+	emitInformationToUser(@Req() req: Request, @MessageBody() user_id: number, @ConnectedSocket() client: Socket): void {
 		const user: User = { ...req.user as User };
-		console.log(user_id);
+		this.logger.log(user_id);
 		if (user.id === user_id) {
 			this.user_socket.set(user.id, client.id);
 		}
 		var status: string = "";
-		if (this.user_socket.has(user_id)) // if the user_id is in map (currently connected)
-		{
+		if (this.user_socket.has(user_id))
 			status = this.status.get(user_id);
-		} else {
+		else
 			status = "disconnected";
-		}
 		client.emit("changeStatus" + user_id, status);
 	}
 }

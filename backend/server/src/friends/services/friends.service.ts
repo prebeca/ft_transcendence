@@ -1,6 +1,5 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { UserDto } from 'src/users/dto/users.dto';
 import { User } from 'src/users/entities/user.entity';
 import { Repository } from 'typeorm';
 
@@ -29,10 +28,8 @@ export class FriendsService {
 
 	isFriend(user: User, other_user: User): boolean {
 		if (user.friends.find(usert => usert.id === other_user.id)) {
-			console.log("other_user is present in friends from user");
 			return true;
 		}
-		console.log("other_user is not present in friends from user");
 		return false;
 	}
 
@@ -42,6 +39,5 @@ export class FriendsService {
 			return;
 		user.friends.push(user_to_add);
 		await this.userRepository.save(user);
-		console.log(user.friends);
 	}
 }
