@@ -1,10 +1,9 @@
 <template>
   <tr class="leaderboard__item">
     <td class="leaderboard__index">{{ index + 1 }}</td>
-    <UserAvatarStatus :size="sizeOfAvatar" :user="user" :offset="20" />
-    <!-- <v-avatar size="60px" class="m-10 mr-5">
-      <img :src="this.user.avatar" alt="avatar" />
-    </v-avatar> -->
+    <router-link :to="userProfile" class="text-decoration-none">
+      <UserAvatarStatus :size="sizeOfAvatar" :user="user" :offset="20" />
+    </router-link>
     <td class="leaderboard__user">{{ user.username }}</td>
     <div v-if="!isUser">
       <v-btn v-if="isFriend === false" text color="green" @click="addFriend"
