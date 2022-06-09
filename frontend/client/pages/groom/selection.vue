@@ -35,6 +35,9 @@
                 Join an existing game</v-btn
               >
             </div>
+            <v-btn color="accent" class="mr-5" @click="matchmaking">
+              Matchmaking
+            </v-btn>
           </v-card>
         </v-stepper-content>
 
@@ -73,6 +76,18 @@ export default Vue.extend({
     return {
       e1: 1,
     };
+  },
+  methods: {
+    async matchmaking() {
+      this.$axios
+        .get("/gameroom/matchmaking")
+        .then((res) => {
+          this.$router.push({ path: "/groom/room", query: { name: res.data } });
+        })
+        .catch((error) => {
+          console.error(error);
+        });
+    },
   },
 });
 </script>

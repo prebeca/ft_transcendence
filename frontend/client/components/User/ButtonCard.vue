@@ -16,19 +16,12 @@
           <v-btn
             color="success"
             width="200px"
-            v-if="!isFriend && !requestSent && !requestReceived"
-            @click="sendRequest"
-            :loading="loading1"
+            v-if="isFriend === false"
+            @click="addFriend"
           >
             Add Friend
           </v-btn>
-          <v-btn
-            color="primary"
-            width="200px"
-            v-else
-            @click="removeFriend"
-            :loading="loading1"
-          >
+          <v-btn color="primary" width="200px" v-else @click="removeFriend">
             Remove Friend
           </v-btn>
         </div>
@@ -38,8 +31,7 @@
             color="accent"
             width="200px"
             v-if="!isBlocked"
-            @click="blockUser"
-            :loading="loading2"
+            @click="isBlocked = true"
           >
             Block User
           </v-btn>
@@ -47,8 +39,7 @@
             color="primary"
             width="200px"
             v-else
-            @click="unblockUser"
-            :loading="loading2"
+            @click="isBlocked = false"
           >
             Unblock User
           </v-btn>
@@ -74,12 +65,13 @@ export default Vue.extend({
       isUser: false,
       isFriend: false,
       isBlocked: false,
-      requestSent: false,
-      requestReceived: false,
-      loading1: false,
-      loading2: false,
       currentUser: {
         id: "",
+        friends: [
+          {
+            id: "",
+          },
+        ],
       },
     };
   },
@@ -98,43 +90,41 @@ export default Vue.extend({
         if (res.data.id === this.user.id) {
           this.isUser = true;
         }
+        for (let i = 0; i < this.currentUser.friends.length; i++) {
+          if (this.currentUser.friends[i].id === this.user.id)
+            this.isFriend = true;
+        }
       })
       .catch((error) => {
         console.error(error);
       });
   },
   methods: {
-    async sendRequest() {
-      this.loading1 = true;
-      await new Promise((resolve) => setTimeout(resolve, 3000));
-      this.loading1 = false;
-      this.requestSent = true;
-    },
-    async acceptRequest() {
-      this.loading1 = true;
-      await new Promise((resolve) => setTimeout(resolve, 3000));
-      this.loading1 = false;
-      (this.requestSent = false),
-        (this.requestReceived = false),
-        (this.isFriend = true);
+    async addFriend() {
+      this.$axios
+        .post("/friends/add", {
+          user_id_to_add: this.user.id,
+        })
+        .then((res) => {
+          console.log(res);
+          this.isFriend = true;
+        })
+        .catch((error) => {
+          console.log(error);
+        });
     },
     async removeFriend() {
-      this.loading1 = true;
-      await new Promise((resolve) => setTimeout(resolve, 3000));
-      this.loading1 = false;
-      this.isFriend = false;
-    },
-    async blockUser() {
-      this.loading2 = true;
-      await new Promise((resolve) => setTimeout(resolve, 3000));
-      this.loading2 = false;
-      this.isBlocked = true;
-    },
-    async unblockUser() {
-      this.loading2 = true;
-      await new Promise((resolve) => setTimeout(resolve, 3000));
-      this.loading2 = false;
-      this.isBlocked = false;
+      await this.$axios
+        .post("/friends/remove", {
+          user_id_to_remove: this.user.id,
+        })
+        .then((res) => {
+          console.log(res);
+          this.isFriend = false;
+        })
+        .catch((error) => {
+          console.log(error);
+        });
     },
   },
 });

@@ -2,7 +2,7 @@
   <router-link :to="userProfile" class="text-decoration-none">
     <div class="d-flex flex-column align-center">
       <v-avatar size="80">
-        <img alt="friend-avatar" :src="friend.avatar" />
+        <img alt="friend-avatar" :src="friendAvatar" />
       </v-avatar>
       <h3 class="mt-2 info--text">
         {{ friend.username }}
@@ -23,6 +23,9 @@ export default Vue.extend({
   computed: {
     userProfile(): string {
       return `/profile/${this.friend.username}`;
+    },
+    friendAvatar(): string {
+      return `${process.env.API_URL}/users/profile/avatar/${this.friend.avatar}`;
     },
   },
 });
