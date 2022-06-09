@@ -1,9 +1,10 @@
 <template>
   <tr class="leaderboard__item">
     <td class="leaderboard__index">{{ index + 1 }}</td>
-    <v-avatar size="60px" class="m-10 mr-5">
-      <img :src="user.avatar" alt="avatar" />
-    </v-avatar>
+    <UserAvatarStatus :size="sizeOfAvatar" :user="user" :offset="20" />
+    <!-- <v-avatar size="60px" class="m-10 mr-5">
+      <img :src="this.user.avatar" alt="avatar" />
+    </v-avatar> -->
     <td class="leaderboard__user">{{ user.username }}</td>
     <div v-if="!isUser">
       <v-btn v-if="isFriend === false" text color="green" @click="addFriend"
@@ -29,6 +30,7 @@ export default Vue.extend({
   name: "LeaderboardItem",
   data() {
     return {
+      sizeOfAvatar: "60px",
       isFriend: false,
       isUser: false,
       thisUser: {
@@ -52,12 +54,11 @@ export default Vue.extend({
       required: true,
     },
   },
-  created: function () {
+  mounted: function () {
     this.$axios
       .get("/users/profile")
       .then((res) => {
         this.thisUser = res.data;
-        this.thisUser.friends = res.data.friends;
         if (this.thisUser.id === this.user.id) {
           this.isUser = true;
         }
@@ -77,7 +78,6 @@ export default Vue.extend({
           user_id_to_add: this.user.id,
         })
         .then((res) => {
-          console.log(res);
           this.isFriend = true;
         })
         .catch((error) => {
@@ -90,7 +90,6 @@ export default Vue.extend({
           user_id_to_remove: this.user.id,
         })
         .then((res) => {
-          console.log(res);
           this.isFriend = false;
         })
         .catch((error) => {

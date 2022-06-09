@@ -19,6 +19,6 @@ import { AvatarStatusGateway } from './gateways/avatarstatus.gateway';
 	],
 	controllers: [UsersController],
 	providers: [UsersService, UserDto, AvatarStatusGateway],
-	exports: [UsersService, UserDto]
+	exports: [UsersService, UserDto, AvatarStatusGateway]
 })
 export class UsersModule { }

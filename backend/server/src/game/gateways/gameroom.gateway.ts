@@ -1,4 +1,4 @@
-import { Logger, Req, UseGuards } from "@nestjs/common";
+import { Inject, Logger, Req, UseGuards } from "@nestjs/common";
 import { ConnectedSocket, MessageBody, OnGatewayConnection, OnGatewayDisconnect, SubscribeMessage, WebSocketGateway, WebSocketServer, WsResponse } from "@nestjs/websockets";
 import { Server, Socket } from "socket.io";
 import { WsJwtAuthGuard } from "src/auth/guards/ws-jwt-auth.guard";
@@ -8,6 +8,7 @@ import { PlayerClass } from "../classes/player.class";
 import { GameRoomService } from "../services/gameroom.service";
 import { PlayerInfo } from "../interfaces/playerinfo.interface";
 import { Request } from "express";
+import { AvatarStatusGateway } from "src/users/gateways/avatarstatus.gateway";
 
 @WebSocketGateway(42041, {
 	cors: {
@@ -20,6 +21,10 @@ export class GameRoomGateway implements OnGatewayConnection, OnGatewayDisconnect
 	) { }
 
 	@WebSocketServer() server: Server;
+
+
+	@Inject(AvatarStatusGateway)
+	private gatewayStatus: AvatarStatusGateway;
 
 	private logger: Logger = new Logger("gameRoomGateway"); // no idea what use it has
 
@@ -69,6 +74,7 @@ export class GameRoomGateway implements OnGatewayConnection, OnGatewayDisconnect
 			if (player) {
 				console.log("sending pleaving");
 				this.server.to(data).emit("p" + player.player_number + "leaving", {});
+				this.gatewayStatus.onConnection(player.userid);
 			}
 			gameRoom.deletePlayer(client.id);
 			if (gameRoom.nbPlayer === 1)
@@ -98,6 +104,7 @@ export class GameRoomGateway implements OnGatewayConnection, OnGatewayDisconnect
 		if (gameRoom.nbPlayer < this.gameRoomService.getPPG()) {
 			const user: User = { ... (req.user as User) };
 			gameRoom.addPlayerToRoom(client.id, user);
+			this.gatewayStatus.waiting(user.id);
 			if (gameRoom.nbPlayer === 2) {
 				gameRoom.status = GAMEROOMSTATUS.FULL;
 			}

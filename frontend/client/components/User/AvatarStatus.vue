@@ -1,10 +1,9 @@
 <template>
   <div>
-    <v-badge color="green" bottom :offset-x="offset" :offset-y="offset">
+    <v-badge :color="status_color" bottom :offset-x="offset" :offset-y="offset">
       <v-avatar :size="size">
         <img :src="user.avatar" alt="avatar" />
       </v-avatar>
-      <!-- <p>{{ this.status }}</p> -->
     </v-badge>
   </div>
 </template>
@@ -24,8 +23,13 @@ import Vue from "vue";
 export default Vue.extend({
   data() {
     return {
-      socket: {} as NuxtSocket,
-      status: "connected",
+      statusSocket: this.$nuxtSocket({
+        name: "socketstatus",
+        withCredentials: true,
+        persist: "myAvatarStatusSocket",
+      }),
+      status: "",
+      status_color: "gray",
     };
   },
   props: {
@@ -41,26 +45,28 @@ export default Vue.extend({
     },
   },
   created() {
-    console.log("created avatar Status component");
-    this.socket = this.$nuxtSocket({
-      name: "avatarstatus",
-      withCredentials: true,
-      persist: "myAvatarStatusSocket",
+    console.log(this.user.id);
+    this.statusSocket.on("changeStatus" + this.user.id, (data) => {
+      console.log(
+        "change in status (or avatar) for user " + this.user.id,
+        "data = " + data
+      );
+      this.status = data;
+      if (this.status === "connected") this.status_color = "green";
+      else if (this.status === "disconnected") this.status_color = "grey";
+      else if (this.status === "inGame") this.status_color = "yellow";
+      else this.status_color = "blue";
     });
-  },
-  beforeMount() {
-    console.log("beforeMount");
-    this.socket.on("handshake", (data) => {
+    this.statusSocket.on("handshake", (data) => {
       console.log(data);
     });
   },
   mounted() {
-    console.log("mouted avatar Status component");
-    console.log(this.user);
+    this.statusSocket.emit("information", this.user.id);
+    console.log("ask for info");
   },
   beforeDestroy() {
     console.log("BeforeDestruction: leaving avatar Status component");
-    // this.socket.emit("leaveRoom", this.roomid);
   },
 });
 </script>

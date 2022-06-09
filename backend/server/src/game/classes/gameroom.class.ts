@@ -61,6 +61,7 @@ export class GameRoomClass {
 				return {
 					player_number: player.player_number,
 					username: player.username,
+					userid: player.userid,
 					avatar: player.avatar,
 					level: player.level,
 					losses: player.losses,

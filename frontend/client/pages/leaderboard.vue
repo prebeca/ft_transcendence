@@ -35,6 +35,7 @@ export default Vue.extend({
     return {
       users: [
         {
+          id: "",
           username: "",
           avatar: "",
           player: {

@@ -1,12 +1,14 @@
-import { Logger } from "@nestjs/common";
+import { Inject, Logger } from "@nestjs/common";
 import { ConnectedSocket, MessageBody, OnGatewayConnection, OnGatewayDisconnect, SubscribeMessage, WebSocketGateway, WebSocketServer } from "@nestjs/websockets";
 import { time, timeLog } from "console";
 import { Server, Socket } from "socket.io";
+import { AvatarStatusGateway } from "src/users/gateways/avatarstatus.gateway";
 import { GameRoomClass } from "../classes/gameroom.class";
 import { Game } from "../entities/game.entity";
 import BallI from "../interfaces/ballI.interface";
 import GameI from "../interfaces/gameI.interface";
 import PadI from "../interfaces/padI.interface";
+import { PlayerInfo } from "../interfaces/playerinfo.interface";
 import { GameRoomService } from "../services/gameroom.service";
 
 export enum GameStatus {
@@ -163,6 +165,9 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
 	@WebSocketServer() server: Server;
 	private logger: Logger = new Logger("gameGateway");
 
+	@Inject(AvatarStatusGateway)
+	private gatewayStatus: AvatarStatusGateway;
+
 	afterInit(server: Server) {
 		this.gameRoomService.clear();
 		this.logger.log("game socket init !");
@@ -202,12 +207,14 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
 		let game: GameI = gameRoom.getGame();
 
 		if (!game.pad1.id || !game.pad2.id) {
-			if (gameRoom.getPlayerInfoById(client.id).player_number === 1) {
+			var playerinfo: PlayerInfo = gameRoom.getPlayerInfoById(client.id);
+			if (playerinfo.player_number === 1) {
 				game.pad1.id = client.id;
 				initGame(game);
 			}
-			else if (gameRoom.getPlayerInfoById(client.id).player_number === 2)
+			else if (playerinfo.player_number === 2)
 				game.pad2.id = client.id;
+			this.gatewayStatus.inGame(playerinfo.userid);
 		}
 		client.emit("initDone", game);
 	}
