@@ -7,7 +7,7 @@
           <UserInfoCard :user="user" :player="user.player" />
         </div>
 
-        <UserMatchHistory :user="user" />
+        <UserMatchHistory :user="user" :friends="user.friends" />
       </div>
     </v-card>
   </div>
@@ -24,6 +24,7 @@ export default Vue.extend({
       user: {
         avatar: "",
         player: {},
+        friends: [],
       },
     };
   },
