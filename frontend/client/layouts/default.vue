@@ -16,6 +16,7 @@
               v-if="user.id !== 0"
               :size="sizeOfAvatar"
               :user="user"
+              :offset="20"
             />
           </v-btn>
         </template>
@@ -52,7 +53,7 @@ export default Vue.extend({
   data() {
     return {
       title: "PONG GAME",
-      sizeOfAvatar: "48px",
+      sizeOfAvatar: "50px",
       user: {
         id: 0,
         avatar: "",

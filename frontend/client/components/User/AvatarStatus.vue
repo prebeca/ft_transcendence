@@ -1,9 +1,10 @@
 <template>
   <div>
-    <v-avatar :size="size">
-      <img :src="user.avatar" alt="avatar" />
-    </v-avatar>
-    <p>{{ this.user.id }}-{{ this.status }}</p>
+    <v-badge :color="status_color" bottom :offset-x="offset" :offset-y="offset">
+      <v-avatar :size="size">
+        <img :src="user.avatar" alt="avatar" />
+      </v-avatar>
+    </v-badge>
   </div>
 </template>
 
@@ -28,6 +29,7 @@ export default Vue.extend({
         persist: "myAvatarStatusSocket",
       }),
       status: "",
+      status_color: "gray",
     };
   },
   props: {
@@ -36,6 +38,9 @@ export default Vue.extend({
     },
     user: {
       type: Object,
+      required: true,
+    },
+    offset: {
       required: true,
     },
   },
@@ -47,6 +52,10 @@ export default Vue.extend({
         "data = " + data
       );
       this.status = data;
+      if (this.status === "connected") this.status_color = "green";
+      else if (this.status === "disconnected") this.status_color = "grey";
+      else if (this.status === "inGame") this.status_color = "yellow";
+      else this.status_color = "blue";
     });
     this.statusSocket.on("handshake", (data) => {
       console.log(data);

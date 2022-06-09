@@ -1,7 +1,7 @@
 <template>
   <tr class="leaderboard__item">
     <td class="leaderboard__index">{{ index + 1 }}</td>
-    <UserAvatarStatus :size="sizeOfAvatar" :user="user" />
+    <UserAvatarStatus :size="sizeOfAvatar" :user="user" :offset="20" />
     <!-- <v-avatar size="60px" class="m-10 mr-5">
       <img :src="this.user.avatar" alt="avatar" />
     </v-avatar> -->
@@ -26,7 +26,7 @@
 import Vue from "vue";
 import leaderboardVue from "../../pages/leaderboard.vue";
 
-export default {
+export default Vue.extend({
   name: "LeaderboardItem",
   data() {
     return {
@@ -37,6 +37,7 @@ export default {
         id: "",
         friends: [
           {
+            type: Object,
             id: "",
           },
         ],
@@ -96,7 +97,12 @@ export default {
         });
     },
   },
-};
+  computed: {
+    userProfile(): string {
+      return `/profile/${this.user.username}`;
+    },
+  },
+});
 </script>
 
 <style scoped>
