@@ -86,8 +86,7 @@ export class UsersController {
 	@UseGuards(JwtAuthGuard)
 	@Get('channels')
 	async getChannels(@Req() req: Request): Promise<Channel[]> {
-		const channels: number[] = (await this.userService.findUsersById(req.user["id"])).channels;
-		return this.channelService.getChannelsById(channels);
+		return (await this.userService.findUsersById(req.user["id"])).channels;
 	}
 
 	@Post('create')

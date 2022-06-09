@@ -1,4 +1,5 @@
-import { Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
+import { User } from 'src/typeorm';
+import { Column, Entity, JoinTable, ManyToMany, ManyToOne, PrimaryGeneratedColumn } from 'typeorm';
 import { MessageData } from './message.entity';
 
 
@@ -35,15 +36,28 @@ export class Channel {
 	@Column({ nullable: true })
 	image_url: string;
 
-	@Column({ nullable: true })
-	owner: number;
+	@ManyToOne(() => User)
+	@JoinTable()
+	owner: User
 
-	@Column("bigint", { default: [], array: true })
-	admin_ids: number[];
+	// @Column("bigint", { default: [], array: true })
+	// admin_ids: number[];
 
-	@Column("bigint", { default: [], array: true })
-	invited_ids: number[];
+	@ManyToMany(() => User)
+	@JoinTable()
+	admins: User[]
 
-	@Column("bigint", { default: [], array: true })
-	users_ids: number[];
+	@ManyToMany(() => User)
+	@JoinTable()
+	invited: User[]
+
+	// @Column("bigint", { default: [], array: true })
+	// invited_ids: number[];
+
+	@ManyToMany(() => User)
+	@JoinTable()
+	users: User[]
+
+	// @Column("bigint", { default: [], array: true })
+	// users_ids: number[];
 }

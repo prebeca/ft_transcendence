@@ -3,6 +3,7 @@ import { Server, Socket } from 'socket.io';
 import { ChannelsService } from 'src/chat/channels/services/channels.service';
 import { User, Channel } from 'src/typeorm';
 import { UsersService } from 'src/users/services/users.service';
+import { UsingJoinColumnIsNotAllowedError } from 'typeorm';
 import { CreateMessageDto } from '../channels/dto/messages.dto';
 import { Message, MessageData } from '../channels/entities/message.entity';
 
@@ -11,7 +12,7 @@ export class SocketService {
 	constructor(private readonly channelService: ChannelsService, private readonly userService: UsersService) { }
 
 	async joinChannel(user: User, data: CreateMessageDto, client: Socket): Promise<Channel> {
-		let channel = await this.channelService.joinChannel(user, data)
+		let channel = await this.channelService.findOneById(data.target_id);
 		if (channel != null) {
 			client.join(channel.id.toString())							// join socket room
 		}
@@ -19,14 +20,14 @@ export class SocketService {
 	}
 
 	async leaveChannel(user: User, data: CreateMessageDto, client: Socket): Promise<Channel> {
-		let channel = await this.channelService.leaveChannel(user, data)
+		let channel = await this.channelService.findOneById(data.target_id);
 		if (channel != null)
 			client.leave(channel.id.toString())							// leave socket room
 		return channel
 	}
 
 	async newMessage(user: User, messageDto: CreateMessageDto, server: Server) {
-		let message
+		let message: Message;
 		try {
 			message = await this.channelService.handleMessage(user, messageDto)
 		} catch (error) {
@@ -35,7 +36,18 @@ export class SocketService {
 		}
 		console.log("NewMessage:")
 		console.log(message)
-		server.to(message.target_id.toString()).emit('NewMessage', message);
+
+		// manage block users
+		const socket_id = await server.to(message.target_id.toString()).allSockets()
+
+		let except = [];
+		for (let item of socket_id) {
+			let other_user = await this.userService.findUsersBySocketId(item)
+			if (other_user && other_user.blocked.find(e => { return e.id == user.id }) != undefined)
+				except.push(item)
+		}
+		console.log(except)
+		server.to(message.target_id.toString()).except(except).emit('NewMessage', message);
 	}
 
 	async invite(user: User, messageDto: CreateMessageDto, server: Server) {

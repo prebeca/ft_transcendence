@@ -1,5 +1,6 @@
 import { Exclude } from 'class-transformer';
 import { Player } from 'src/game/entities/player.entity';
+import { Channel } from 'src/typeorm';
 import { Column, Entity, JoinColumn, JoinTable, ManyToMany, OneToOne, PrimaryGeneratedColumn } from 'typeorm';
 
 @Entity()
@@ -47,13 +48,16 @@ export class User {
 	@Column({ nullable: true })
 	twofasecret: string
 
-	@Column("bigint", { default: {}, array: true })
-	channels: number[];
+	@ManyToMany(() => Channel)
+	@JoinTable()
+	channels: Channel[]
+
+	// @Column("bigint", { default: {}, array: true })
+	// channels: number[];
 
 	@OneToOne(() => Player, {
 		cascade: ["insert"],
 	})
-
 	@JoinColumn()
 	player: Player;
 
@@ -61,9 +65,13 @@ export class User {
 	@JoinTable()
 	friends: User[]
 
-	@Column("bigint", { default: {}, array: true })
-	blocked: number[];
+	@ManyToMany(() => User)
+	@JoinTable()
+	blocked: User[]
 
-	@Column({ nullable: true })
+	// @Column("bigint", { default: {}, array: true })
+	// blocked: number[];
+
+	@Column({ nullable: true, default: null })
 	socket_id: string
 }
