@@ -13,9 +13,9 @@
         </v-toolbar-title>
       </v-toolbar>
 
-      <v-form ref="form" v-model="valid" lazy-validation>
+      <v-form ref="form" lazy-validation>
         <v-otp-input
-          :length="length"
+          :length="codeLength"
           v-model="code"
           required
           class="pa-14"
@@ -47,13 +47,13 @@
 <script lang="ts">
 import Vue from "vue";
 
-export default {
+export default Vue.extend({
   name: "2fa",
   layout: "empty",
   data() {
     return {
-      code: "",
-      length: 6,
+      code: "" as string,
+      codeLength: 6 as number,
       snackbar: false,
       vertical: true,
       user: {},
@@ -71,8 +71,8 @@ export default {
       });
   },
   computed: {
-    isActive() {
-      return this.code.length === this.length;
+    isActive: function (): boolean {
+      return this.code.length === this.codeLength;
     },
   },
   methods: {
@@ -94,5 +94,5 @@ export default {
         });
     },
   },
-};
+});
 </script>

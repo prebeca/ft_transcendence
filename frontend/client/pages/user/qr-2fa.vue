@@ -20,7 +20,7 @@
       <v-form ref="form">
         <div class="ma-auto" style="max-width: 400px">
           <v-otp-input
-            :length="length"
+            :length="codeLength"
             v-model="code"
             required
             class="pa-10"
@@ -58,19 +58,19 @@ import Vue from "vue";
 export default Vue.extend({
   data() {
     return {
-      qr_code: "",
+      qr_code: "" as string,
       code: "" as string,
-      length: 6 as number,
-      snackbar: false,
-      vertical: true,
+      codeLength: 6 as number,
+      snackbar: false as boolean,
+      vertical: true as boolean,
     };
   },
   created: async function () {
     this.generateQr();
   },
   computed: {
-    isActive() {
-      return this.code.length === this.length;
+    isActive: function (): boolean {
+      return this.code.length === this.codeLength;
     },
   },
   methods: {
@@ -86,14 +86,16 @@ export default Vue.extend({
             start(controller) {
               return pump();
               function pump() {
-                return reader.read().then(({ done, value }) => {
-                  if (done) {
-                    controller.close();
-                    return;
-                  }
-                  controller.enqueue(value);
-                  return pump();
-                });
+                return reader
+                  .read()
+                  .then(({ done, value }: { done: any; value: any }) => {
+                    if (done) {
+                      controller.close();
+                      return;
+                    }
+                    controller.enqueue(value);
+                    return pump();
+                  });
               }
             },
           });
