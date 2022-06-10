@@ -4,6 +4,7 @@ import { time, timeLog } from "console";
 import { Server, Socket } from "socket.io";
 import { AvatarStatusGateway } from "src/users/gateways/avatarstatus.gateway";
 import { GameRoomClass } from "../classes/gameroom.class";
+import { PlayerClass } from "../classes/player.class";
 import { Game } from "../entities/game.entity";
 import BallI from "../interfaces/ballI.interface";
 import GameI from "../interfaces/gameI.interface";
@@ -185,10 +186,14 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
 			return;
 		let game: GameI = this.gameRoomService.getRoomById(id).getGame();
 		if (game.pad1.id === client.id) {
+			var pc: PlayerClass = this.gameRoomService.getRoomById(id).getPlayerById(client.id);
+			this.gatewayStatus.backToConnected(pc.userid);
 			game.status = GameStatus.PLAYER1LEAVE;
 			this.server.to(id).emit('updateStatus', game.status);
 		}
 		if (game.pad2.id === client.id) {
+			var pc: PlayerClass = this.gameRoomService.getRoomById(id).getPlayerById(client.id);
+			this.gatewayStatus.backToConnected(pc.userid);
 			game.status = GameStatus.PLAYER2LEAVE;
 			this.server.to(id).emit('updateStatus', game.status);
 		}

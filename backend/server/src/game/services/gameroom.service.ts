@@ -2,6 +2,8 @@ import { Injectable } from '@nestjs/common';
 import { GameRoomClass, GAMEROOMSTATUS } from '../classes/gameroom.class';
 import { CreateGameDto } from '../dto/create-game.dto';
 import { v4 as uuid } from 'uuid';
+import { User } from 'src/users/entities/user.entity';
+import GameRoomInterface from '../interfaces/gameroom.interface';
 
 @Injectable()
 export class GameRoomService {
@@ -52,13 +54,21 @@ export class GameRoomService {
 	/*
 	** Return every room where a player is waiting
 	*/
-	getPlayersInRooms(): { roomname: string, player1: string, avatar1: string, player2: string, avatar2: string }[] {
+	getPlayersInRooms(): GameRoomInterface[] {
 		let ppr: { roomname: string, player1: string, avatar1: string, player2: string, avatar2: string }[] = [];
 		for (const [keyroom, gameroom] of this.gameRooms) {
 			let players: string[] = gameroom.getPlayers();
 			let avatars: string[] = gameroom.getPlayersAvatars();
-			if (players.length !== 0)
-				ppr.push({ roomname: keyroom, player1: players[0], avatar1: avatars[0], player2: players[1], avatar2: avatars[1] });
+			if (players.length !== 0) {
+				var gri: GameRoomInterface = {
+					roomname: keyroom,
+					player1: players[0],
+					avatar1: avatars[0],
+					player2: players[1],
+					avatar2: avatars[2]
+				};
+				ppr.push(gri);
+			}
 		}
 		return ppr;
 	}
@@ -81,11 +91,11 @@ export class GameRoomService {
 		}
 	}
 
-	clear() {
+	clear(): void {
 		this.rooms = [];
 		this.gameRooms.clear();
 	}
-	deleteRoom(roomid: string) {
+	deleteRoom(roomid: string): void {
 		this.rooms = this.rooms.splice(this.rooms.indexOf(roomid), 1);
 		this.gameRooms.get(roomid).clearPlayers();
 		this.gameRooms.delete(roomid);
@@ -93,6 +103,39 @@ export class GameRoomService {
 
 	getPPG(): number {
 		return this.ppr;
+	}
+
+	findRoom(user: User): string {
+		const rooms: string[] = this.getRoomsNotFull();
+
+		if (rooms.length === 0) {
+			return this.addRoom({ difficulty: 2 });
+		}
+		else if (rooms.length === 1) //join the only one created
+		{
+			return rooms[0];
+		} else {
+			const players_mmr: number[] = [];
+			const players_id: string[] = [];
+			for (var i: number = 0; i < rooms.length; i++) {
+				var gameRoom: GameRoomClass = this.getRoomById(rooms[i]);
+				players_id.push(gameRoom.getPlayersId()[0]);
+				players_mmr.push(gameRoom.getPlayerById(players_id[i]).mmr);
+			}
+			const current_mmr: number = user.player.mmr;
+			var x: number = current_mmr;
+			var index_closest: number = -1;
+			for (var i: number = 0; i < players_mmr.length; i++) {
+				let diff: number = players_mmr[i] - current_mmr;
+				diff = (diff < 0) ? diff * -1 : diff;
+				if (diff <= x) {
+					x = players_mmr[i];
+					index_closest = i;
+				}
+			}
+			console.log(index_closest);
+			return (this.getRoomNameByPlayerId(players_id[index_closest]));
+		}
 	}
 }
 

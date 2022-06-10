@@ -11,7 +11,8 @@ import { Response } from 'express';
 import { LoginInterface } from '../interfaces/login.interface';
 import { RegisterInterface } from '../interfaces/register.interface';
 import { JwtPayload } from '../interfaces/JwtPayload.interface';
-import { Player } from 'src/game/entities/player.entity';
+import jwtUser from '../interfaces/jwtUser.interface';
+import cookiePayload from '../interfaces/cookiePayload.interface';
 
 @Injectable()
 export class AuthService {
@@ -29,7 +30,7 @@ export class AuthService {
 		};
 	}
 
-	async createCookie(response: Response, is42: boolean, code: string, user?: User): Promise<{ userid: number, response: Response, created: boolean, istwofa: boolean }> {
+	async createCookie(response: Response, is42: boolean, code: string, user?: User): Promise<cookiePayload> {
 		var token_client: string;
 		var userCookie: User = user;
 		var userid: number;
@@ -43,7 +44,7 @@ export class AuthService {
 			userid = user.id;
 			token_client = (await this.jwtGenerate({ email: user.email, id: user.id, isTwoFactorEnable: user.twofauser })).access_token;
 		}
-
+		console.log("userid = " + userid);
 		if (!token_client)
 			return null;
 
@@ -63,7 +64,7 @@ export class AuthService {
 		}
 	}
 
-	async getUser42Infos(access_token: string, createUserDto: UserDto): Promise<{ jwt: { access_token: string }, user: User }> {
+	async getUser42Infos(access_token: string, createUserDto: UserDto): Promise<jwtUser> {
 		const config: AxiosRequestConfig = {
 			method: 'get',
 			url: 'https://api.intra.42.fr/v2/me',
@@ -103,7 +104,7 @@ export class AuthService {
 	}
 
 
-	async get42APIToken(code_api: string): Promise<{ jwt: { access_token: string }, user: User }> {
+	async get42APIToken(code_api: string): Promise<jwtUser> {
 		const formData = new FormData();
 		let access_token: string;
 		var res: AxiosResponse;
@@ -153,7 +154,6 @@ export class AuthService {
 		const user: User = await this.usersService.findOneByEmail(loginPayload.email);
 		if (user) {
 			const passIsCorrect = await this.validatePassword(user, loginPayload.password);
-			console.log("The password is " + (passIsCorrect ? "correct" : "false"));
 			if (passIsCorrect) {
 				const { password, salt, ...result } = user;
 				return (result as User);

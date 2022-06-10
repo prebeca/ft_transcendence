@@ -7,7 +7,7 @@ import { AuthGuard } from '@nestjs/passport';
 import { RegisterAuthDto } from '../dto/register-auth.dto';
 import { User } from 'src/users/entities/user.entity';
 import { AvatarStatusGateway } from 'src/users/gateways/avatarstatus.gateway';
-import { UsersService } from 'src/users/services/users.service';
+import cookiePayload from '../interfaces/cookiePayload.interface';
 
 @Controller('auth')
 export class AuthController {
@@ -30,7 +30,7 @@ export class AuthController {
 	@Get('42callback')
 	@Redirect(`${process.env.APPLICATION_REDIRECT_URI}/login/complete-profile`, 302)
 	async authenticate42User(@Res({ passthrough: true }) response: Response, @Query('code') code: string) {
-		const ret: { userid: number, response: Response, created: boolean, istwofa: boolean } = await this.authService.createCookie(response, true, code, null);
+		const ret: cookiePayload = await this.authService.createCookie(response, true, code, null);
 		response = ret.response;
 		if (!response)
 			throw new UnauthorizedException("JWT Generation error");
@@ -42,21 +42,20 @@ export class AuthController {
 		}
 	}
 
-
 	@UsePipes(ValidationPipe)
 	@Post('register')
 	async register(@Body() userCredentials: RegisterAuthDto): Promise<User> {
-		const registerUser = { ...userCredentials };
-		return this.authService.registerUser(registerUser);
+		return this.authService.registerUser({ ...userCredentials });
 	}
 
 	@UseGuards(AuthGuard('local'))
 	@Post('login')
 	async login(@Res({ passthrough: true }) response: Response, @Req() req: Request): Promise<boolean> {
 		const user: User = { ...req.user as User };
+		console.log(JSON.stringify(user));
 		if (!user)
 			throw new UnauthorizedException("Credentials don't match");
-		const ret: { userid: number, response: Response, created: boolean, istwofa: boolean } = await this.authService.createCookie(response, false, null, user);
+		const ret: cookiePayload = await this.authService.createCookie(response, false, null, user);
 		response = ret.response;
 		if (!response)
 			throw new UnauthorizedException("JWT Generation error");

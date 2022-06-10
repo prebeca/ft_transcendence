@@ -1,12 +1,13 @@
-import { HttpException, HttpStatus, Injectable, InternalServerErrorException, StreamableFile, UnauthorizedException } from '@nestjs/common';
+import { HttpException, HttpStatus, Inject, Injectable, InternalServerErrorException, StreamableFile, UnauthorizedException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { User } from 'src/users/entities/user.entity';
-import { Repository } from 'typeorm';
+import { QueryRunner, Repository } from 'typeorm';
 import { UserDto } from 'src/users/dto/users.dto';
 import { createReadStream } from 'fs';
 import { ReadStream } from 'typeorm/platform/PlatformTools';
 import { UpdateUserDto } from '../dto/updateUser.dto';
 import { Player } from 'src/game/entities/player.entity';
+import { AvatarStatusGateway } from '../gateways/avatarstatus.gateway';
 import { Socket } from 'socket.io';
 import { Channel } from 'src/typeorm';
 
@@ -16,6 +17,9 @@ export class UsersService {
 		@InjectRepository(User)
 		private readonly userRepository: Repository<User>,
 	) { }
+
+	@Inject()
+	private readonly statusGateway: AvatarStatusGateway;
 
 	async getUsers(): Promise<User[]> {
 		try {
@@ -48,6 +52,13 @@ export class UsersService {
 		}
 	}
 
+	removeDataFromFriends(friend: User, index: number, array: User[]) {
+		friend.email = undefined;
+		friend.channels = undefined;
+		friend.blocked = undefined;
+		friend.socket_id = undefined;
+	}
+
 	async findUsersBySocketId(id: string): Promise<User> {
 		console.log(id)
 		try {
@@ -62,9 +73,27 @@ export class UsersService {
 			const { password, salt, ...user } = await this.userRepository.findOne(id, { relations: ["player", "friends", "channels"] });
 			if (!(user as User))
 				return null;
+			var friends: User[] = user.friends;
+			friends.forEach(this.removeDataFromFriends);
+			user.friends = friends;
 			return user as User;
 		} catch (error) {
 			throw new InternalServerErrorException("Query to find user failed");
+		}
+	}
+
+	async findUserbyIdWithSensibleData(id: number): Promise<User> {
+		try {
+			const user: User = await
+				this.userRepository
+					.createQueryBuilder("user")
+					.select("user")
+					.where("user.id = :id", { id: id })
+					.addSelect(["user.twofauser", "user.twofasecret"])
+					.getOne();
+			return user;
+		} catch (error) {
+			throw new InternalServerErrorException("Query to search for user with id: " + id + " failed");
 		}
 	}
 
@@ -126,6 +155,7 @@ export class UsersService {
 				}
 			}
 		}
+		this.statusGateway.changingAvatar(user.id, filename);
 		return await this.userRepository.findOne(user.id);
 	}
 
@@ -197,7 +227,14 @@ export class UsersService {
 
 	async findOneByEmail(email_user: string): Promise<User> {
 		try {
-			return this.userRepository.findOne({ where: { email: email_user } });
+			const user = await
+				this.userRepository
+					.createQueryBuilder("user")
+					.select("user")
+					.where("user.email = :email", { email: email_user })
+					.addSelect(["user.password", "user.twofauser", "user.twofasecret"])
+					.getOne();
+			return user;
 		} catch (error) {
 			throw new InternalServerErrorException("Query to search for user with email: " + email_user + " failed");
 		}

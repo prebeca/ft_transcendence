@@ -1,5 +1,5 @@
 import { Inject, Logger, Req, UseGuards } from "@nestjs/common";
-import { ConnectedSocket, MessageBody, OnGatewayConnection, OnGatewayDisconnect, SubscribeMessage, WebSocketGateway, WebSocketServer, WsResponse } from "@nestjs/websockets";
+import { ConnectedSocket, MessageBody, OnGatewayConnection, OnGatewayDisconnect, SubscribeMessage, WebSocketGateway, WebSocketServer } from "@nestjs/websockets";
 import { Server, Socket } from "socket.io";
 import { WsJwtAuthGuard } from "src/auth/guards/ws-jwt-auth.guard";
 import { User } from "src/users/entities/user.entity";
@@ -22,22 +22,21 @@ export class GameRoomGateway implements OnGatewayConnection, OnGatewayDisconnect
 
 	@WebSocketServer() server: Server;
 
-
 	@Inject(AvatarStatusGateway)
 	private gatewayStatus: AvatarStatusGateway;
 
-	private logger: Logger = new Logger("gameRoomGateway"); // no idea what use it has
+	private logger: Logger = new Logger("gameRoomGateway");
 
-	handleDisconnect(@ConnectedSocket() client: Socket) {
-		console.log(`Client ${client.id} disconnected from room`);
+	handleDisconnect(@ConnectedSocket() client: Socket): void {
+		this.logger.log(`Client ${client.id} disconnected from room`);
 		this.leaveRoom(this.gameRoomService.getRoomNameByPlayerId(client.id), client);
 	}
 
-	handleConnection(client: Socket, ...args: any[]) {
-		console.log(`Client ${client.id} connected to gameroom`);
+	handleConnection(client: Socket, ...args: any[]): void {
+		this.logger.log(`Client ${client.id} connected to gameroom`);
 	}
 
-	emitPlayersToRoom(roomid: string, gameRoom: GameRoomClass) {
+	emitPlayersToRoom(roomid: string, gameRoom: GameRoomClass): void {
 		for (const [key, value] of gameRoom.mapPlayers) { //will send to every member the informations of every player present
 			var info_player: PlayerInfo = gameRoom.getPlayerInfoById(key)
 			this.server.to(roomid).emit("infouserp" + info_player.player_number, info_player);
@@ -46,7 +45,7 @@ export class GameRoomGateway implements OnGatewayConnection, OnGatewayDisconnect
 
 	@UseGuards(WsJwtAuthGuard)
 	@SubscribeMessage('launchGame')
-	launchGame(@MessageBody() data: string, @ConnectedSocket() client: Socket) {
+	launchGame(@MessageBody() data: string): void {
 		let gameRoom: GameRoomClass = this.gameRoomService.getRoomById(data);
 		gameRoom.status = GAMEROOMSTATUS.INGAME;
 		this.server.to(data).emit("gamestart", data);
@@ -58,21 +57,19 @@ export class GameRoomGateway implements OnGatewayConnection, OnGatewayDisconnect
 	*/
 	@UseGuards(WsJwtAuthGuard)
 	@SubscribeMessage('leaveRoom')
-	leaveRoom(@MessageBody() data: string, @ConnectedSocket() client: Socket) {
+	leaveRoom(@MessageBody() data: string, @ConnectedSocket() client: Socket): void {
 		let gameRoom: GameRoomClass = this.gameRoomService.getRoomById(data);
 		if (gameRoom === undefined) {
-			console.log("The room does not exist anymore")
-			return;
+			this.logger.log("The room does not exist anymore")
 		}
-		if (gameRoom.status === GAMEROOMSTATUS.INGAME) {
-			console.log("starting game");
-			return;
+		else if (gameRoom.status === GAMEROOMSTATUS.INGAME) {
+			this.logger.log("starting game");
 		}
 		else {
 			client.leave(data);
 			const player: PlayerClass = gameRoom.getPlayerById(client.id);
 			if (player) {
-				console.log("sending pleaving");
+				this.logger.log("sending pleaving");
 				this.server.to(data).emit("p" + player.player_number + "leaving", {});
 				this.gatewayStatus.onConnection(player.userid);
 			}
@@ -82,21 +79,15 @@ export class GameRoomGateway implements OnGatewayConnection, OnGatewayDisconnect
 			else
 				this.gameRoomService.deleteRoom(data);
 		}
-		// client.disconnect(true);
 	}
 
-	/*
-	** Client joins room
-	** The first two client will be players
-	** The following ones (if there are) will be spectators
-	*/
 	@UseGuards(WsJwtAuthGuard)
 	@SubscribeMessage('joinRoom')
-	joinRoom(@Req() req: Request, @MessageBody() roomid: string, @ConnectedSocket() client: Socket) {
+	joinRoom(@Req() req: Request, @MessageBody() roomid: string, @ConnectedSocket() client: Socket): void {
 		let gameRoom: GameRoomClass = this.gameRoomService.getRoomById(roomid);
 		if (gameRoom === undefined) {
 			client.emit("change_room");
-			console.log("The room does not exist anymore")
+			this.logger.log("The room does not exist anymore")
 			return;
 		}
 		client.join(roomid);
@@ -109,7 +100,7 @@ export class GameRoomGateway implements OnGatewayConnection, OnGatewayDisconnect
 				gameRoom.status = GAMEROOMSTATUS.FULL;
 			}
 		}
-		console.log(gameRoom);
+		this.logger.log(gameRoom);
 		this.emitPlayersToRoom(roomid, gameRoom);
 	}
 }

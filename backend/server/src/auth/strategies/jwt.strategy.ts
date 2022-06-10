@@ -31,6 +31,6 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
 		const user: User = await this.userService.findUsersByIdWithRelations(payload.id);
 		if (!user)
 			throw new UnauthorizedException("No match for current session");
-		return user;
+		return { ...user, email: undefined };
 	}
 }

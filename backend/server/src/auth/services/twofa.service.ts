@@ -1,10 +1,9 @@
 import { AuthService } from "./auth.service";
-import { Injectable, UnauthorizedException } from "@nestjs/common";
+import { Injectable } from "@nestjs/common";
 import { User } from "src/users/entities/user.entity";
 import { authenticator } from "otplib";
 import { toFileStream } from 'qrcode';
 import { Response } from 'express';
-import { JwtPayload } from "../interfaces/JwtPayload.interface";
 import { UsersService } from "src/users/services/users.service";
 
 @Injectable()
@@ -15,7 +14,7 @@ export class TwoFactorAuthService {
 	) { }
 
 	public async generateTwoFactorAuthSecret(user: User) {
-		const auth: User = await this.userService.findUsersById(user.id);
+		const auth: User = await this.userService.findUserbyIdWithSensibleData(user.id);
 		if (auth) {
 			if (auth.twofauser) {
 				return {
@@ -51,7 +50,7 @@ export class TwoFactorAuthService {
 		});
 	}
 
-	async signIn(user: User, isTwoFaAuthenticated: boolean, response: Response): Promise<void> {
+	async signIn(user: User, response: Response): Promise<void> {
 		const accessToken: string = (await this.authService.jwtGenerate(
 			{
 				email: user.email,
