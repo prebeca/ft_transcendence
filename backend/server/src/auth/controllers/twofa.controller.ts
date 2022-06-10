@@ -26,7 +26,9 @@ export class TwoFactorAuthController {
 	@UseGuards(JwtAuthGuard)
 	@Post('turn-on-qr') //verify the code entered by the user in the form after scanning the qr code
 	async activationOfTwoFa(@Req() req: Request, @Body(ValidationPipe) twoFaAuthDto: TwoFaAuthDto): Promise<boolean> {
-		const user: User = { ... (req.user as User) };
+		const userid: number = (req.user as User).id;
+		console.log(userid + " - " + twoFaAuthDto)
+		const user = await this.userService.findUserbyIdWithSensibleData(userid);
 		const isCodeValid: boolean = await this.twoFactorAuthService.verifyTwoFaCode(twoFaAuthDto.code, user);
 		if (!isCodeValid) {
 			throw new UnauthorizedException('Invalid authentication code');
@@ -40,6 +42,7 @@ export class TwoFactorAuthController {
 	@UseGuards(JwtAuthGuard)
 	async authenticate(@Res({ passthrough: true }) response: Response, @Req() req: Request, @Body(ValidationPipe) twoFaAuthDto: TwoFaAuthDto): Promise<boolean> {
 		const userid: number = (req.user as User).id;
+		console.log(userid + " - " + twoFaAuthDto)
 		const user = await this.userService.findUserbyIdWithSensibleData(userid);
 		const isCodeValid: boolean = await this.twoFactorAuthService.verifyTwoFaCode(twoFaAuthDto.code, user);
 		if (!isCodeValid) {
