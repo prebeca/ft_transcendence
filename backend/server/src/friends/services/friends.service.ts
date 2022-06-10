@@ -23,7 +23,6 @@ export class FriendsService {
 			return value.id !== user_id_to_remove;
 		});
 		await this.userRepository.save(user);
-		console.log(user.friends);
 	}
 
 	isFriend(user: User, other_user: User): boolean {

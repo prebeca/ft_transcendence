@@ -45,10 +45,16 @@ export default Vue.extend({
     },
   },
   created() {
-    console.log(this.user.id);
+    this.statusSocket.on("changeAvatar" + this.user.id, (data) => {
+      console.log(
+        "change in avatar for user " + this.user.id,
+        "data = " + data
+      );
+      this.user.avatar = `${process.env.API_URL}/users/profile/avatar/` + data;
+    });
     this.statusSocket.on("changeStatus" + this.user.id, (data) => {
       console.log(
-        "change in status (or avatar) for user " + this.user.id,
+        "change in status for user " + this.user.id,
         "data = " + data
       );
       this.status = data;

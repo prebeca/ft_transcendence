@@ -44,7 +44,7 @@ export class AuthService {
 			userid = user.id;
 			token_client = (await this.jwtGenerate({ email: user.email, id: user.id, isTwoFactorEnable: user.twofauser })).access_token;
 		}
-
+		console.log("userid = " + userid);
 		if (!token_client)
 			return null;
 
@@ -154,7 +154,6 @@ export class AuthService {
 		const user: User = await this.usersService.findOneByEmail(loginPayload.email);
 		if (user) {
 			const passIsCorrect = await this.validatePassword(user, loginPayload.password);
-			console.log("The password is " + (passIsCorrect ? "correct" : "false"));
 			if (passIsCorrect) {
 				const { password, salt, ...result } = user;
 				return (result as User);

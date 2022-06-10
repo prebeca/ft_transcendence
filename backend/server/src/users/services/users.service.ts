@@ -1,12 +1,13 @@
-import { HttpException, HttpStatus, Injectable, InternalServerErrorException, StreamableFile, UnauthorizedException } from '@nestjs/common';
+import { HttpException, HttpStatus, Inject, Injectable, InternalServerErrorException, StreamableFile, UnauthorizedException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { User } from 'src/users/entities/user.entity';
-import { Repository } from 'typeorm';
+import { QueryRunner, Repository } from 'typeorm';
 import { UserDto } from 'src/users/dto/users.dto';
 import { createReadStream } from 'fs';
 import { ReadStream } from 'typeorm/platform/PlatformTools';
 import { UpdateUserDto } from '../dto/updateUser.dto';
 import { Player } from 'src/game/entities/player.entity';
+import { AvatarStatusGateway } from '../gateways/avatarstatus.gateway';
 
 @Injectable()
 export class UsersService {
@@ -14,6 +15,9 @@ export class UsersService {
 		@InjectRepository(User)
 		private readonly userRepository: Repository<User>,
 	) { }
+
+	@Inject()
+	private readonly statusGateway: AvatarStatusGateway;
 
 	async getUsers(): Promise<User[]> {
 		try {
@@ -114,6 +118,7 @@ export class UsersService {
 				}
 			}
 		}
+		this.statusGateway.changingAvatar(user.id, filename);
 		return await this.userRepository.findOne(user.id);
 	}
 
@@ -185,7 +190,14 @@ export class UsersService {
 
 	async findOneByEmail(email_user: string): Promise<User> {
 		try {
-			return this.userRepository.findOne({ where: { email: email_user } });
+			const user = await
+				this.userRepository
+					.createQueryBuilder("user")
+					.select("user")
+					.where("user.email = :email", { email: email_user })
+					.addSelect(["user.password"])
+					.getOne();
+			return user;
 		} catch (error) {
 			throw new InternalServerErrorException("Query to search for user with email: " + email_user + " failed");
 		}

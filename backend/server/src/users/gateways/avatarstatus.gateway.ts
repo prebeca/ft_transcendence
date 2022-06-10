@@ -70,6 +70,10 @@ export class AvatarStatusGateway implements OnGatewayConnection, OnGatewayDiscon
 		this.server.emit("changeStatus" + userid, this.status.get(userid));
 	}
 
+	changingAvatar(userid: number, new_filename: string): void {
+		this.logger.log(userid + " changed avatar");
+		this.server.emit("changeAvatar" + userid, new_filename);
+	}
 	/*
 	** When the component is created, it asks for its information
 	*/
@@ -86,6 +90,8 @@ export class AvatarStatusGateway implements OnGatewayConnection, OnGatewayDiscon
 			status = this.status.get(user_id);
 		else
 			status = "disconnected";
+		console.log(this.user_socket);
+		console.log(this.status);
 		client.emit("changeStatus" + user_id, status);
 	}
 }
