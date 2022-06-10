@@ -32,9 +32,10 @@ export class ChannelsController {
 		return this.channelService.getChannels();
 	}
 
+	@UseGuards(JwtAuthGuard)
 	@Get(':id/messages')
-	async getMessages(@Param('id') id: number): Promise<Message[]> {
-		return this.channelService.getMessages(id);
+	async getMessages(@Req() req: Request, @Param('id') id: number): Promise<Message[]> {
+		return this.channelService.getMessages(req.user as User, id);
 	}
 
 	@Get('ids?:ids')

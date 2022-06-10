@@ -8,6 +8,8 @@ import { ReadStream } from 'typeorm/platform/PlatformTools';
 import { UpdateUserDto } from '../dto/updateUser.dto';
 import { Player } from 'src/game/entities/player.entity';
 import { AvatarStatusGateway } from '../gateways/avatarstatus.gateway';
+import { Socket } from 'socket.io';
+import { Channel } from 'src/typeorm';
 
 @Injectable()
 export class UsersService {
@@ -32,6 +34,7 @@ export class UsersService {
 			const player = new Player();
 			const newuser: User = this.userRepository.create(userDto);
 			newuser.player = player;
+			newuser.channels = []
 			return this.userRepository.save(newuser);
 		} catch (error) {
 			throw new InternalServerErrorException("Creation of user failed");
@@ -40,7 +43,7 @@ export class UsersService {
 
 	async findUsersById(id: number): Promise<User> {
 		try {
-			const { password, salt, ...user } = await this.userRepository.findOne(id, { relations: ["friends"] });
+			const { password, salt, ...user } = await this.userRepository.findOne(id, { relations: ["friends", "channels", "blocked"] });
 			if (!(user as User))
 				return null;
 			return user as User;
@@ -56,9 +59,18 @@ export class UsersService {
 		friend.socket_id = undefined;
 	}
 
+	async findUsersBySocketId(id: string): Promise<User> {
+		console.log(id)
+		try {
+			return await this.userRepository.findOne({ where: { socket_id: id }, relations: ["friends", "channels", "blocked"] });
+		} catch (error) {
+			throw new InternalServerErrorException("Query to find user failed");
+		}
+	}
+
 	async findUsersByIdWithRelations(id: number): Promise<User> {
 		try {
-			const { password, salt, ...user } = await this.userRepository.findOne(id, { relations: ["player", "friends"] });
+			const { password, salt, ...user } = await this.userRepository.findOne(id, { relations: ["player", "friends", "channels"] });
 			if (!(user as User))
 				return null;
 			var friends: User[] = user.friends;
@@ -228,23 +240,23 @@ export class UsersService {
 		}
 	}
 
-	async addChannel(user_id: number, chan_id: number): Promise<void> {
-		let user = await this.userRepository.findOne(user_id);
+	async addChannel(user_id: number, chan: Channel): Promise<void> {
+		let user = await this.userRepository.findOne(user_id, { relations: ["channels"] });
 		if (user == null)
 			return
-		if (user.channels.find((e) => { return e == chan_id }) != undefined)
+		if (user.channels.find((e) => { return e == chan }) != undefined)
 			return
-		user.channels.push(chan_id)
+		user.channels.push(chan)
 		this.userRepository.save(user);
 	}
 
-	async removeChannel(user_id: number, chan_id: number): Promise<void> {
+	async removeChannel(user_id: number, chan: Channel): Promise<void> {
 		let user = await this.userRepository.findOne(user_id);
 		if (user == null)
 			return
-		if (user.channels.find((e) => { return e == chan_id }) === undefined)
+		if (user.channels.find((e) => { return e == chan }) === undefined)
 			return
-		let index = user.channels.findIndex(e => { return e == chan_id });
+		let index = user.channels.findIndex(e => { return e == chan });
 		user.channels.splice(index, 1);
 		this.userRepository.save(user);
 	}
@@ -256,11 +268,10 @@ export class UsersService {
 
 	async addToBlocked(user: User, id: number) {
 		let target = await this.userRepository.findOne(id);
-
 		if (target == null) return // wrong id
-		if (user.blocked.find(e => { return e == id }) != undefined) return // already blocked
+		if (user.blocked.find(e => { return e == target }) != undefined) return // already blocked
 
-		user.blocked.push(id);
+		user.blocked.push(target);
 		this.userRepository.save(user);
 	}
 
@@ -268,9 +279,9 @@ export class UsersService {
 		let target = await this.userRepository.findOne(id);
 
 		if (target == null) return // wrong id
-		if (user.blocked.find(e => e == id) == undefined) return // not blocked
+		if (user.blocked.find(e => e == target) == undefined) return // not blocked
 
-		let index = user.blocked.findIndex(e => { return e == id });
+		let index = user.blocked.findIndex(e => { return e == target });
 		user.blocked.splice(index, 1);
 		this.userRepository.save(user);
 	}

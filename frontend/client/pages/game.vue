@@ -5,13 +5,27 @@
   >
     <p>{{ this.socket.id }}</p>
     <v-card
-      class="d-flex flex-column justify-center align-center"
+      class="d-flex justify-space-around align-center mb-3"
       color="secondary"
-      width="70%"
-      height="10%"
+      width="80%"
+      height="15%"
     >
-      <td>{{ game.score1 }}</td>
-      <td>{{ game.score2 }}</td>
+      <v-card
+        class="d-flex justify-center align-center"
+        width="90px"
+        height="90px"
+        color="primary"
+      >
+        <h1>{{ game.score1 }}</h1>
+      </v-card>
+      <v-card
+        class="d-flex justify-center align-center"
+        width="90px"
+        height="90px"
+        color="primary"
+      >
+        <h1>{{ game.score2 }}</h1>
+      </v-card>
     </v-card>
     <div id="myGame" width="100vw" height="100vh">
       <canvas id="canvas"></canvas>

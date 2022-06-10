@@ -205,20 +205,13 @@ export default {
             "Content-Type": "application/json",
           }
         )
-        .then(async (res) => {
-          this.socket.emit(
-            "JoinChan",
-            {
-              target_id: res.data.id,
-              content: "",
-            },
-            (rep) => {
-              if (rep != null) console.log("chan joined");
-              else console.log("cannot join chan");
-            }
-          );
+        .then((res) => {
+          this.socket.emit("JoinChan", {
+            target_id: res.data.id,
+            content: "",
+          });
           res.data.messages = [];
-          await this.$axios
+          this.$axios
             .get("channels/" + res.data.id + "/messages")
             .then((res2) => {
               res.data.messages = res2.data;
