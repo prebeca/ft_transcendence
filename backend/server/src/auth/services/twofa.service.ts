@@ -14,7 +14,7 @@ export class TwoFactorAuthService {
 	) { }
 
 	public async generateTwoFactorAuthSecret(user: User) {
-		const auth: User = await this.userService.findUsersById(user.id);
+		const auth: User = await this.userService.findUserbyIdWithSensibleData(user.id);
 		if (auth) {
 			if (auth.twofauser) {
 				return {
@@ -50,7 +50,7 @@ export class TwoFactorAuthService {
 		});
 	}
 
-	async signIn(user: User, isTwoFaAuthenticated: boolean, response: Response): Promise<void> {
+	async signIn(user: User, response: Response): Promise<void> {
 		const accessToken: string = (await this.authService.jwtGenerate(
 			{
 				email: user.email,

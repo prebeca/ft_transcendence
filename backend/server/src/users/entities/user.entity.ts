@@ -34,10 +34,10 @@ export class User {
 	@Column({ select: false, default: false })
 	fortytwouser: boolean;
 
-	@Column({ default: false })
+	@Column({ select: false, default: false })
 	twofauser: boolean;
 
-	@Column({ nullable: true })
+	@Column({ select: false, nullable: true })
 	twofasecret: string
 
 	@Column("bigint", { default: {}, array: true })

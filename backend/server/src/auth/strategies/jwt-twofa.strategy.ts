@@ -26,17 +26,16 @@ export class JwtTwoFaStrategy extends PassportStrategy(Strategy, 'jwt-twofa') {
 	}
 
 	async validate(payload: JwtPayload): Promise<User> {
-		const user = await this.userService.findUsersByIdWithRelations(payload.id);
-
+		const user = await this.userService.findUserbyIdWithSensibleData(payload.id);
 		if (!user) {
 			throw new UnauthorizedException("user not found")
 		}
-
+		const user_to_manipulate = { ...await this.userService.findUsersByIdWithRelations(user.id), email: undefined };
 		if (!user.twofauser) {
-			return user;
+			return user_to_manipulate;
 		}
 		if (payload.isTwoFaAuthenticated) {
-			return user;
+			return user_to_manipulate;
 		}
 	}
 } 

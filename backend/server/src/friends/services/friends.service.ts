@@ -10,9 +10,16 @@ export class FriendsService {
 		private readonly userRepository: Repository<User>,
 	) { }
 
+	removeDataFromFriends(element, index: number, array: User[]) {
+		element.email = undefined;
+		element.channels = undefined;
+		element.blocked = undefined;
+	}
 
 	getFriends(user: User): User[] {
-		return user.friends;
+		var friends: User[] = user.friends;
+		friends.forEach(this.removeDataFromFriends);
+		return friends;
 	}
 
 	async removeFriend(user: User, user_id_to_remove: number): Promise<void> {

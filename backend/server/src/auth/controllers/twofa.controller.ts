@@ -4,12 +4,14 @@ import { User } from "src/users/entities/user.entity";
 import { TwoFactorAuthService } from "../services/twofa.service";
 import { TwoFaAuthDto } from "../dto/twofa-auth.dto";
 import { Request, Response } from "express";
+import { UsersService } from "src/users/services/users.service";
 
 @Controller('2fa')
 @UseInterceptors(ClassSerializerInterceptor)
 export class TwoFactorAuthController {
 	constructor(
-		private readonly twoFactorAuthService: TwoFactorAuthService
+		private readonly twoFactorAuthService: TwoFactorAuthService,
+		private readonly userService: UsersService
 	) { }
 
 	@UseGuards(JwtAuthGuard)
@@ -37,12 +39,13 @@ export class TwoFactorAuthController {
 	@Post('authenticate')
 	@UseGuards(JwtAuthGuard)
 	async authenticate(@Res({ passthrough: true }) response: Response, @Req() req: Request, @Body(ValidationPipe) twoFaAuthDto: TwoFaAuthDto): Promise<boolean> {
-		const user: User = { ... (req.user as User) };
+		const userid: number = (req.user as User).id;
+		const user = await this.userService.findUserbyIdWithSensibleData(userid);
 		const isCodeValid: boolean = await this.twoFactorAuthService.verifyTwoFaCode(twoFaAuthDto.code, user);
 		if (!isCodeValid) {
 			throw new UnauthorizedException('Invalid authentication code');
 		}
-		await this.twoFactorAuthService.signIn(user, true, response);
+		await this.twoFactorAuthService.signIn(user, response);
 		return isCodeValid;
 	}
 }

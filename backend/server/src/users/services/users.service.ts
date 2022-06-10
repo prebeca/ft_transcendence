@@ -49,14 +49,39 @@ export class UsersService {
 		}
 	}
 
+	removeDataFromFriends(friend: User, index: number, array: User[]) {
+		friend.email = undefined;
+		friend.channels = undefined;
+		friend.blocked = undefined;
+		friend.socket_id = undefined;
+	}
+
 	async findUsersByIdWithRelations(id: number): Promise<User> {
 		try {
 			const { password, salt, ...user } = await this.userRepository.findOne(id, { relations: ["player", "friends"] });
 			if (!(user as User))
 				return null;
+			var friends: User[] = user.friends;
+			friends.forEach(this.removeDataFromFriends);
+			user.friends = friends;
 			return user as User;
 		} catch (error) {
 			throw new InternalServerErrorException("Query to find user failed");
+		}
+	}
+
+	async findUserbyIdWithSensibleData(id: number): Promise<User> {
+		try {
+			const user: User = await
+				this.userRepository
+					.createQueryBuilder("user")
+					.select("user")
+					.where("user.id = :id", { id: id })
+					.addSelect(["user.twofauser", "user.twofasecret"])
+					.getOne();
+			return user;
+		} catch (error) {
+			throw new InternalServerErrorException("Query to search for user with id: " + id + " failed");
 		}
 	}
 
@@ -195,7 +220,7 @@ export class UsersService {
 					.createQueryBuilder("user")
 					.select("user")
 					.where("user.email = :email", { email: email_user })
-					.addSelect(["user.password"])
+					.addSelect(["user.password", "user.twofauser", "user.twofasecret"])
 					.getOne();
 			return user;
 		} catch (error) {

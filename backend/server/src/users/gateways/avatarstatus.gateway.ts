@@ -86,8 +86,11 @@ export class AvatarStatusGateway implements OnGatewayConnection, OnGatewayDiscon
 			this.user_socket.set(user.id, client.id);
 		}
 		var status: string = "";
-		if (this.user_socket.has(user_id))
+		if (this.user_socket.has(user_id)) {
 			status = this.status.get(user_id);
+			if (!status)
+				status = "connected"; //development issue when compiling backend server
+		}
 		else
 			status = "disconnected";
 		console.log(this.user_socket);

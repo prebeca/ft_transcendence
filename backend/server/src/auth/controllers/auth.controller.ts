@@ -42,7 +42,6 @@ export class AuthController {
 		}
 	}
 
-
 	@UsePipes(ValidationPipe)
 	@Post('register')
 	async register(@Body() userCredentials: RegisterAuthDto): Promise<User> {
@@ -53,6 +52,7 @@ export class AuthController {
 	@Post('login')
 	async login(@Res({ passthrough: true }) response: Response, @Req() req: Request): Promise<boolean> {
 		const user: User = { ...req.user as User };
+		console.log(JSON.stringify(user));
 		if (!user)
 			throw new UnauthorizedException("Credentials don't match");
 		const ret: cookiePayload = await this.authService.createCookie(response, false, null, user);
