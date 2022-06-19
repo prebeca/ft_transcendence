@@ -72,7 +72,6 @@
 </template>
 
 <script lang="ts">
-import { Channel } from "diagnostics_channel";
 import { log } from "util";
 interface Message {
   target_id: number;
