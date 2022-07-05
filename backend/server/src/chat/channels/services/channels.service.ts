@@ -54,11 +54,11 @@ export class ChannelsService {
 		return channels;
 	}
 
-	async getUsers(channel_id: number): Promise<string[]> {
-		const channel = await this.channelRepository.findOne(channel_id);
+	async getUsers(channel_id: number): Promise<User[]> {
+		let channel = await this.channelRepository.findOne(channel_id, { relations: ["users"] });
 		let userList = [];
 		for (let i = 0; i < channel.users.length; ++i) {
-			userList.push((await this.userService.findUsersById(channel.users[i].id)).login);
+			userList.push(await this.userService.findUsersById(channel.users[i].id));
 		}
 		return userList;
 	}

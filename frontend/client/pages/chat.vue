@@ -105,9 +105,9 @@
                         color="success white--text"
                         :disabled="!valid"
                         depressed
-                        @click=""
+                        @click="createChannel"
                       >
-                        SAVE
+                        Create
                       </v-btn>
                     </v-card-actions>
                   </v-card>
@@ -146,7 +146,9 @@
                             <v-overflow-btn
                               v-model="choice"
                               filled
-                              :items="channels"
+                              :items="allChannels"
+                              item-text="name"
+                              item-value="id"
                             >
                             </v-overflow-btn>
                           </v-col>
@@ -174,13 +176,13 @@
                       >
                         Cancel
                       </v-btn>
+                      <!-- removed :disabled="!valid" from v-btn for now-->
                       <v-btn
                         color="success white--text"
-                        :disabled="!valid"
                         depressed
-                        @click=""
+                        @click="joinChannel"
                       >
-                        SAVE
+                        Join
                       </v-btn>
                     </v-card-actions>
                   </v-card>
@@ -193,7 +195,7 @@
               <!-- basé sur des channels fakes, besoin de rajouter plus tard si channel public, owner, admin signaletique -->
               <v-list height="502px" color="secondary" mandatory>
                 <div v-for="(channel, index) in channels" :key="channel.id">
-                  <v-list-group @click="currentChanel = channel">
+                  <v-list-group @click="currentChannel = channel">
                     <template v-slot:activator>
                       <v-list-item two-line>
                         <v-list-item-content>
@@ -208,7 +210,10 @@
                       ></v-divider>
                     </template>
                     <v-list color="secondary" width="100%">
-                      <div v-for="(player, index) in users" :key="index">
+                      <div
+                        v-for="(player, index) in channel.users"
+                        :key="index"
+                      >
                         <v-list-group
                           v-if="currentUser.id != player.id"
                           active-class="info--text"
@@ -241,7 +246,7 @@
                                 class="d-flex justify-center text-button"
                               >
                                 <v-btn
-                                  :to="'/profile/' + player.username"
+                                  :to="'/profile/' + player.name"
                                   color="primary"
                                   class="mx-1"
                                   min-width="100%"
@@ -334,7 +339,7 @@
                     v-for="(friend, index) in currentUser.friends"
                     :key="index"
                   >
-                    <v-list-item @click="">
+                    <v-list-item @click="currentChannel = friend">
                       <tr>
                         <td>
                           <UserAvatarStatus
@@ -373,7 +378,7 @@
         >
           <v-toolbar color="primary">
             <v-toolbar-title class="font-weight-black" style="font-size: 20px">
-              {{ currentChanel.name }}
+              {{ currentChannel.name }}
             </v-toolbar-title>
             <v-spacer></v-spacer>
             <!-- TO CHANGE CHANNEL PASSWORD -->
@@ -442,7 +447,7 @@
             class="mt-3 d-flex flex-column"
           >
             <v-list-item-group>
-              <div v-for="(msg, index) in currentChanel.message" :key="index">
+              <div v-for="(msg, index) in currentChannel.messages" :key="index">
                 <tr class="d-flex justify-space-between">
                   <td>
                     <v-list-item two-line disabled>
@@ -450,23 +455,31 @@
                         <v-list-item-title
                           class="font-weight-bold purple--text"
                         >
-                          {{ msg.sender.username }}
+                          {{ msg.user_name }}
                         </v-list-item-title>
                         <v-list-item-content>
-                          {{ msg.msg }}
+                          {{ msg.content }}
                         </v-list-item-content>
                       </v-list-item-content>
                     </v-list-item>
                   </td>
                   <td>
                     <!-- apres seulement visible par current user si propre msg ou admin et owner -->
-                    <v-icon x-small class="mr-1" @click=""
+                    <v-icon
+                      x-small
+                      class="mr-1"
+                      @click="
+                        () => {
+                          toDelete = msg;
+                          deleteMessage();
+                        }
+                      "
                       >mdi-close-thick</v-icon
                     >
                   </td>
                 </tr>
                 <v-divider
-                  v-if="index < currentChanel.message.length - 1"
+                  v-if="index < currentChannel.messages.length - 1"
                   :key="index"
                 ></v-divider>
               </div>
@@ -488,6 +501,7 @@
                 <v-text-field
                   class="mt-5"
                   v-model="input"
+                  @click:append-outer="sendMessage"
                   append-outer-icon="mdi-send"
                   label="Message"
                   type="text"
@@ -504,12 +518,41 @@
 </template>
 
 <script lang="ts">
+import { channel } from "diagnostics_channel";
 import Vue from "vue";
 import AvatarStatusVue from "~/components/User/AvatarStatus.vue";
+
+interface Message {
+  id: number;
+  target_id: number;
+  user_id: number;
+  user_name: number;
+  content: string;
+}
+
+interface Channel {
+  id: number;
+  name: string; // for classic channels
+  username: string; // for DM channel
+  users: User[];
+  messages: Message[];
+}
+
+interface User {
+  id: number;
+  username: string;
+  friends: Channel[];
+}
 
 export default Vue.extend({
   data() {
     return {
+      // pour tests, a supprimer quand on aura les channels deouis le back
+      toDelete: {} as Message,
+      allChannels: [] as Channel[],
+      channels: [] as Channel[],
+      availableChannels: [] as Channel[],
+      users: [] as User[],
       tabs: null,
       tab: ["Channels", "DM"],
       addChannelDialog: false,
@@ -522,43 +565,13 @@ export default Vue.extend({
         { text: "protected" },
       ],
       choice: "",
-      currentChanel: {
-        name: "",
-        id: "",
-        public: true,
-        owner: {
-          id: "",
-        },
-        message: [
-          {
-            sender: {
-              id: "",
-              username: "",
-            },
-            msg: "",
-          },
-        ],
-      },
+      currentChannel: {} as Channel,
       name: "",
       password: "",
       channelPassword: "",
       changePassword: "",
       input: "",
-      currentUser: {
-        id: "",
-        username: "",
-        friends: [
-          {
-            username: "",
-          },
-        ],
-      },
-      users: [
-        {
-          id: "",
-          username: "",
-        },
-      ],
+      currentUser: {} as User,
       // besoin de bien comprendre comment les regles sont gerees / en juillet
       rules: [
         (v: string) => !!v || "Required",
@@ -570,150 +583,231 @@ export default Vue.extend({
         (v: string) => (v) =>
           v.length <= 16 || "must be less than 16 characters",
       ],
-      // pour tests, a supprimer quand on aura les channels deouis le back
-      channels: [
-        {
-          name: "test0",
-          id: "0",
-          public: true,
-          owner: {
-            id: "1",
-          },
-          adminsID: ["1", "2", "3"],
-          message: [
-            {
-              sender: {
-                id: "2",
-                username: "Pierre",
-              },
-              msg: "hello ca va ?",
-            },
-            {
-              sender: {
-                id: "3",
-                username: "Paul",
-              },
-              msg: "ca va et toi ?",
-            },
-            {
-              sender: {
-                id: "2",
-                username: "Jacques",
-              },
-              msg: "jbnjnj jjksdfbjhsd bhsdfjksdb",
-            },
-            {
-              sender: {
-                id: "2",
-                username: "Jacques",
-              },
-              msg: "jbnjnj jjksdfbjhsd bhsdfjksdb",
-            },
-            {
-              sender: {
-                id: "2",
-                username: "Jacques",
-              },
-              msg: "jbnjnj jjksdfbjhsd bhsdfjksdb",
-            },
-            {
-              sender: {
-                id: "2",
-                username: "Jacques",
-              },
-              msg: "jbnjnj jjksdfbjhsd bhsdfjksdb",
-            },
-            {
-              sender: {
-                id: "2",
-                username: "Jacques",
-              },
-              msg: "jbnjnj jjksdfbjhsd bhsdfjksdb khjqsdbhgjlfvbnvdhsqbgvbhqsdbvjhbqshbvdjhdqzfgvuidhqgvjkndsqjklvjkldfhqshqgvyhqgb",
-            },
-            {
-              sender: {
-                id: "2",
-                username: "Jacques",
-              },
-              msg: "jbnjnj jjksdfbjhsd bhsdfjksdb                          ilkjihnkj                             jkkkkkkkkkkkkkkkkkkkkkkb                 jlmmmmmmmmmmmmmmmmmmmmmmmmmb                      ikkkkkkkkkkkkkkkkkkkkk                 klhnnnnnnnnnnnnnnnnnnnnn",
-            },
-          ],
-        },
-        {
-          name: "test1",
-          id: "1",
-          public: true,
-          owner: {
-            id: "1",
-          },
-          adminsID: ["1", "2", "3"],
-          message: [
-            {
-              sender: {
-                id: "2",
-                username: "Amelie",
-              },
-              msg: "bsdgvsb?",
-            },
-            {
-              sender: {
-                id: "3",
-                username: "Machin",
-              },
-              msg: "dfsbsd?",
-            },
-            {
-              sender: {
-                id: "2",
-                username: "Ada",
-              },
-              msg: "bdfbsdbbsd",
-            },
-          ],
-        },
-        {
-          name: "test2",
-          id: "2",
-          public: true,
-          owner: {
-            id: "1",
-          },
-          adminsID: ["1", "2", "3"],
-        },
-        {
-          name: "test3",
-          id: "3",
-          public: true,
-          owner: {
-            id: "1",
-          },
-          adminsID: ["1", "2", "3"],
-        },
-      ],
     };
   },
-  created: function () {
+
+  async created() {
     this.$axios
       .get("/users/profile")
       .then((res) => {
         console.log(res.data);
         this.currentUser = res.data;
+        this.currentUser.friends.forEach((e) => {
+          e.messages = [];
+        });
       })
       .catch((error) => {
         console.error(error);
       });
-    this.$axios
-      .get("/users")
+
+    // this.$axios
+    //   .get("/users")
+    //   .then((res) => {
+    //     console.log(res.data);
+    //     this.users = res.data;
+    //   })
+    //   .catch((error) => {
+    //     console.error(error);
+    //   });
+
+    // fetch all channels
+    await this.$axios
+      .get("/channels")
       .then((res) => {
-        console.log(res.data);
-        this.users = res.data;
+        this.allChannels = res.data;
       })
       .catch((error) => {
         console.error(error);
       });
+
+    // fetch users channels
+    await this.$axios
+      .get("/users/channels")
+      .then((res) => {
+        this.channels = res.data;
+      })
+      .catch((error) => {
+        console.error(error);
+      });
+
+    this.channels.forEach(async (e) => {
+      await this.$axios
+        .get("/channels/" + e.id + "/users")
+        .then((res) => {
+          e.users = res.data;
+        })
+        .catch((error) => {
+          console.error(error);
+        });
+    });
+
+    // fetch channels messages
+    for (let i = 0; i < this.channels.length; i++) {
+      this.channels[i].messages = [];
+      await this.$axios
+        .get("channels/" + this.channels[i].id + "/messages")
+        .then((res) => {
+          this.channels[i].messages = res.data;
+        })
+        .catch((error) => {
+          console.error(error);
+        });
+    }
+
+    // setup client socket
+    this.socket = this.$nuxtSocket({ name: "chat", withCredentials: true });
+
+    this.socket.emit("SetSocket");
+
+    this.socket.on("connect", async (msg, cb) => {
+      console.log("Connection !");
+      this.joinChannels();
+    });
+
+    this.socket.on("disconnect", async (msg, cb) => {
+      console.log("Disconnection !");
+      //   this.leaveChannels();
+    });
+
+    this.socket.on("JoinChan", async (channel: Channel, cb) => {
+      console.log(channel.id);
+
+      channel.messages = [];
+      this.$axios
+        .get("channels/" + channel.id + "/messages")
+        .then((res) => {
+          channel.messages = res.data;
+        })
+        .catch((error) => {
+          console.error(error);
+        });
+      if (
+        this.channels.find((e) => {
+          return e.id == channel.id;
+        }) == undefined
+      )
+        this.channels.push(channel);
+    });
+
+    this.socket.on("PrivateMessage", async (msg, cb) => {
+      console.log(msg.user_name + ": " + msg.content);
+      let id =
+        this.currentUser.id == msg.target_id ? msg.user_id : msg.target_id;
+      if (msg != null) {
+        this.currentUser.friends
+          .find((e) => {
+            return e.id == id;
+          })
+          ?.messages.push(msg);
+      }
+    });
+
+    this.socket.on("NewMessage", async (msg, cb) => {
+      console.log("New message received !");
+      if (msg != null) {
+        this.channels
+          .find((e) => {
+            return e.id == msg.target_id;
+          })
+          ?.messages.push(msg);
+      }
+    });
+
+    this.socket.on("DeleteMessage", async (msg, cb) => {
+      console.log("Message deleted !");
+      if (msg != null) {
+        let channel = this.channels.find((e) => {
+          return e.id == msg.target_id;
+        }) as Channel;
+        channel.messages.splice(
+          channel.messages.findIndex((e) => {
+            return e.id == msg.id;
+          }),
+          1
+        );
+      }
+    });
+
+    console.log("Created");
   },
   computed: {},
-  methods: {},
+  methods: {
+    async createChannel() {
+      await this.$axios
+        .post(
+          "/channels/create",
+          {
+            name: this.name,
+            scope: this.choice,
+            password: this.password,
+          },
+          {
+            "Content-Type": "application/json",
+          }
+        )
+        .then((res) => {
+          this.socket.emit("JoinChan", {
+            target_id: res.data.id,
+            content: this.password,
+          });
+          res.data.messages = [];
+          this.channels.push(res.data);
+        })
+        .catch((error) => {
+          console.error(error);
+        });
+      this.addChannelDialog = false;
+    },
+
+    async joinChannels() {
+      for (let i = 0; i < this.channels.length; ++i) {
+        this.socket.emit(
+          "JoinChan",
+          {
+            target_id: this.channels[i].id,
+            content: "",
+          },
+          (rep) => {
+            if (rep != null) console.log("chan joined");
+            else console.log("cannot join chan");
+          }
+        );
+      }
+    },
+
+    async joinChannel() {
+      this.socket.emit("JoinChan", {
+        target_id: this.choice,
+        content: this.channelPassword,
+      });
+    },
+
+    async deleteMessage() {
+      console.log("Delete Message !");
+      console.log(this.toDelete.content);
+      this.socket.emit("DeleteMessage", this.toDelete);
+    },
+
+    async sendMessage() {
+      console.log("sendMessage()");
+      if (this.input.length == 0) return;
+      if (this.channels.length == 0) return;
+      if (this.currentChannel == undefined) return;
+
+      console.log("message sent");
+      let signal: String =
+        this.currentChannel.username == undefined
+          ? "NewMessage"
+          : "PrivateMessage";
+
+      await this.socket.emit(signal, {
+        target_id: this.currentChannel.id,
+        content: this.input,
+      });
+
+      this.input = "";
+    },
+  },
   components: {},
 });
 </script>

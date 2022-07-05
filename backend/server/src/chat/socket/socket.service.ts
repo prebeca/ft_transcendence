@@ -13,9 +13,15 @@ export class SocketService {
 
 	async joinChannel(user: User, data: CreateMessageDto, client: Socket): Promise<Channel> {
 		let channel = await this.channelService.findOneById(data.target_id);
-		if (channel != null) {
-			client.join(channel.id.toString())							// join socket room
-		}
+		if (channel == null)
+			return null
+
+		if (this.channelService.joinChannel(user, data) == null)
+			return null
+
+		client.join(channel.id.toString())							// join socket room
+		client.emit("JoinChan", channel)
+
 		return channel
 	}
 
@@ -68,7 +74,25 @@ export class SocketService {
 	async privateMessage(user: User, messageDto: CreateMessageDto, server: Server): Promise<Message> {
 		let target = await this.userService.findUsersById(messageDto.target_id)
 		let message = await this.channelService.createMessage(user, messageDto);
+		server.to(user.socket_id).emit('PrivateMessage', message);
 		server.to(target.socket_id).emit('PrivateMessage', message);
 		return message
+	}
+
+	async deleteMessage(user: User, message: Message, server: Server) {
+		let channel = await this.channelService.findOneById(message.target_id)
+
+		if (channel == undefined)
+			return;	// not valid channel (probably DM channel)
+
+		if (channel.admins.find(e => { return (e.id == user.id) }) == undefined)
+			return; // not admin
+
+		let messages = await this.channelService.getMessages(user, channel.id);
+		if (messages.find(e => { return e.id == message.id }) == undefined)
+			return; // message not found in channel
+
+		this.channelService.deleteMessage(message.id);
+		server.to(message.target_id.toString()).emit("DeleteMessage", message);
 	}
 }

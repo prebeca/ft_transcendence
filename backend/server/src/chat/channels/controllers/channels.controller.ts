@@ -73,7 +73,7 @@ export class ChannelsController {
 
 	@UseGuards(JwtAuthGuard)
 	@Get(':id/users')
-	async getUsers(@Req() req: Request, @Param('id', ParseIntPipe) id: number): Promise<string[]> {
+	async getUsers(@Req() req: Request, @Param('id', ParseIntPipe) id: number): Promise<User[]> {
 		return this.channelService.getUsers(id);
 	}
 

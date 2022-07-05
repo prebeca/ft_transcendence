@@ -6,7 +6,7 @@ import { Req, UseGuards } from '@nestjs/common';
 import { Request } from 'express';
 import { WsJwtAuthGuard } from 'src/auth/guards/ws-jwt-auth.guard';
 import { User, Channel } from 'src/typeorm';
-import { MessageData } from '../channels/entities/message.entity';
+import { Message } from '../channels/entities/message.entity';
 import { CreateMessageDto } from '../channels/dto/messages.dto';
 
 
@@ -51,6 +51,12 @@ export class SocketGateway {
 	@SubscribeMessage('SetSocket')
 	async updateSocket(@Req() req: Request, @ConnectedSocket() client: Socket) {
 		return this.socketService.setSocket(req.user as User, client)
+	}
+
+	@UseGuards(WsJwtAuthGuard)
+	@SubscribeMessage('DeleteMessage')
+	async deleteMessage(@Req() req: Request, @MessageBody() message: Message) {
+		return this.socketService.deleteMessage(req.user as User, message, this.server)
 	}
 
 	@UseGuards(WsJwtAuthGuard)
