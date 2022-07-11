@@ -201,12 +201,13 @@
             </v-tab-item>
 
             <!-- DM LIST  -->
-            <!-- je sais pas comment son gerer les dms donc peut pas faisable comme ca -->
             <v-tab-item>
               <v-list height="635px" color="secondary" mandatory>
-                <v-list-item-group>
-                  <div v-for="(friend, index) in currentUser.friends" :key="index">
-                    <v-list-item @click="currentChannel = friend">
+                <v-list-group v-for="(friend, index) in currentUser.friends" :key="index">
+
+                  <!-- <v-list-item @click="currentChannel = friend"> -->
+                  <template v-slot:activator>
+                    <v-list-item-content @click="currentChannel = friend">
                       <tr>
                         <td>
                           <UserAvatarStatus size="80px" :user="friend" :offset="20" />
@@ -217,10 +218,30 @@
                           </v-list-item-title>
                         </td>
                       </tr>
-                    </v-list-item>
-                    <v-divider v-if="index < users.length - 1" :key="index"></v-divider>
-                  </div>
-                </v-list-item-group>
+                    </v-list-item-content>
+                  </template>
+
+                  <v-list-item dense>
+                    <v-list-item-title class="d-flex justify-center text-button">
+                      <v-btn :to="'/profile/' + friend.username" color="primary" class="mx-1" min-width="100%">
+                        PROFILE</v-btn>
+                    </v-list-item-title>
+                  </v-list-item>
+                  <v-list-item dense>
+                    <v-list-item-title class="d-flex justify-center text-button">
+                      <v-btn @click="" color="primary" min-width="100%">
+                        INVITE TO GAME</v-btn>
+                    </v-list-item-title>
+                  </v-list-item>
+                  <v-list-item dense>
+                    <v-list-item-title class="d-flex justify-center text-button">
+                      <v-btn @click="" color="accent" min-width="100%">
+                        BLOCK</v-btn>
+                    </v-list-item-title>
+                  </v-list-item>
+                  <!-- </v-list-item> -->
+                  <v-divider v-if="index < users.length - 1" :key="index"></v-divider>
+                </v-list-group>
               </v-list>
             </v-tab-item>
           </v-tabs-items>
@@ -232,15 +253,25 @@
         <!-- besoin de rajouter un bouton et dialog card params pour changer password (par exemple)-->
         <v-card width="60%" height="80%" color="secondary" class="d-flex flex-column justify-center ml-2">
           <v-toolbar color="primary">
-            <v-toolbar-title class="font-weight-black" style="font-size: 20px">
-              {{ currentChannel.name }}
-            </v-toolbar-title>
+            <div v-if="currentChannel.name !== ''">
+              <v-toolbar-title class="font-weight-black" style="font-size: 20px">
+                {{ currentChannel.name }}
+              </v-toolbar-title>
+            </div>
+            <div v-else>
+              <v-toolbar-title class="font-weight-black" style="font-size: 20px">
+                {{ currentChannel.username }}
+              </v-toolbar-title>
+            </div>
+
+
             <v-spacer></v-spacer>
             <!-- TO CHANGE CHANNEL PASSWORD -->
             <!-- Après seulement visible pour le owner dans les channels protégé -->
             <v-dialog v-model="channelSettingDialog" persistent max-width="600px">
               <template v-slot:activator>
-                <v-icon @click="channelSettingDialog = !channelSettingDialog">mdi-cog</v-icon>
+                <v-icon @click="channelSettingDialog = !channelSettingDialog">
+                  mdi-cog</v-icon>
               </template>
 
               <v-card>
@@ -250,12 +281,17 @@
                 <v-card-text>
                   <v-container>
                     <v-row>
-                      <v-col cols="12">
+                      <v-col class="mt-5" cols="12" v-if="currentChannel.scope === 'protected'">
                         <v-form @submit.prevent="">
                           <v-text-field v-model="changePassword" :rules="passwordRules" label="Change Password"
                             type="password">
                           </v-text-field>
                         </v-form>
+                      </v-col>
+                      <v-col v-if="currentChannel.scope === 'private'" class="mt-5" cols="12">
+                        <v-select :items="notInChannelUsers()" name="user" v-model="user" filled item-text="username"
+                          label="Select" item-value="text" hint="Send an invitation to a player" persistent-hint>
+                        </v-select>
                       </v-col>
                     </v-row>
                   </v-container>
@@ -301,7 +337,7 @@
                     ">mdi-close-thick</v-icon>
                   </td>
                 </tr>
-                <v-divider v-if="index < currentChannel.messages.length - 1" :key="index"></v-divider>
+                <!-- <v-divider v-if="index < currentChannel.messages.length - 1" :key="index"></v-divider> -->
               </div>
             </v-list-item-group>
           </v-list>
@@ -327,6 +363,7 @@
 
 <script lang="ts">
 import { channel } from "diagnostics_channel";
+import { userInfo } from "os";
 import Vue from "vue";
 import AvatarStatusVue from "~/components/User/AvatarStatus.vue";
 
@@ -342,6 +379,7 @@ interface Channel {
   id: number;
   name: string; // for classic channels
   username: string; // for DM channel
+  scope: string;
   users: User[];
   messages: Message[];
 }
@@ -361,6 +399,7 @@ export default Vue.extend({
       channels: [] as Channel[],
       availableChannels: [] as Channel[],
       users: [] as User[],
+      user: {} as User,
       tabs: null,
       tab: ["Channels", "DM"],
       addChannelDialog: false,
@@ -373,6 +412,7 @@ export default Vue.extend({
         { text: "protected" },
       ],
       choice: "",
+      choice_user: {} as User,
       currentChannel: {} as Channel,
       name: "",
       password: "",
@@ -408,15 +448,15 @@ export default Vue.extend({
         console.error(error);
       });
 
-    // this.$axios
-    //   .get("/users")
-    //   .then((res) => {
-    //     console.log(res.data);
-    //     this.users = res.data;
-    //   })
-    //   .catch((error) => {
-    //     console.error(error);
-    //   });
+    this.$axios
+      .get("/users")
+      .then((res) => {
+        console.log(res.data);
+        this.users = res.data;
+      })
+      .catch((error) => {
+        console.error(error);
+      });
 
     // fetch all channels
     await this.$axios
@@ -616,6 +656,16 @@ export default Vue.extend({
 
       this.input = "";
     },
+
+    async isPublic(channel: Channel) {
+      if (channel.scope === 'public')
+        return;
+      return false;
+    },
+
+    notInChannelUsers() {
+
+    }
   },
   components: {},
 });
