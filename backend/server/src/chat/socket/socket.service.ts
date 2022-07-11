@@ -3,20 +3,19 @@ import { Server, Socket } from 'socket.io';
 import { ChannelsService } from 'src/chat/channels/services/channels.service';
 import { User, Channel } from 'src/typeorm';
 import { UsersService } from 'src/users/services/users.service';
-import { UsingJoinColumnIsNotAllowedError } from 'typeorm';
 import { CreateMessageDto } from '../channels/dto/messages.dto';
-import { Message, MessageData } from '../channels/entities/message.entity';
+import { Message } from '../channels/entities/message.entity';
 
 @Injectable()
 export class SocketService {
 	constructor(private readonly channelService: ChannelsService, private readonly userService: UsersService) { }
 
-	async joinChannel(user: User, data: CreateMessageDto, client: Socket): Promise<Channel> {
+	async joinChannel(user: User, data: CreateMessageDto, client: Socket) {
 		let channel = await this.channelService.findOneById(data.target_id);
 		if (channel == null)
 			return null
 
-		if (this.channelService.joinChannel(user, data) == null)
+		if (await this.channelService.joinChannel(user, data) == null)
 			return null
 
 		client.join(channel.id.toString())							// join socket room
@@ -77,6 +76,18 @@ export class SocketService {
 		server.to(user.socket_id).emit('PrivateMessage', message);
 		server.to(target.socket_id).emit('PrivateMessage', message);
 		return message
+	}
+
+	async setAdmin(user: User, data, server: Server) {
+		let new_admin = await this.channelService.addAdmin(data.channel_id, data.user_id);
+		if (new_admin != null)
+			server.to(data.channel_id).emit('NewMessage', {
+				id: -1,
+				target_id: data.channel_id,
+				user_id: -1,
+				user_name: "Info",
+				content: new_admin.username + " is now Admin ! Congrats !",
+			});
 	}
 
 	async deleteMessage(user: User, message: Message, server: Server) {

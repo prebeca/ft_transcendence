@@ -246,7 +246,7 @@
                                 class="d-flex justify-center text-button"
                               >
                                 <v-btn
-                                  :to="'/profile/' + player.name"
+                                  :to="'/profile/' + player.username"
                                   color="primary"
                                   class="mx-1"
                                   min-width="100%"
@@ -309,7 +309,13 @@
                                 class="d-flex justify-center text-button"
                               >
                                 <v-btn
-                                  @click=""
+                                  @click="
+                                    () => {
+                                      selectedChannel = channel;
+                                      selectedUser = player;
+                                      setAdmin();
+                                    }
+                                  "
                                   color="success"
                                   min-width="100%"
                                 >
@@ -518,7 +524,6 @@
 </template>
 
 <script lang="ts">
-import { channel } from "diagnostics_channel";
 import Vue from "vue";
 import AvatarStatusVue from "~/components/User/AvatarStatus.vue";
 
@@ -526,7 +531,7 @@ interface Message {
   id: number;
   target_id: number;
   user_id: number;
-  user_name: number;
+  user_name: string;
   content: string;
 }
 
@@ -547,7 +552,6 @@ interface User {
 export default Vue.extend({
   data() {
     return {
-      // pour tests, a supprimer quand on aura les channels deouis le back
       toDelete: {} as Message,
       allChannels: [] as Channel[],
       channels: [] as Channel[],
@@ -572,6 +576,8 @@ export default Vue.extend({
       changePassword: "",
       input: "",
       currentUser: {} as User,
+      selectedUser: {} as User,
+      selectedChannel: {} as Channel,
       // besoin de bien comprendre comment les regles sont gerees / en juillet
       rules: [
         (v: string) => !!v || "Required",
@@ -776,9 +782,23 @@ export default Vue.extend({
     },
 
     async joinChannel() {
-      this.socket.emit("JoinChan", {
-        target_id: this.choice,
-        content: this.channelPassword,
+      this.socket.emit(
+        "JoinChan",
+        {
+          target_id: this.choice,
+          content: this.channelPassword,
+        },
+        (rep) => {
+          if (rep != null) console.log("chan joined");
+          else console.log("cannot join chan");
+        }
+      );
+    },
+
+    async setAdmin() {
+      this.socket.emit("SetAdmin", {
+        channel_id: this.selectedChannel.id,
+        user_id: this.selectedUser.id,
       });
     },
 

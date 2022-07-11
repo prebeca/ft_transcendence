@@ -65,7 +65,9 @@ export class ChannelsService {
 
 	async getMessages(user: User, channel_id: number): Promise<Message[]> {
 		user = await this.userService.findUsersById(user.id)
-		let messages = await this.messagesRepository.find({ where: { target_id: channel_id } });
+		let messages: Message[];
+		if (user.channels.find(e => { return e.id == channel_id }))
+			messages = await this.messagesRepository.find({ where: { target_id: channel_id } });
 		// let sendlist: Message[] = []
 		// let message: any;
 		// for (message in messages) {
@@ -174,7 +176,7 @@ export class ChannelsService {
 		await this.channelRepository.save(channel);
 	}
 
-	async joinChannel(user: User, data: CreateMessageDto): Promise<Channel> {
+	async joinChannel(user: User, data: CreateMessageDto) {
 		const channel: Channel = await this.findOneById(data.target_id);
 		const message: Message = await this.createMessage(user, data);
 
@@ -221,5 +223,20 @@ export class ChannelsService {
 			throw new InternalServerErrorException("User not in channel");
 		let message = await this.createMessage(user, messageDto);
 		return this.messagesRepository.save(message);
+	}
+
+	async addAdmin(channel_id: number, user_id: number): Promise<User> {
+		let channel: Channel = await this.channelRepository.findOne(channel_id, { relations: ["admins", "users"] });
+		let user: User = await this.userService.findUsersById(user_id)
+
+		if (user == null)
+			return null;
+		if (channel.users.find(e => { return e.id == user.id }) == undefined)
+			return null; // user not in channel
+		if (channel.admins.find(e => { return e.id == user.id }) != undefined)
+			return null; // already admin
+		channel.admins.push(user);
+		this.channelRepository.save(channel);
+		return user;
 	}
 }

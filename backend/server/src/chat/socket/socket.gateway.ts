@@ -24,7 +24,7 @@ export class SocketGateway {
 
 	@UseGuards(WsJwtAuthGuard)
 	@SubscribeMessage('JoinChan')
-	async joinChannel(@Req() req: Request, @MessageBody() data: CreateMessageDto, @ConnectedSocket() client: Socket): Promise<Channel> {
+	async joinChannel(@Req() req: Request, @MessageBody() data: CreateMessageDto, @ConnectedSocket() client: Socket) {
 		return this.socketService.joinChannel(req.user as User, data, client)
 	}
 
@@ -51,6 +51,12 @@ export class SocketGateway {
 	@SubscribeMessage('SetSocket')
 	async updateSocket(@Req() req: Request, @ConnectedSocket() client: Socket) {
 		return this.socketService.setSocket(req.user as User, client)
+	}
+
+	@UseGuards(WsJwtAuthGuard)
+	@SubscribeMessage('SetAdmin')
+	async setAdmin(@Req() req: Request, @MessageBody() message: Message, @ConnectedSocket() client: Socket) {
+		return this.socketService.setAdmin(req.user as User, message, this.server)
 	}
 
 	@UseGuards(WsJwtAuthGuard)
