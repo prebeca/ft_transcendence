@@ -94,6 +94,7 @@ export class GameRoomGateway implements OnGatewayConnection, OnGatewayDisconnect
 		gameRoom.status = GAMEROOMSTATUS.WAITING;
 		if (gameRoom.nbPlayer < this.gameRoomService.getPPG()) {
 			const user: User = { ... (req.user as User) };
+			console.log(user);
 			gameRoom.addPlayerToRoom(client.id, user);
 			this.gatewayStatus.waiting(user.id);
 			if (gameRoom.nbPlayer === 2) {

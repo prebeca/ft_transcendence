@@ -63,7 +63,7 @@ export class TwoFactorAuthService {
 		response.cookie('access_token', accessToken, {
 			httpOnly: true,
 			path: '/',
-			maxAge: 1000 * 60 * 15,
+			maxAge: 60 * 5,
 			/* secure: true, -> only for localhost AND https */
 		});
 	}

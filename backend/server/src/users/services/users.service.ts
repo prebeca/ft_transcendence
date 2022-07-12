@@ -123,9 +123,13 @@ export class UsersService {
 			throw new InternalServerErrorException("Update of 2FA secret did not work");
 		}
 	}
+
 	async updateUsername(user: User, new_username: string): Promise<void> {
 		if (!new_username)
 			throw new HttpException('Username cannot be empty', HttpStatus.FORBIDDEN);
+		const username_user: User = await this.userRepository.findOne({ where: { username: new_username } });
+		if (username_user)
+			return; // send something to frontend
 		try {
 			this.updateUsersById(user, { username: new_username })
 		}
