@@ -165,13 +165,15 @@ export class ChannelsService {
 		let user: User = await this.userService.findUsersById(user_id)
 		if (channel == null || user == null)
 			return;
-		if (channel.users.find(e => { return e == user }) === undefined) return
+		if (channel.users.find(e => { return e.id == user.id }) === undefined) return
 
-		let index = channel.users.findIndex(e => { return e == user });
+		let index = channel.users.findIndex(e => { return e.id == user.id });
 		channel.users.splice(index, 1);
 
 		if (channel.owner == user)
 			channel.owner = null;
+
+		console.log("user removed from channel")
 
 		await this.channelRepository.save(channel);
 	}
@@ -180,11 +182,11 @@ export class ChannelsService {
 		const channel: Channel = await this.findOneById(data.target_id);
 		const message: Message = await this.createMessage(user, data);
 
-		if (channel.users.find(e => { return e == user }) != undefined)
+		if (channel.users.find(e => { return e.id == user.id }) != undefined)
 			return channel;
 		if (channel.scope == "protected" && channel.password != message.content)
 			return null;
-		if (channel.scope == "private" && channel.invited.find((e) => { return e == user }) == undefined)
+		if (channel.scope == "private" && channel.invited.find((e) => { return e.id == user.id }) == undefined)
 			return null;
 
 		this.addUser(message.target_id, user.id)					// add user to channel members
@@ -197,7 +199,7 @@ export class ChannelsService {
 		const channel: Channel = await this.findOneById(data.target_id);
 		const message: Message = await this.createMessage(user, data);
 
-		if (channel.users.find(e => { return e == user }) == undefined)
+		if (channel.users.find(e => { return e.id == user.id }) == undefined)
 			return null;
 
 		this.removeUser(message.target_id, message.user_id)					// remove user from channel members and remove ownership

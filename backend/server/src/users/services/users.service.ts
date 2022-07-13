@@ -10,6 +10,7 @@ import { Player } from 'src/game/entities/player.entity';
 import { AvatarStatusGateway } from '../gateways/avatarstatus.gateway';
 import { Socket } from 'socket.io';
 import { Channel } from 'src/typeorm';
+import { ConnectableObservable } from 'rxjs';
 
 @Injectable()
 export class UsersService {
@@ -244,21 +245,24 @@ export class UsersService {
 		let user = await this.userRepository.findOne(user_id, { relations: ["channels"] });
 		if (user == null)
 			return
-		if (user.channels.find((e) => { return e == chan }) != undefined)
+		if (user.channels.find((e) => { return e.id == chan.id }) != undefined)
 			return
 		user.channels.push(chan)
 		this.userRepository.save(user);
 	}
 
 	async removeChannel(user_id: number, chan: Channel): Promise<void> {
-		let user = await this.userRepository.findOne(user_id);
+		let user = await this.userRepository.findOne(user_id, { relations: ["channels"] });
+		console.log("channel removed from user 0")
 		if (user == null)
 			return
-		if (user.channels.find((e) => { return e == chan }) === undefined)
+		console.log("channel removed from user A")
+		if (user.channels.find((e) => { return e.id == chan.id }) == undefined)
 			return
-		let index = user.channels.findIndex(e => { return e == chan });
+		let index = user.channels.findIndex(e => { return e.id == chan.id });
 		user.channels.splice(index, 1);
 		this.userRepository.save(user);
+		console.log("channel removed from user B")
 	}
 
 	async updateSocket(user: User, socket_id: string) {

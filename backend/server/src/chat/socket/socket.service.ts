@@ -18,9 +18,9 @@ export class SocketService {
 		if (await this.channelService.joinChannel(user, data) == null)
 			return null
 
+		client.to(channel.id.toString()).emit("NewUser", { user: user, channel_id: channel.id })
 		client.join(channel.id.toString())							// join socket room
 		client.emit("JoinChan", channel)
-
 		return channel
 	}
 
@@ -88,6 +88,33 @@ export class SocketService {
 				user_name: "Info",
 				content: new_admin.username + " is now Admin ! Congrats !",
 			});
+	}
+
+	async kick(user: User, data, server: Server) {
+		let channel = await this.channelService.findOneById(data.channel_id);
+		let target = await this.userService.findUsersById(data.user_id);
+
+		if (channel == null || target == null)
+			return;
+
+		if (channel.admins.find(e => { return e.id == user.id }) == undefined)
+			return;
+
+		this.userService.removeChannel(data.user_id, channel);
+		this.channelService.removeUser(data.channel_id, data.user_id);
+
+		server.in(target.socket_id).socketsLeave(channel.id.toString());
+
+		server.to(target.socket_id).emit('UserKick', data);
+		server.to(data.channel_id).emit('Kick', data);
+
+		server.to(data.channel_id).emit('NewMessage', {
+			id: -1,
+			target_id: channel.id,
+			user_id: -1,
+			user_name: "Info",
+			content: target.username + " has been kicked ! So sad !",
+		});
 	}
 
 	async deleteMessage(user: User, message: Message, server: Server) {

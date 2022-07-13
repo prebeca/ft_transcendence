@@ -71,4 +71,10 @@ export class SocketGateway {
 		return this.socketService.privateMessage(req.user as User, messageDto, this.server)
 	}
 
+	@UseGuards(WsJwtAuthGuard)
+	@SubscribeMessage('Kick')
+	async kick(@Req() req: Request, @MessageBody() data, @ConnectedSocket() client: Socket) {
+		return this.socketService.kick(req.user as User, data, this.server)
+	}
+
 }
