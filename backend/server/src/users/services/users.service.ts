@@ -271,6 +271,8 @@ export class UsersService {
 	}
 
 	async addToBlocked(user: User, id: number) {
+		user = await this.userRepository.findOne(user.id, { relations: ["blocked"] });
+		if (user.id == id) return
 		let target = await this.userRepository.findOne(id);
 		if (target == null) return // wrong id
 		if (user.blocked.find(e => { return e == target }) != undefined) return // already blocked

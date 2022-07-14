@@ -1,16 +1,5 @@
 import { User } from 'src/typeorm';
 import { Column, Entity, JoinTable, ManyToMany, ManyToOne, PrimaryGeneratedColumn } from 'typeorm';
-import { MessageData } from './message.entity';
-
-
-// export class Message {
-// 	type: string;
-// 	user_id: number;
-// 	username: string;
-// 	channel_id: number;
-// 	channel_name: string;
-// 	content: string;
-// }
 
 @Entity()
 export class Channel {

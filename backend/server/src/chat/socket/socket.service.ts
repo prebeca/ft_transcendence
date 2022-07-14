@@ -43,10 +43,10 @@ export class SocketService {
 		console.log(message)
 
 		// manage block users
-		const socket_id = await server.to(message.target_id.toString()).allSockets()
+		const socket_ids = await server.to(message.target_id.toString()).allSockets()
 
 		let except = [];
-		for (let item of socket_id) {
+		for (let item of socket_ids) {
 			let other_user = await this.userService.findUsersBySocketId(item)
 			if (other_user && other_user.blocked.find(e => { return e.id == user.id }) != undefined)
 				except.push(item)

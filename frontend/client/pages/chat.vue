@@ -299,7 +299,7 @@
                                 class="d-flex justify-center text-button"
                               >
                                 <v-btn
-                                  @click=""
+                                  @click="blockUser(player)"
                                   color="accent"
                                   min-width="100%"
                                 >
@@ -729,6 +729,10 @@ export default Vue.extend({
   },
   computed: {},
   methods: {
+    blockUser(user: User) {
+      this.$axios.post("/users/block/" + user.id);
+    },
+
     scrollToNewMsg() {
       this.$nextTick(() => {
         console.log(document.getElementById("Chat")?.lastElementChild);

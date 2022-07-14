@@ -3,7 +3,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Channel, User } from 'src/typeorm';
 import { Repository } from 'typeorm';
 import { CreateChannelDto } from 'src/chat/channels/dto/channels.dto';
-import { Message, MessageData } from '../entities/message.entity';
+import { Message } from '../entities/message.entity';
 import { UsersService } from 'src/users/services/users.service';
 import { CreateMessageDto } from '../dto/messages.dto';
 
@@ -68,14 +68,13 @@ export class ChannelsService {
 		let messages: Message[];
 		if (user.channels.find(e => { return e.id == channel_id }))
 			messages = await this.messagesRepository.find({ where: { target_id: channel_id } });
-		// let sendlist: Message[] = []
-		// let message: any;
-		// for (message in messages) {
-		// 	let isblock = user.blocked.find(e => { return e.id == (message as Message).user_id })
-		// 	if (isblock === undefined)
-		// 		sendlist.push(message as Message);
-		// }
-		return (messages);
+		let sendlist: Message[] = []
+		for (let i = 0; i < messages.length; ++i) {
+			let isblock = user.blocked.find(e => { return e.id == messages[i].user_id })
+			if (isblock == undefined)
+				sendlist.push(messages[i]);
+		}
+		return (sendlist);
 	}
 
 	async deleteMessage(id: number) {

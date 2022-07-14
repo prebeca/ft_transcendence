@@ -90,13 +90,15 @@ export class UsersController {
 		return await this.userService.removeAll();
 	}
 
+	@UseGuards(JwtAuthGuard)
 	@Post('block/:id')
 	async addToBlocked(@Req() req: Request, @Param('id') id: number) {
 		return this.userService.addToBlocked(req.user as User, id);
 	}
 
+	@UseGuards(JwtAuthGuard)
 	@Post('unblock/:id')
 	async removeFromBlocked(@Req() req: Request, @Param('id') id: number) {
-		return this.userService.addToBlocked(req.user as User, id);
+		return this.userService.removeFromBlocked(req.user as User, id);
 	}
 }
