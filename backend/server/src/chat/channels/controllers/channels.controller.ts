@@ -78,6 +78,18 @@ export class ChannelsController {
 	}
 
 	@UseGuards(JwtAuthGuard)
+	@Get(':id/admins')
+	async getAdmins(@Req() req: Request, @Param('id', ParseIntPipe) id: number): Promise<User[]> {
+		return this.channelService.getAdmins(id);
+	}
+
+	@UseGuards(JwtAuthGuard)
+	@Get(':id/owner')
+	async getOwner(@Req() req: Request, @Param('id', ParseIntPipe) id: number): Promise<User> {
+		return this.channelService.getOwner(id);
+	}
+
+	@UseGuards(JwtAuthGuard)
 	@Post('handleMessage')
 	async handleMessage(@Req() req: Request, @Body() messageDto: CreateMessageDto) {
 		this.channelService.handleMessage(req.user as User, messageDto);
