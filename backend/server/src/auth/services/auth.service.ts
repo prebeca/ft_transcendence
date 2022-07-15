@@ -34,7 +34,7 @@ export class AuthService {
 		return {
 			refresh_token: this.jwtService.sign({ userid: userid }, {
 				secret: this.config.get<string>('JWT_RT_SECRET'),
-				expiresIn: `${this.config.get<string>('JWT_RT_EXPIRATION_TIME')}s`
+				expiresIn: `${this.config.get<string>('JWT_RT_EXPIRATION_TIME')}d`
 			}),
 		};
 	}
@@ -72,7 +72,7 @@ export class AuthService {
 		response.cookie('access_token', token_client, {
 			httpOnly: true,
 			path: '/',
-			maxAge: 60 * 5,
+			maxAge: 1000 * 60 * 60,
 			sameSite: "strict",
 			/* secure: true, -> only for localhost AND https */
 		});
