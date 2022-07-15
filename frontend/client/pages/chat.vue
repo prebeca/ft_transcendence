@@ -93,7 +93,6 @@
                             </v-overflow-btn>
                           </v-col>
                           <v-col cols="12">
-                            <!-- je vais rajouter condition d'affichage apres -->
                             <v-form @submit.prevent="">
                               <v-text-field v-model="channelPassword" :rules="passwordRules" label="Password">
                               </v-text-field>
@@ -161,35 +160,37 @@
                                   PROFILE</v-btn>
                               </v-list-item-title>
                             </v-list-item>
-                            <!-- MUTE / KICK / BAN / BLOCK vu par tout les admins et owner -->
-                            <v-list-item dense>
-                              <v-list-item-title class="d-flex justify-center text-button">
-                                <v-btn @click="" color="accent" class="mx-1" min-width="48%">
-                                  MUTE</v-btn>
-                                <v-btn @click="" color="accent" class="mx-1" min-width="48%">KICK
-                                </v-btn>
-                              </v-list-item-title>
-                            </v-list-item>
-                            <v-list-item dense>
-                              <v-list-item-title class="d-flex justify-center text-button">
-                                <v-btn @click="" color="accent" min-width="100%">
-                                  BAN</v-btn>
-                              </v-list-item-title>
-                            </v-list-item>
-                            <v-list-item dense>
-                              <v-list-item-title class="d-flex justify-center text-button">
-                                <v-btn @click="" color="accent" min-width="100%">
-                                  BLOCK</v-btn>
-                              </v-list-item-title>
-                            </v-list-item>
-                            <!-- ADMIN vu par tout le owner -->
-                            <v-list-item dense class="mb-2">
-                              <v-list-item-title class="d-flex justify-center text-button">
-                                <v-btn @click="" color="success" min-width="100%">
-                                  ADMIN
-                                </v-btn>
-                              </v-list-item-title>
-                            </v-list-item>
+                            <div v-if="isAdmin(channel) === true">
+                              <v-list-item dense>
+                                <v-list-item-title class="d-flex justify-center text-button">
+                                  <v-btn @click="" color="accent" class="mx-1" min-width="48%">
+                                    MUTE</v-btn>
+                                  <v-btn @click="" color="accent" class="mx-1" min-width="48%">KICK
+                                  </v-btn>
+                                </v-list-item-title>
+                              </v-list-item>
+                              <v-list-item dense>
+                                <v-list-item-title class="d-flex justify-center text-button">
+                                  <v-btn @click="" color="accent" min-width="100%">
+                                    BAN</v-btn>
+                                </v-list-item-title>
+                              </v-list-item>
+                              <v-list-item dense>
+                                <v-list-item-title class="d-flex justify-center text-button">
+                                  <v-btn @click="" color="accent" min-width="100%">
+                                    BLOCK</v-btn>
+                                </v-list-item-title>
+                              </v-list-item>
+                              <div v-if="isOwner(channel) === true">
+                                <v-list-item dense class="mb-2">
+                                  <v-list-item-title class="d-flex justify-center text-button">
+                                    <v-btn @click="" color="success" min-width="100%">
+                                      ADMIN
+                                    </v-btn>
+                                  </v-list-item-title>
+                                </v-list-item>
+                              </div>
+                            </div>
                           </div>
                         </v-list-group>
                         <v-divider v-if="index < users.length - 1" :key="index"></v-divider>
@@ -266,7 +267,7 @@
 
 
             <v-spacer></v-spacer>
-            <!-- TO CHANGE CHANNEL PASSWORD -->
+            <!-- TO CHANGE CHANNEL SETTING -->
             <!-- Après seulement visible pour le owner dans les channels protégé -->
             <v-dialog v-model="channelSettingDialog" persistent max-width="600px">
               <template v-slot:activator>
@@ -283,14 +284,19 @@
                     <v-row>
                       <v-col class="mt-5" cols="12" v-if="currentChannel.scope === 'protected'">
                         <v-form @submit.prevent="">
-                          <v-text-field v-model="changePassword" :rules="passwordRules" label="Change Password"
+                          <v-text-field v-model="currentPassword" :rules="passwordRules" label="Current Password"
+                            type="password">
+                          </v-text-field>
+                        </v-form>
+                        <v-form @submit.prevent="">
+                          <v-text-field v-model="changePassword" :rules="passwordRules" label="New Password"
                             type="password">
                           </v-text-field>
                         </v-form>
                       </v-col>
                       <v-col v-if="currentChannel.scope === 'private'" class="mt-5" cols="12">
-                        <v-select :items="notInChannelUsers()" name="user" v-model="user" filled item-text="username"
-                          label="Select" item-value="text" hint="Send an invitation to a player" persistent-hint>
+                        <v-select :items="users" name="user" v-model="user" filled item-text="username" label="Select"
+                          item-value="text" hint="Send an invitation to a player" persistent-hint>
                         </v-select>
                       </v-col>
                     </v-row>
@@ -327,8 +333,7 @@
                       </v-list-item-content>
                     </v-list-item>
                   </td>
-                  <td>
-                    <!-- apres seulement visible par current user si propre msg ou admin et owner -->
+                  <td v-if="currentUser.id === msg.user_id || isAdmin(currentChannel)">
                     <v-icon x-small class="mr-1" @click="
                       () => {
                         toDelete = msg;
@@ -364,6 +369,7 @@
 <script lang="ts">
 import { channel } from "diagnostics_channel";
 import { userInfo } from "os";
+import { list } from "postcss";
 import Vue from "vue";
 import AvatarStatusVue from "~/components/User/AvatarStatus.vue";
 
@@ -381,6 +387,8 @@ interface Channel {
   username: string; // for DM channel
   scope: string;
   users: User[];
+  owner: User;
+  admins: User[];
   messages: Message[];
 }
 
@@ -417,6 +425,7 @@ export default Vue.extend({
       name: "",
       password: "",
       channelPassword: "",
+      currentPassword: "",
       changePassword: "",
       input: "",
       currentUser: {} as User,
@@ -488,6 +497,31 @@ export default Vue.extend({
           console.error(error);
         });
     });
+
+    // fetch admins channels
+    this.channels.forEach(async (e) => {
+      await this.$axios
+        .get("/channels/" + e.id + "/admins")
+        .then((res) => {
+          e.admins = res.data;
+        })
+        .catch((error) => {
+          console.error(error);
+        });
+    });
+
+    // fetch owner channels
+    this.channels.forEach(async (e) => {
+      await this.$axios
+        .get("/channels/" + e.id + "/owner")
+        .then((res) => {
+          e.owner = res.data;
+        })
+        .catch((error) => {
+          console.error(error);
+        });
+    });
+
 
     // fetch channels messages
     for (let i = 0; i < this.channels.length; i++) {
@@ -663,8 +697,29 @@ export default Vue.extend({
       return false;
     },
 
-    notInChannelUsers() {
+    isAdmin(channel: Channel) {
+      for (let i = 0; i < channel.admins.length; ++i) {
+        if (this.currentUser.id === channel.admins[i].id)
+          return true;
+      }
+      return false;
+    },
 
+    isOwner(channel: Channel) {
+      if (this.currentUser.id === channel.owner.id)
+        return true;
+      return false;
+    },
+
+    async isProtectedChannel(choice: string) {
+      console.log("check protected")
+      for (let i = 0; i < this.allChannels.length; i++) {
+        if (parseInt(choice) === this.allChannels[i].id) {
+          if (this.allChannels[i].scope === "protected")
+            return true;
+        }
+      }
+      return false;
     }
   },
   components: {},
