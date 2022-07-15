@@ -265,7 +265,7 @@
                                 class="d-flex justify-center text-button"
                               >
                                 <v-btn
-                                  @click=""
+                                  @click="mute(player, channel)"
                                   color="accent"
                                   class="mx-1"
                                   min-width="48%"
@@ -286,7 +286,7 @@
                                 class="d-flex justify-center text-button"
                               >
                                 <v-btn
-                                  @click=""
+                                  @click="ban(player, channel)"
                                   color="accent"
                                   min-width="100%"
                                 >
@@ -530,6 +530,9 @@ interface Channel {
   username: string; // for DM channel
   users: User[];
   messages: Message[];
+  admins: User[];
+  banned: any[];
+  muted: any[];
 }
 
 interface User {
@@ -566,12 +569,12 @@ export default Vue.extend({
       // besoin de bien comprendre comment les regles sont gerees / en juillet
       rules: [
         (v: string) => !!v || "Required",
-        (v: string) => (v) =>
+        (v: string) => (v: string) =>
           (v && v.length <= 8) || "must be less than 8 characters",
         // (v: string) => v => !this.channels.some(channel => channel.name === v) || 'already exists',
       ],
       passwordRules: [
-        (v: string) => (v) =>
+        (v: string) => (v: string) =>
           v.length <= 16 || "must be less than 16 characters",
       ],
     };
@@ -626,17 +629,17 @@ export default Vue.extend({
 
     // this.socket.emit("SetSocket");
 
-    this.socket.on("connect", async (msg, cb) => {
+    this.socket.on("connect", async () => {
       console.log("Connection !");
       this.joinChannels();
     });
 
-    this.socket.on("disconnect", async (msg, cb) => {
+    this.socket.on("disconnect", async () => {
       console.log("Disconnection !");
       //   this.leaveChannels();
     });
 
-    this.socket.on("UserKick", async (msg, cb) => {
+    this.socket.on("UserKick", async (msg: any) => {
       console.log("you have been kick from a channel");
       let index = this.channels.findIndex((e) => {
         return e.id == msg.channel_id;
@@ -645,7 +648,7 @@ export default Vue.extend({
       this.channels.splice(index, 1);
     });
 
-    this.socket.on("Kick", async (msg, cb) => {
+    this.socket.on("Kick", async (msg: any) => {
       console.log("A user has been kick from a channel");
       let chan = this.channels.find((e) => {
         return e.id == msg.channel_id;
@@ -659,9 +662,7 @@ export default Vue.extend({
       console.log(chan.users);
     });
 
-    this.socket.on("JoinChan", async (channel: Channel, cb) => {
-      console.log(channel.id);
-
+    this.socket.on("JoinChan", async (channel: Channel) => {
       channel.messages = [];
       this.$axios
         .get("channels/" + channel.id + "/messages")
@@ -679,7 +680,7 @@ export default Vue.extend({
         this.channels.push(channel);
     });
 
-    this.socket.on("NewMessage", async (msg, cb) => {
+    this.socket.on("NewMessage", async (msg: Message) => {
       console.log("New message received !");
       if (msg != null) {
         this.channels
@@ -693,7 +694,7 @@ export default Vue.extend({
       }
     });
 
-    this.socket.on("NewUser", async (data, cb) => {
+    this.socket.on("NewUser", async (data: any) => {
       console.log("New user in chat !");
       if (data != null) {
         let chan = this.channels.find((e) => {
@@ -709,7 +710,7 @@ export default Vue.extend({
       }
     });
 
-    this.socket.on("DeleteMessage", async (msg, cb) => {
+    this.socket.on("DeleteMessage", async (msg: Message) => {
       console.log("Message deleted !");
       if (msg != null) {
         let channel = this.channels.find((e) => {
@@ -723,6 +724,7 @@ export default Vue.extend({
         );
       }
     });
+
     this.joinChannels();
 
     console.log("Created");
@@ -735,7 +737,6 @@ export default Vue.extend({
 
     scrollToNewMsg() {
       this.$nextTick(() => {
-        console.log(document.getElementById("Chat")?.lastElementChild);
         document.getElementById("Chat")?.lastElementChild?.scrollIntoView();
       });
     },
@@ -753,17 +754,11 @@ export default Vue.extend({
 
     async createChannel() {
       await this.$axios
-        .post(
-          "/channels/create",
-          {
-            name: this.name,
-            scope: this.choice,
-            password: this.password,
-          },
-          {
-            "Content-Type": "application/json",
-          }
-        )
+        .post("/channels/create", {
+          name: this.name,
+          scope: this.choice,
+          password: this.password,
+        })
         .then((res) => {
           this.socket.emit("JoinChan", {
             target_id: res.data.id,
@@ -787,7 +782,7 @@ export default Vue.extend({
             target_id: this.channels[i].id,
             content: "",
           },
-          (rep) => {
+          (rep: any) => {
             if (rep != null) console.log("chan joined");
             else console.log("cannot join chan");
           }
@@ -802,7 +797,7 @@ export default Vue.extend({
           target_id: this.choice,
           content: this.password,
         },
-        (rep) => {
+        (rep: any) => {
           if (rep != null) console.log("chan joined");
           else console.log("cannot join chan");
         }
@@ -815,6 +810,22 @@ export default Vue.extend({
       this.socket.emit("Kick", {
         user_id: user.id,
         channel_id: channel.id,
+      });
+    },
+
+    async ban(user: User, channel: Channel) {
+      this.socket.emit("Ban", {
+        user_id: user.id,
+        channel_id: channel.id,
+        duration: 1, // placeholder
+      });
+    },
+
+    async mute(user: User, channel: Channel) {
+      this.socket.emit("Mute", {
+        user_id: user.id,
+        channel_id: channel.id,
+        duration: 1, // placeholder
       });
     },
 

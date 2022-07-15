@@ -32,6 +32,8 @@ export class SocketService {
 	}
 
 	async newMessage(user: User, messageDto: CreateMessageDto, server: Server) {
+
+
 		let message: Message;
 		try {
 			message = await this.channelService.handleMessage(user, messageDto)
@@ -39,8 +41,24 @@ export class SocketService {
 			console.log(error);
 			return
 		}
-		console.log("NewMessage:")
-		console.log(message)
+
+		const channel = await this.channelService.findOneById(message.target_id);
+		let muted = channel.muted.find(e => { return e.user.id == user.id });
+		if (muted != undefined) {
+			if (muted.end > new Date()) {
+				server.to(user.socket_id).emit('NewMessage', {
+					id: -1,
+					target_id: channel.id,
+					user_id: -1,
+					user_name: "Info",
+					content: "You are still muted for " + ((muted.end.valueOf() - (new Date()).valueOf()) / (60 * 1000)).toFixed() + " minutes",
+				});
+
+				return; // user is muted on the target channel
+			}
+			else
+				this.channelService.removeFromMuteList(muted)
+		}
 
 		// manage block users
 		const socket_ids = await server.to(message.target_id.toString()).allSockets()
@@ -90,7 +108,7 @@ export class SocketService {
 			});
 	}
 
-	async kick(user: User, data, server: Server) {
+	async kick(user: User, data: any, server: Server) {
 		let channel = await this.channelService.findOneById(data.channel_id);
 		let target = await this.userService.findUsersById(data.user_id);
 
@@ -98,15 +116,7 @@ export class SocketService {
 			return;
 
 		if (channel.admins.find(e => { return e.id == user.id }) == undefined)
-			return;
-
-		this.userService.removeChannel(data.user_id, channel);
-		this.channelService.removeUser(data.channel_id, data.user_id);
-
-		server.in(target.socket_id).socketsLeave(channel.id.toString());
-
-		server.to(target.socket_id).emit('UserKick', data);
-		server.to(data.channel_id).emit('Kick', data);
+			return; // return if user is not admin
 
 		server.to(data.channel_id).emit('NewMessage', {
 			id: -1,
@@ -115,6 +125,65 @@ export class SocketService {
 			user_name: "Info",
 			content: target.username + " has been kicked ! So sad !",
 		});
+
+		await this.userService.removeChannel(data.user_id, channel);
+		await this.channelService.removeUser(data.channel_id, data.user_id);
+
+		server.in(target.socket_id).socketsLeave(channel.id.toString());
+
+		server.to(target.socket_id).emit('UserKick', data);
+		server.to(data.channel_id).emit('Kick', data);
+
+	}
+
+	async ban(user: User, data: any, server: Server) {
+		let channel = await this.channelService.findOneById(data.channel_id);
+		let target = await this.userService.findUsersById(data.user_id);
+
+		if (channel == null || target == null)
+			return;
+
+		if (channel.admins.find(e => { return e.id == user.id }) == undefined)
+			return; // return if user is not admin
+
+		server.to(data.channel_id).emit('NewMessage', {
+			id: -1,
+			target_id: channel.id,
+			user_id: -1,
+			user_name: "Info",
+			content: target.username + " has been Banned for " + data.duration + " minutes ! See you never !",
+		});
+
+		await this.channelService.addToBanList(data);
+
+		await this.userService.removeChannel(data.user_id, channel);
+		await this.channelService.removeUser(data.channel_id, data.user_id);
+
+		server.in(target.socket_id).socketsLeave(channel.id.toString());
+
+		server.to(target.socket_id).emit('UserKick', data);
+		server.to(data.channel_id).emit('Kick', data);
+	}
+
+	async mute(user: User, data: any, server: Server) {
+		let channel = await this.channelService.findOneById(data.channel_id);
+		let target = await this.userService.findUsersById(data.user_id);
+
+		if (channel == null || target == null)
+			return;
+
+		if (channel.admins.find(e => { return e.id == user.id }) == undefined)
+			return; // return if user is not admin
+
+		server.to(data.channel_id).emit('NewMessage', {
+			id: -1,
+			target_id: channel.id,
+			user_id: -1,
+			user_name: "Info",
+			content: target.username + " has been muted for " + data.duration + " minutes ! Finally some silence !",
+		});
+
+		await this.channelService.addToMuteList(data);
 	}
 
 	async deleteMessage(user: User, message: Message, server: Server) {

@@ -77,4 +77,16 @@ export class SocketGateway {
 		return this.socketService.kick(req.user as User, data, this.server)
 	}
 
+	@UseGuards(WsJwtAuthGuard)
+	@SubscribeMessage('Ban')
+	async ban(@Req() req: Request, @MessageBody() data, @ConnectedSocket() client: Socket) {
+		return this.socketService.ban(req.user as User, data, this.server)
+	}
+
+	@UseGuards(WsJwtAuthGuard)
+	@SubscribeMessage('Mute')
+	async mute(@Req() req: Request, @MessageBody() data, @ConnectedSocket() client: Socket) {
+		return this.socketService.mute(req.user as User, data, this.server)
+	}
+
 }
