@@ -65,6 +65,20 @@ export class ChannelsService {
 		return userList;
 	}
 
+	async getAdmins(channel_id: number): Promise<User[]> {
+		let channel = await this.channelRepository.findOne(channel_id, { relations: ["admins"] });
+		let adminList = [];
+		for (let i = 0; i < channel.admins.length; ++i) {
+			adminList.push(await this.userService.findUsersById(channel.admins[i].id));
+		}
+		return adminList;
+	}
+
+	async getOwner(channel_id: number): Promise<User> {
+		let channel = await this.channelRepository.findOne(channel_id, { relations: ["owner"] });
+		return await this.userService.findUsersById(channel.owner.id)
+	}
+
 	async getMessages(user: User, channel_id: number): Promise<Message[]> {
 		user = await this.userService.findUsersById(user.id)
 		if (user.channels.find(e => { return e.id == channel_id }) == undefined)
