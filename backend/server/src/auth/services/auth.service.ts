@@ -30,6 +30,27 @@ export class AuthService {
 		};
 	}
 
+	async rtGenerate(userid: number): Promise<{ refresh_token: string }> {
+		return {
+			refresh_token: this.jwtService.sign({ userid: userid }, {
+				secret: this.config.get<string>('JWT_RT_SECRET'),
+				expiresIn: `${this.config.get<string>('JWT_RT_EXPIRATION_TIME')}d`
+			}),
+		};
+	}
+
+	async createRTCookie(response: Response, userid: number) {
+		const rt_token: string = (await this.rtGenerate(userid)).refresh_token;
+		response.cookie('refresh_token', rt_token, {
+			httpOnly: true,
+			path: '/',
+			maxAge: this.config.get<number>('JWT_RT_EXPIRATION_TIME'),
+			sameSite: "strict",
+		});
+		return response;
+	}
+
+
 	async createCookie(response: Response, is42: boolean, code: string, user?: User): Promise<cookiePayload> {
 		var token_client: string;
 		var userCookie: User = user;
@@ -51,10 +72,11 @@ export class AuthService {
 		response.cookie('access_token', token_client, {
 			httpOnly: true,
 			path: '/',
-			maxAge: 1000 * 60 * 200,
+			maxAge: 1000 * 60 * 60,
 			sameSite: "strict",
 			/* secure: true, -> only for localhost AND https */
 		});
+		response = await this.createRTCookie(response, userid);
 		let created: boolean = (userCookie.username) ? false : true;
 		return {
 			userid: userid,

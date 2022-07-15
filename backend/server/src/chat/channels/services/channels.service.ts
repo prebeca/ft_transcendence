@@ -1,9 +1,9 @@
 import { Injectable, InternalServerErrorException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Channel, User } from 'src/typeorm';
+import { Channel, User, Ban, Mute } from 'src/typeorm';
 import { Repository } from 'typeorm';
 import { CreateChannelDto } from 'src/chat/channels/dto/channels.dto';
-import { Message, MessageData } from '../entities/message.entity';
+import { Message } from '../entities/message.entity';
 import { UsersService } from 'src/users/services/users.service';
 import { CreateMessageDto } from '../dto/messages.dto';
 
@@ -12,6 +12,8 @@ export class ChannelsService {
 	constructor(
 		@InjectRepository(Channel) private readonly channelRepository: Repository<Channel>,
 		@InjectRepository(Message) private readonly messagesRepository: Repository<Message>,
+		@InjectRepository(Ban) private readonly BanRepository: Repository<Ban>,
+		@InjectRepository(Mute) private readonly MuteRepository: Repository<Mute>,
 		private readonly userService: UsersService
 	) { }
 
@@ -65,15 +67,17 @@ export class ChannelsService {
 
 	async getMessages(user: User, channel_id: number): Promise<Message[]> {
 		user = await this.userService.findUsersById(user.id)
-		let messages = await this.messagesRepository.find({ where: { target_id: channel_id } });
-		// let sendlist: Message[] = []
-		// let message: any;
-		// for (message in messages) {
-		// 	let isblock = user.blocked.find(e => { return e.id == (message as Message).user_id })
-		// 	if (isblock === undefined)
-		// 		sendlist.push(message as Message);
-		// }
-		return (messages);
+		if (user.channels.find(e => { return e.id == channel_id }) == undefined)
+			return;
+		let messages: Message[] = [];
+		messages = await this.messagesRepository.find({ where: { target_id: channel_id } });
+		let sendlist: Message[] = []
+		for (let i = 0; i < messages.length; ++i) {
+			let isblock = user.blocked.find(e => { return e.id == messages[i].user_id })
+			if (isblock == undefined)
+				sendlist.push(messages[i]);
+		}
+		return (sendlist);
 	}
 
 	async deleteMessage(id: number) {
@@ -115,7 +119,7 @@ export class ChannelsService {
 	}
 
 	async findOneById(id: number): Promise<Channel> {
-		return this.channelRepository.findOne(id, { relations: ["users", "admins", "invited"] });
+		return this.channelRepository.findOne(id, { relations: ["users", "admins", "invited", "banned", "banned.user", "muted", "muted.user"] });
 	}
 
 	async addInvite(channel_id: number, user_id: number) {
@@ -163,29 +167,38 @@ export class ChannelsService {
 		let user: User = await this.userService.findUsersById(user_id)
 		if (channel == null || user == null)
 			return;
-		if (channel.users.find(e => { return e == user }) === undefined) return
+		if (channel.users.find(e => { return e.id == user.id }) === undefined) return
 
-		let index = channel.users.findIndex(e => { return e == user });
+		let index = channel.users.findIndex(e => { return e.id == user.id });
 		channel.users.splice(index, 1);
 
 		if (channel.owner == user)
 			channel.owner = null;
 
+		console.log("user removed from channel")
+
 		await this.channelRepository.save(channel);
 	}
 
-	async joinChannel(user: User, data: CreateMessageDto): Promise<Channel> {
+	async joinChannel(user: User, data: CreateMessageDto) {
 		const channel: Channel = await this.findOneById(data.target_id);
 		const message: Message = await this.createMessage(user, data);
 
-		if (channel.users.find(e => { return e == user }) != undefined)
+		if (channel.users.find(e => { return e.id == user.id }) != undefined)
 			return channel;
 		if (channel.scope == "protected" && channel.password != message.content)
 			return null;
-		if (channel.scope == "private" && channel.invited.find((e) => { return e == user }) == undefined)
+		if (channel.scope == "private" && channel.invited.find((e) => { return e.id == user.id }) == undefined)
 			return null;
+		let i = channel.banned.findIndex(e => { return e.user.id == user.id });
+		if (i != -1) {
+			if (channel.banned[i].end > new Date())
+				return; // user is banned
+			else
+				this.BanRepository.delete(channel.banned[i].id);
+		}
 
-		this.addUser(message.target_id, user.id)					// add user to channel members
+		this.addUser(message.target_id, user.id)		// add user to channel members
 		this.userService.addChannel(user.id, channel)	// add channel to the user's channels list
 		this.removeInvite(message.target_id, user.id);
 		return channel;
@@ -195,10 +208,10 @@ export class ChannelsService {
 		const channel: Channel = await this.findOneById(data.target_id);
 		const message: Message = await this.createMessage(user, data);
 
-		if (channel.users.find(e => { return e == user }) == undefined)
+		if (channel.users.find(e => { return e.id == user.id }) == undefined)
 			return null;
 
-		this.removeUser(message.target_id, message.user_id)					// remove user from channel members and remove ownership
+		this.removeUser(message.target_id, message.user_id)			// remove user from channel members and remove ownership
 		this.userService.removeChannel(message.user_id, channel)	// remove channel to the user's channels list
 		this.removeInvite(message.target_id, message.user_id);
 		return channel;
@@ -221,5 +234,76 @@ export class ChannelsService {
 			throw new InternalServerErrorException("User not in channel");
 		let message = await this.createMessage(user, messageDto);
 		return this.messagesRepository.save(message);
+	}
+
+	async addAdmin(channel_id: number, user_id: number): Promise<User> {
+		let channel: Channel = await this.channelRepository.findOne(channel_id, { relations: ["admins", "users"] });
+		let user: User = await this.userService.findUsersById(user_id)
+
+		if (user == null)
+			return null;
+		if (channel.users.find(e => { return e.id == user.id }) == undefined)
+			return null; // user not in channel
+		if (channel.admins.find(e => { return e.id == user.id }) != undefined)
+			return null; // already admin
+		channel.admins.push(user);
+		this.channelRepository.save(channel);
+		return user;
+	}
+
+	async addToBanList(data: any): Promise<User> {
+		let channel: Channel = await this.channelRepository.findOne(data.channel_id, { relations: ["banned", "banned.user"] });
+		let user: User = await this.userService.findUsersById(data.user_id)
+
+		if (user == null)
+			return null;
+		if (channel.banned.find(e => { return e.user.id == user.id }) != undefined)
+			return null; // already banned
+
+		let end = new Date();
+
+		end.setMinutes(end.getMinutes() + data.duration)
+
+		let ban = this.BanRepository.create({
+			channel: channel,
+			user: user,
+			end: end,
+			duration: data.duration
+		})
+
+		this.BanRepository.save(ban);
+		channel.banned.push(ban);
+		this.channelRepository.save(channel);
+		return user;
+	}
+
+	async addToMuteList(data: any): Promise<User> {
+		let channel: Channel = await this.channelRepository.findOne(data.channel_id, { relations: ["muted", "muted.user"] });
+		let user: User = await this.userService.findUsersById(data.user_id)
+
+		if (user == null)
+			return null;
+		if (channel.muted.find(e => { return e.user.id == user.id }) != undefined)
+			return null; // already muted
+
+		let end = new Date();
+
+		end.setMinutes(end.getMinutes() + data.duration)
+
+		let ban = this.MuteRepository.create({
+			channel: channel,
+			user: user,
+			end: end,
+			duration: data.duration
+		})
+
+		this.MuteRepository.save(ban);
+		channel.muted.push(ban);
+		this.channelRepository.save(channel);
+		return user;
+	}
+
+	async removeFromMuteList(mute: Mute) {
+		this.MuteRepository.delete(mute.id);
 	}
 }

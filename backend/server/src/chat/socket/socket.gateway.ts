@@ -24,7 +24,7 @@ export class SocketGateway {
 
 	@UseGuards(WsJwtAuthGuard)
 	@SubscribeMessage('JoinChan')
-	async joinChannel(@Req() req: Request, @MessageBody() data: CreateMessageDto, @ConnectedSocket() client: Socket): Promise<Channel> {
+	async joinChannel(@Req() req: Request, @MessageBody() data: CreateMessageDto, @ConnectedSocket() client: Socket) {
 		return this.socketService.joinChannel(req.user as User, data, client)
 	}
 
@@ -54,6 +54,12 @@ export class SocketGateway {
 	}
 
 	@UseGuards(WsJwtAuthGuard)
+	@SubscribeMessage('SetAdmin')
+	async setAdmin(@Req() req: Request, @MessageBody() message: Message, @ConnectedSocket() client: Socket) {
+		return this.socketService.setAdmin(req.user as User, message, this.server)
+	}
+
+	@UseGuards(WsJwtAuthGuard)
 	@SubscribeMessage('DeleteMessage')
 	async deleteMessage(@Req() req: Request, @MessageBody() message: Message) {
 		return this.socketService.deleteMessage(req.user as User, message, this.server)
@@ -63,6 +69,24 @@ export class SocketGateway {
 	@SubscribeMessage('PrivateMessage')
 	async privateMessage(@Req() req: Request, @MessageBody() messageDto: CreateMessageDto, @ConnectedSocket() client: Socket) {
 		return this.socketService.privateMessage(req.user as User, messageDto, this.server)
+	}
+
+	@UseGuards(WsJwtAuthGuard)
+	@SubscribeMessage('Kick')
+	async kick(@Req() req: Request, @MessageBody() data, @ConnectedSocket() client: Socket) {
+		return this.socketService.kick(req.user as User, data, this.server)
+	}
+
+	@UseGuards(WsJwtAuthGuard)
+	@SubscribeMessage('Ban')
+	async ban(@Req() req: Request, @MessageBody() data, @ConnectedSocket() client: Socket) {
+		return this.socketService.ban(req.user as User, data, this.server)
+	}
+
+	@UseGuards(WsJwtAuthGuard)
+	@SubscribeMessage('Mute')
+	async mute(@Req() req: Request, @MessageBody() data, @ConnectedSocket() client: Socket) {
+		return this.socketService.mute(req.user as User, data, this.server)
 	}
 
 }

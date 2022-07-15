@@ -37,7 +37,7 @@
 
     <v-main>
       <v-container>
-        <Nuxt />
+        <NuxtChild :user="user" :socket="socket" />
       </v-container>
     </v-main>
 
@@ -46,18 +46,40 @@
 </template>
 
 <script lang="ts">
+import { NuxtSocket } from "nuxt-socket-io";
 import Vue from "vue";
+
+interface Message {
+  id: number;
+  target_id: number;
+  user_id: number;
+  user_name: string;
+  content: string;
+}
+
+interface Channel {
+  id: number;
+  name: string; // for classic channels
+  username: string; // for DM channel
+  users: User[];
+  messages: Message[];
+}
+
+interface User {
+  id: number;
+  username: string;
+  friends: Channel[];
+}
 
 export default Vue.extend({
   name: "DefaultLayout",
+
   data() {
     return {
+      user: {} as User,
+      socket: {} as NuxtSocket,
       title: "PONG GAME",
       sizeOfAvatar: "50px",
-      user: {
-        id: 0,
-        avatar: "",
-      },
       drawer: false,
       avatar: "",
       cacheKey: +new Date(),
@@ -90,13 +112,32 @@ export default Vue.extend({
       .get("/users/profile")
       .then((res) => {
         console.log(res.data);
-        this.user.id = res.data.id;
+        this.user = res.data;
         console.log(this.user.id);
         this.changeAvatar(res.data.avatar);
+        this.user.friends.forEach((e) => {
+          e.messages = [];
+        });
       })
       .catch((error) => {
         console.error(error);
       });
+
+    this.socket = this.$nuxtSocket({ name: "chat", withCredentials: true });
+
+    this.socket.emit("SetSocket");
+
+    this.socket.on("PrivateMessage", async (msg, cb) => {
+      console.log(msg.user_name + ": " + msg.content);
+      let id = this.user.id == msg.target_id ? msg.user_id : msg.target_id;
+      if (msg != null) {
+        this.user.friends
+          .find((e) => {
+            return e.id == id;
+          })
+          ?.messages.push(msg);
+      }
+    });
   },
   methods: {
     changeAvatar(filename: string) {

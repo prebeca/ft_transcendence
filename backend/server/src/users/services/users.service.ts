@@ -10,6 +10,7 @@ import { Player } from 'src/game/entities/player.entity';
 import { AvatarStatusGateway } from '../gateways/avatarstatus.gateway';
 import { Socket } from 'socket.io';
 import { Channel } from 'src/typeorm';
+import { ConnectableObservable } from 'rxjs';
 
 @Injectable()
 export class UsersService {
@@ -123,9 +124,13 @@ export class UsersService {
 			throw new InternalServerErrorException("Update of 2FA secret did not work");
 		}
 	}
+
 	async updateUsername(user: User, new_username: string): Promise<void> {
 		if (!new_username)
 			throw new HttpException('Username cannot be empty', HttpStatus.FORBIDDEN);
+		const username_user: User = await this.userRepository.findOne({ where: { username: new_username } });
+		if (username_user)
+			return; // send something to frontend
 		try {
 			this.updateUsersById(user, { username: new_username })
 		}
@@ -244,21 +249,24 @@ export class UsersService {
 		let user = await this.userRepository.findOne(user_id, { relations: ["channels"] });
 		if (user == null)
 			return
-		if (user.channels.find((e) => { return e == chan }) != undefined)
+		if (user.channels.find((e) => { return e.id == chan.id }) != undefined)
 			return
 		user.channels.push(chan)
 		this.userRepository.save(user);
 	}
 
 	async removeChannel(user_id: number, chan: Channel): Promise<void> {
-		let user = await this.userRepository.findOne(user_id);
+		let user = await this.userRepository.findOne(user_id, { relations: ["channels"] });
+		console.log("channel removed from user 0")
 		if (user == null)
 			return
-		if (user.channels.find((e) => { return e == chan }) === undefined)
+		console.log("channel removed from user A")
+		if (user.channels.find((e) => { return e.id == chan.id }) == undefined)
 			return
-		let index = user.channels.findIndex(e => { return e == chan });
+		let index = user.channels.findIndex(e => { return e.id == chan.id });
 		user.channels.splice(index, 1);
 		this.userRepository.save(user);
+		console.log("channel removed from user B")
 	}
 
 	async updateSocket(user: User, socket_id: string) {
@@ -267,6 +275,8 @@ export class UsersService {
 	}
 
 	async addToBlocked(user: User, id: number) {
+		user = await this.userRepository.findOne(user.id, { relations: ["blocked"] });
+		if (user.id == id) return
 		let target = await this.userRepository.findOne(id);
 		if (target == null) return // wrong id
 		if (user.blocked.find(e => { return e == target }) != undefined) return // already blocked

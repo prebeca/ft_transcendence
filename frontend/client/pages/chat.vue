@@ -72,7 +72,10 @@
                 <v-dialog v-model="joinChannelDialog" persistent max-width="600px">
                   <template v-slot:activator>
                     <!-- JOIN CHANNEL BUTTON -->
-                    <v-btn color="primary" width="190px" class="my-5" @click="joinChannelDialog = !joinChannelDialog">
+                    <v-btn color="primary" width="190px" class="my-5" @click="
+  fetchAllChannels();
+joinChannelDialog = !joinChannelDialog;
+                    ">
                       JOIN CHANNEL
                     </v-btn>
                   </template>
@@ -94,7 +97,7 @@
                           </v-col>
                           <v-col cols="12">
                             <v-form @submit.prevent="">
-                              <v-text-field v-model="channelPassword" :rules="passwordRules" label="Password">
+                              <v-text-field v-model="password" :rules="passwordRules" label="Password">
                               </v-text-field>
                             </v-form>
                           </v-col>
@@ -118,10 +121,13 @@
 
               <v-divider></v-divider>
               <!-- CHANNEL LIST -->
-              <!-- basé sur des channels fakes, besoin de rajouter plus tard si channel public, owner, admin signaletique -->
               <v-list height="502px" color="secondary" mandatory>
                 <div v-for="(channel, index) in channels" :key="channel.id">
-                  <v-list-group @click="currentChannel = channel">
+                  <v-list-group @click="
+  currentChannel = channel;
+messages = currentChannel.messages;
+scrollToNewMsg();
+                  ">
                     <template v-slot:activator>
                       <v-list-item two-line>
                         <v-list-item-content>
@@ -134,7 +140,7 @@
                     </template>
                     <v-list color="secondary" width="100%">
                       <div v-for="(player, index) in channel.users" :key="index">
-                        <v-list-group v-if="currentUser.id != player.id" active-class="info--text" sub-group>
+                        <v-list-group v-if="user.id != player.id" active-class="info--text" sub-group>
                           <template v-slot:activator>
                             <v-list-item-content>
                               <tr>
@@ -150,9 +156,6 @@
                             </v-list-item-content>
                           </template>
                           <div>
-                            <!-- je vais devoir ajouter les conditions de display mais pour l'instant tous les btns sont visibles -->
-                            <!-- aussi besoin d'ajouter pour inviter a jouer mais on verra avec en juillet je pense -->
-                            <!-- PROFILE vu par tout le monde -->
                             <v-list-item dense>
                               <v-list-item-title class="d-flex justify-center text-button">
                                 <v-btn :to="'/profile/' + player.username" color="primary" class="mx-1"
@@ -163,28 +166,28 @@
                             <div v-if="isAdmin(channel) === true">
                               <v-list-item dense>
                                 <v-list-item-title class="d-flex justify-center text-button">
-                                  <v-btn @click="" color="accent" class="mx-1" min-width="48%">
+                                  <v-btn @click="mute(player, channel)" color="accent" class="mx-1" min-width="48%">
                                     MUTE</v-btn>
-                                  <v-btn @click="" color="accent" class="mx-1" min-width="48%">KICK
+                                  <v-btn @click="kick(player, channel)" color="accent" class="mx-1" min-width="48%">KICK
                                   </v-btn>
                                 </v-list-item-title>
                               </v-list-item>
                               <v-list-item dense>
                                 <v-list-item-title class="d-flex justify-center text-button">
-                                  <v-btn @click="" color="accent" min-width="100%">
+                                  <v-btn @click="ban(player, channel)" color="accent" min-width="100%">
                                     BAN</v-btn>
                                 </v-list-item-title>
                               </v-list-item>
                               <v-list-item dense>
                                 <v-list-item-title class="d-flex justify-center text-button">
-                                  <v-btn @click="" color="accent" min-width="100%">
+                                  <v-btn @click="blockUser(player)" color="accent" min-width="100%">
                                     BLOCK</v-btn>
                                 </v-list-item-title>
                               </v-list-item>
                               <div v-if="isOwner(channel) === true">
                                 <v-list-item dense class="mb-2">
                                   <v-list-item-title class="d-flex justify-center text-button">
-                                    <v-btn @click="" color="success" min-width="100%">
+                                    <v-btn @click="setAdmin(player, channel)" color="success" min-width="100%">
                                       ADMIN
                                     </v-btn>
                                   </v-list-item-title>
@@ -204,11 +207,13 @@
             <!-- DM LIST  -->
             <v-tab-item>
               <v-list height="635px" color="secondary" mandatory>
-                <v-list-group v-for="(friend, index) in currentUser.friends" :key="index">
-
-                  <!-- <v-list-item @click="currentChannel = friend"> -->
+                <v-list-group v-for="(friend, index) in user.friends" :key="index">
                   <template v-slot:activator>
-                    <v-list-item-content @click="currentChannel = friend">
+                    <v-list-item-content @click="
+  currentChannel = friend;
+messages = currentChannel.messages;
+scrollToNewMsg();
+                    ">
                       <tr>
                         <td>
                           <UserAvatarStatus size="80px" :user="friend" :offset="20" />
@@ -240,7 +245,6 @@
                         BLOCK</v-btn>
                     </v-list-item-title>
                   </v-list-item>
-                  <!-- </v-list-item> -->
                   <v-divider v-if="index < users.length - 1" :key="index"></v-divider>
                 </v-list-group>
               </v-list>
@@ -268,7 +272,6 @@
 
             <v-spacer></v-spacer>
             <!-- TO CHANGE CHANNEL SETTING -->
-            <!-- Après seulement visible pour le owner dans les channels protégé -->
             <v-dialog v-model="channelSettingDialog" persistent max-width="600px">
               <template v-slot:activator>
                 <v-icon @click="channelSettingDialog = !channelSettingDialog">
@@ -317,9 +320,9 @@
           </v-toolbar>
 
           <!-- MESSAGES -->
-          <v-list id="Chat" height="577px" width="100%" class="mt-3 d-flex flex-column">
-            <v-list-item-group>
-              <div v-for="(msg, index) in currentChannel.messages" :key="index">
+          <v-list height="577px" width="100%" class="mt-3 d-flex flex-column">
+            <v-list-item-group id="Chat">
+              <div v-for="(msg, index) in messages" :key="index">
                 <tr class="d-flex justify-space-between">
                   <td>
                     <v-list-item two-line disabled>
@@ -333,7 +336,7 @@
                       </v-list-item-content>
                     </v-list-item>
                   </td>
-                  <td v-if="currentUser.id === msg.user_id || isAdmin(currentChannel)">
+                  <td v-if="user.id === msg.user_id || isAdmin(currentChannel)">
                     <v-icon x-small class="mr-1" @click="
                       () => {
                         toDelete = msg;
@@ -367,9 +370,7 @@
 </template>
 
 <script lang="ts">
-import { channel } from "diagnostics_channel";
-import { userInfo } from "os";
-import { list } from "postcss";
+import { NuxtSocket } from "nuxt-socket-io";
 import Vue from "vue";
 import AvatarStatusVue from "~/components/User/AvatarStatus.vue";
 
@@ -377,7 +378,7 @@ interface Message {
   id: number;
   target_id: number;
   user_id: number;
-  user_name: number;
+  user_name: string;
   content: string;
 }
 
@@ -388,8 +389,10 @@ interface Channel {
   scope: string;
   users: User[];
   owner: User;
-  admins: User[];
   messages: Message[];
+  admins: User[];
+  banned: any[];
+  muted: any[];
 }
 
 interface User {
@@ -401,13 +404,11 @@ interface User {
 export default Vue.extend({
   data() {
     return {
-      // pour tests, a supprimer quand on aura les channels deouis le back
-      toDelete: {} as Message,
+      messages: [] as Message[],
       allChannels: [] as Channel[],
       channels: [] as Channel[],
       availableChannels: [] as Channel[],
       users: [] as User[],
-      user: {} as User,
       tabs: null,
       tab: ["Channels", "DM"],
       addChannelDialog: false,
@@ -428,34 +429,42 @@ export default Vue.extend({
       currentPassword: "",
       changePassword: "",
       input: "",
-      currentUser: {} as User,
       // besoin de bien comprendre comment les regles sont gerees / en juillet
       rules: [
         (v: string) => !!v || "Required",
-        (v: string) => (v) =>
+        (v: string) => (v: string) =>
           (v && v.length <= 8) || "must be less than 8 characters",
         // (v: string) => v => !this.channels.some(channel => channel.name === v) || 'already exists',
       ],
       passwordRules: [
-        (v: string) => (v) =>
+        (v: string) => (v: string) =>
           v.length <= 16 || "must be less than 16 characters",
       ],
     };
   },
-
+  props: {
+    user: {
+      type: Object,
+      required: true,
+    },
+    socket: {
+      type: Object,
+      required: true,
+    },
+  },
   async created() {
-    this.$axios
-      .get("/users/profile")
-      .then((res) => {
-        console.log(res.data);
-        this.currentUser = res.data;
-        this.currentUser.friends.forEach((e) => {
-          e.messages = [];
-        });
-      })
-      .catch((error) => {
-        console.error(error);
-      });
+    // this.$axios
+    //   .get("/users/profile")
+    //   .then((res) => {
+    //     console.log(res.data);
+    //     this.currentUser = res.data;
+    //     this.currentUser.friends.forEach((e) => {
+    //       e.messages = [];
+    //     });
+    //   })
+    //   .catch((error) => {
+    //     console.error(error);
+    //   });
 
     this.$axios
       .get("/users")
@@ -537,23 +546,44 @@ export default Vue.extend({
     }
 
     // setup client socket
-    this.socket = this.$nuxtSocket({ name: "chat", withCredentials: true });
+    // this.socket = this.$nuxtSocket({ name: "chat", withCredentials: true });
 
-    this.socket.emit("SetSocket");
+    // this.socket.emit("SetSocket");
 
-    this.socket.on("connect", async (msg, cb) => {
+    this.socket.on("connect", async () => {
       console.log("Connection !");
       this.joinChannels();
     });
 
-    this.socket.on("disconnect", async (msg, cb) => {
+    this.socket.on("disconnect", async () => {
       console.log("Disconnection !");
       //   this.leaveChannels();
     });
 
-    this.socket.on("JoinChan", async (channel: Channel, cb) => {
-      console.log(channel.id);
+    this.socket.on("UserKick", async (msg: any) => {
+      console.log("you have been kick from a channel");
+      let index = this.channels.findIndex((e) => {
+        return e.id == msg.channel_id;
+      });
+      if (index == -1) return;
+      this.channels.splice(index, 1);
+    });
 
+    this.socket.on("Kick", async (msg: any) => {
+      console.log("A user has been kick from a channel");
+      let chan = this.channels.find((e) => {
+        return e.id == msg.channel_id;
+      });
+      if (chan == undefined) return;
+      let i = chan.users.findIndex((e) => {
+        return (e.id = msg.user_id);
+      }) as number;
+      if (i == -1) return;
+      chan.users.splice(i, 1);
+      console.log(chan.users);
+    });
+
+    this.socket.on("JoinChan", async (channel: Channel) => {
       channel.messages = [];
       this.$axios
         .get("channels/" + channel.id + "/messages")
@@ -571,20 +601,7 @@ export default Vue.extend({
         this.channels.push(channel);
     });
 
-    this.socket.on("PrivateMessage", async (msg, cb) => {
-      console.log(msg.user_name + ": " + msg.content);
-      let id =
-        this.currentUser.id == msg.target_id ? msg.user_id : msg.target_id;
-      if (msg != null) {
-        this.currentUser.friends
-          .find((e) => {
-            return e.id == id;
-          })
-          ?.messages.push(msg);
-      }
-    });
-
-    this.socket.on("NewMessage", async (msg, cb) => {
+    this.socket.on("NewMessage", async (msg: Message) => {
       console.log("New message received !");
       if (msg != null) {
         this.channels
@@ -593,9 +610,28 @@ export default Vue.extend({
           })
           ?.messages.push(msg);
       }
+      if (this.currentChannel.id == msg.target_id) {
+        this.scrollToNewMsg();
+      }
     });
 
-    this.socket.on("DeleteMessage", async (msg, cb) => {
+    this.socket.on("NewUser", async (data: any) => {
+      console.log("New user in chat !");
+      if (data != null) {
+        let chan = this.channels.find((e) => {
+          return e.id == data.channel_id;
+        });
+        if (
+          chan &&
+          chan.users.find((e) => {
+            return e.id == data.user.id;
+          }) == undefined
+        )
+          chan.users.push(data.user);
+      }
+    });
+
+    this.socket.on("DeleteMessage", async (msg: Message) => {
       console.log("Message deleted !");
       if (msg != null) {
         let channel = this.channels.find((e) => {
@@ -610,23 +646,40 @@ export default Vue.extend({
       }
     });
 
+    this.joinChannels();
+
     console.log("Created");
   },
   computed: {},
   methods: {
+    blockUser(user: User) {
+      this.$axios.post("/users/block/" + user.id);
+    },
+
+    scrollToNewMsg() {
+      this.$nextTick(() => {
+        document.getElementById("Chat")?.lastElementChild?.scrollIntoView();
+      });
+    },
+
+    async fetchAllChannels() {
+      await this.$axios
+        .get("/channels")
+        .then((res) => {
+          this.allChannels = res.data;
+        })
+        .catch((error) => {
+          console.error(error);
+        });
+    },
+
     async createChannel() {
       await this.$axios
-        .post(
-          "/channels/create",
-          {
-            name: this.name,
-            scope: this.choice,
-            password: this.password,
-          },
-          {
-            "Content-Type": "application/json",
-          }
-        )
+        .post("/channels/create", {
+          name: this.name,
+          scope: this.choice,
+          password: this.password,
+        })
         .then((res) => {
           this.socket.emit("JoinChan", {
             target_id: res.data.id,
@@ -638,6 +691,7 @@ export default Vue.extend({
         .catch((error) => {
           console.error(error);
         });
+      this.password = "";
       this.addChannelDialog = false;
     },
 
@@ -649,7 +703,7 @@ export default Vue.extend({
             target_id: this.channels[i].id,
             content: "",
           },
-          (rep) => {
+          (rep: any) => {
             if (rep != null) console.log("chan joined");
             else console.log("cannot join chan");
           }
@@ -658,17 +712,56 @@ export default Vue.extend({
     },
 
     async joinChannel() {
-      this.socket.emit("JoinChan", {
-        target_id: this.choice,
-        content: this.channelPassword,
+      this.socket.emit(
+        "JoinChan",
+        {
+          target_id: this.choice,
+          content: this.password,
+        },
+        (rep: any) => {
+          if (rep != null) console.log("chan joined");
+          else console.log("cannot join chan");
+        }
+      );
+      this.password = "";
+      this.joinChannelDialog = false;
+    },
+
+    async kick(user: User, channel: Channel) {
+      this.socket.emit("Kick", {
+        user_id: user.id,
+        channel_id: channel.id,
+      });
+    },
+
+    async ban(user: User, channel: Channel) {
+      this.socket.emit("Ban", {
+        user_id: user.id,
+        channel_id: channel.id,
+        duration: 1, // placeholder
+      });
+    },
+
+    async mute(user: User, channel: Channel) {
+      this.socket.emit("Mute", {
+        user_id: user.id,
+        channel_id: channel.id,
+        duration: 1, // placeholder
+      });
+    },
+
+    async setAdmin(user: User, channel: Channel) {
+      this.socket.emit("SetAdmin", {
+        channel_id: channel.id,
+        user_id: user.id,
       });
       this.joinChannelDialog = false;
     },
 
-    async deleteMessage() {
+    async deleteMessage(msg: Message) {
       console.log("Delete Message !");
-      console.log(this.toDelete.content);
-      this.socket.emit("DeleteMessage", this.toDelete);
+      console.log(msg.content);
+      this.socket.emit("DeleteMessage", msg);
     },
 
     async sendMessage() {
@@ -699,14 +792,14 @@ export default Vue.extend({
 
     isAdmin(channel: Channel) {
       for (let i = 0; i < channel.admins.length; ++i) {
-        if (this.currentUser.id === channel.admins[i].id)
+        if (this.user.id === channel.admins[i].id)
           return true;
       }
       return false;
     },
 
     isOwner(channel: Channel) {
-      if (this.currentUser.id === channel.owner.id)
+      if (this.user.id === channel.owner.id)
         return true;
       return false;
     },

@@ -20,7 +20,7 @@ import { UsersService } from 'src/users/services/users.service';
 import { CreateChannelDto } from '../dto/channels.dto';
 import { CreateMessageDto } from '../dto/messages.dto';
 import { Channel } from '../entities/channel.entity';
-import { Message, MessageData } from '../entities/message.entity';
+import { Message } from '../entities/message.entity';
 import { ChannelsService } from '../services/channels.service';
 
 @Controller('channels')
@@ -55,7 +55,7 @@ export class ChannelsController {
 
 	@UseGuards(JwtAuthGuard)
 	@Post('join')
-	async joinChannel(@Req() req: Request, @Body() data: MessageData): Promise<Channel> {
+	async joinChannel(@Req() req: Request, @Body() data: Message): Promise<Channel> {
 		return this.channelService.joinChannel(req.user as User, data);
 	}
 
