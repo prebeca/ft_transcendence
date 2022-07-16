@@ -11,12 +11,13 @@ import { AvatarStatusGateway } from '../gateways/avatarstatus.gateway';
 import { Socket } from 'socket.io';
 import { Channel } from 'src/typeorm';
 import { ConnectableObservable } from 'rxjs';
+import { FriendsService } from 'src/friends/services/friends.service';
 
 @Injectable()
 export class UsersService {
 	constructor(
 		@InjectRepository(User)
-		private readonly userRepository: Repository<User>,
+		private readonly userRepository: Repository<User>, private readonly friendsService: FriendsService
 	) { }
 
 	@Inject()
@@ -71,7 +72,7 @@ export class UsersService {
 
 	async findUsersByIdWithRelations(id: number): Promise<User> {
 		try {
-			const { password, salt, ...user } = await this.userRepository.findOne(id, { relations: ["player", "friends", "channels"] });
+			const { password, salt, ...user } = await this.userRepository.findOne(id, { relations: ["player", "friends", "channels", "blocked"] });
 			if (!(user as User))
 				return null;
 			var friends: User[] = user.friends;
@@ -275,11 +276,14 @@ export class UsersService {
 	}
 
 	async addToBlocked(user: User, id: number) {
-		user = await this.userRepository.findOne(user.id, { relations: ["blocked"] });
+		user = await this.userRepository.findOne(user.id, { relations: ["blocked", "friends"] });
+		let target = await this.userRepository.findOne(id, { relations: ["blocked", "friends"] });
 		if (user.id == id) return
-		let target = await this.userRepository.findOne(id);
 		if (target == null) return // wrong id
-		if (user.blocked.find(e => { return e == target }) != undefined) return // already blocked
+		if (user.blocked.find(e => { return e.id == target.id }) != undefined) return // already blocked
+
+		this.friendsService.removeFriend(user, target.id);
+		this.friendsService.removeFriend(target, user.id);
 
 		user.blocked.push(target);
 		this.userRepository.save(user);

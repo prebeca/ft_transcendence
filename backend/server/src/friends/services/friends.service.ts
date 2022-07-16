@@ -40,9 +40,16 @@ export class FriendsService {
 	}
 
 	async addFriend(user: User, user_id_to_add: number): Promise<void> {
-		const user_to_add: User = await this.userRepository.findOne(user_id_to_add);
+		const user_to_add: User = await this.userRepository.findOne(user_id_to_add, { relations: ["blocked"] });
 		if (!user_to_add || user.id === user_to_add.id || this.isFriend(user, user_to_add))
 			return;
+
+		if (user.blocked.find(e => { return e.id == user_to_add.id }) != undefined)
+			return // user_to_add is blocked
+
+		if (user_to_add.blocked.find(e => { return e.id == user.id }) != undefined)
+			return // user_to_add has blocked user
+
 		user.friends.push(user_to_add);
 		await this.userRepository.save(user);
 	}

@@ -91,6 +91,12 @@ export class SocketService {
 	async privateMessage(user: User, messageDto: CreateMessageDto, server: Server): Promise<Message> {
 		let target = await this.userService.findUsersById(messageDto.target_id)
 		let message = await this.channelService.createMessage(user, messageDto);
+
+		if (user.friends.find(e => { return e.id == target.id }) == undefined)
+			return; // target is not user's friend
+		if (target.friends.find(e => { return e.id == user.id }) == undefined)
+			return; // user is not target's friend
+
 		server.to(user.socket_id).emit('PrivateMessage', message);
 		server.to(target.socket_id).emit('PrivateMessage', message);
 		return message
