@@ -210,6 +210,7 @@ export default Vue.extend({
           password: this.password,
         })
         .then((res) => {
+          this.tab = 0;
           console.log(res);
         })
         .catch((error) => {
