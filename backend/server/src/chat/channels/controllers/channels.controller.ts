@@ -5,18 +5,12 @@ import {
 	Param,
 	ParseIntPipe,
 	Post,
-	UsePipes,
-	ValidationPipe,
-	ParseArrayPipe,
-	Headers,
 	Req,
 	UseGuards,
-	InternalServerErrorException,
 } from '@nestjs/common';
 import { Request } from 'express';
 import { JwtAuthGuard } from 'src/auth/guards/jwt-auth.guard';
 import { User } from 'src/typeorm';
-import { UsersService } from 'src/users/services/users.service';
 import { CreateChannelDto } from '../dto/channels.dto';
 import { CreateMessageDto } from '../dto/messages.dto';
 import { Channel } from '../entities/channel.entity';
@@ -94,5 +88,11 @@ export class ChannelsController {
 	@Post('handleMessage')
 	async handleMessage(@Req() req: Request, @Body() messageDto: CreateMessageDto) {
 		this.channelService.handleMessage(req.user as User, messageDto);
+	}
+
+	@UseGuards(JwtAuthGuard)
+	@Post(':id/update/password')
+	async updatePassword(@Req() req: Request, @Body() data: any): Promise<any> {
+		return this.channelService.updatePassword(req.user as User, data);
 	}
 }

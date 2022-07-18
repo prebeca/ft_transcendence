@@ -324,4 +324,21 @@ export class ChannelsService {
 	async removeFromBanList(ban: Ban) {
 		this.BanRepository.delete(ban.id);
 	}
+
+	async updatePassword(user: User, data: any): Promise<any> {
+		let channel: Channel = await this.channelRepository.findOne(data.channel_id, { relations: ["admins"] });
+
+		if (channel.admins.find(e => { return e.id == user.id }) == undefined)
+			return { color: "red", content: "ERROR: admins right required" }
+
+		if (channel.password != data.password_old)
+			return { color: "red", content: "ERROR: wrong password" }
+
+		if (data.password_new == '' || data.password_new == undefined)
+			return { color: "red", content: "ERROR: new password can not be empty" }
+
+		channel.password = data.password_new;
+		await this.channelRepository.save(channel);
+		return { color: "green", content: "Password updated succesfully" }
+	}
 }

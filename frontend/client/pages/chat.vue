@@ -1059,11 +1059,23 @@ export default Vue.extend({
     async options(choice: string) {
       if (this.currentChannel == undefined) return;
       if (this.currentChannel.scope == "private") {
-        console.log(this.invited_user);
         this.socket.emit("Invite", {
           target_id: this.invited_user.id,
           channel_id: this.currentChannel.id,
         });
+      } else if (this.currentChannel.scope == "protected") {
+        await this.$axios
+          .post("/channels/" + this.currentChannel.id + "/update/password", {
+            channel_id: this.currentChannel.id,
+            password_old: this.currentPassword,
+            password_new: this.changePassword,
+          })
+          .then((res) => {
+            this.socket.emit("Alert", res.data);
+          })
+          .catch((error) => {
+            console.error(error);
+          });
       }
     },
   },
