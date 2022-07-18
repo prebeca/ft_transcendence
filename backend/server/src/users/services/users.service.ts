@@ -9,12 +9,14 @@ import { UpdateUserDto } from '../dto/updateUser.dto';
 import { Player } from 'src/game/entities/player.entity';
 import { AvatarStatusGateway } from '../gateways/avatarstatus.gateway';
 import { Channel } from 'src/typeorm';
+import { FriendsService } from 'src/friends/services/friends.service';
 
 @Injectable()
 export class UsersService {
 	constructor(
 		@InjectRepository(User)
 		private readonly userRepository: Repository<User>,
+		private readonly friendsService: FriendsService
 	) { }
 
 	@Inject()
