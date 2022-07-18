@@ -57,6 +57,7 @@ export class AuthController {
 			throw new UnauthorizedException("Credentials don't match");
 		const ret: cookiePayload = await this.authService.createCookie(response, false, null, user);
 		response = ret.response;
+		console.log(response.cookie);
 		if (!response)
 			throw new UnauthorizedException("JWT Generation error");
 		this.gatewayStatus.onConnection(ret.userid);

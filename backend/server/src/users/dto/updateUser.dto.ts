@@ -10,4 +10,6 @@ export class UpdateUserDto {
 	twofauser?: boolean;
 
 	twofasecret?: string;
+
+	refresh_token?: string;
 }

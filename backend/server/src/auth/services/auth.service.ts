@@ -1,4 +1,4 @@
-import { Injectable, Inject, InternalServerErrorException, UnauthorizedException } from '@nestjs/common';
+import { Injectable, Inject, HttpException, UnauthorizedException, HttpStatus } from '@nestjs/common';
 import { UsersService } from 'src/users/services/users.service';
 import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
@@ -39,17 +39,32 @@ export class AuthService {
 		};
 	}
 
-	async createRTCookie(response: Response, userid: number) {
+	async createRTCookie(userid: number) {
 		const rt_token: string = (await this.rtGenerate(userid)).refresh_token;
+		return rt_token;
+	}
+
+	//compare refresh_token already in DB before accessing here
+	async refreshTokens(response: Response, user: User): Promise<Response> {
+		const token_client: string = (await this.jwtGenerate({ email: user.email, id: user.id, isTwoFactorEnable: user.twofauser })).access_token;
+		response.cookie('access_token', token_client, {
+			httpOnly: true,
+			path: '/',
+			maxAge: 1000 * 60 * 10,
+			sameSite: "strict",
+			/* secure: true, -> only for localhost AND https */
+		});
+		const rt_token: string = await this.createRTCookie(user.id);
+		const hash_token: string = await bcrypt.hash(rt_token, 5);
+		this.usersService.updateUsersById(user, { refresh_token: hash_token });
 		response.cookie('refresh_token', rt_token, {
 			httpOnly: true,
 			path: '/',
-			maxAge: this.config.get<number>('JWT_RT_EXPIRATION_TIME'),
+			maxAge: 1000 * 60 * 60 * 24 * 15,
 			sameSite: "strict",
 		});
 		return response;
 	}
-
 
 	async createCookie(response: Response, is42: boolean, code: string, user?: User): Promise<cookiePayload> {
 		var token_client: string;
@@ -76,7 +91,18 @@ export class AuthService {
 			sameSite: "strict",
 			/* secure: true, -> only for localhost AND https */
 		});
-		response = await this.createRTCookie(response, userid);
+
+		const rt_token: string = await this.createRTCookie(userid);
+		const hash_token: string = await bcrypt.hash(rt_token, 5);
+		this.usersService.updateUsersById(userCookie, { refresh_token: hash_token });
+
+		response.cookie('refresh_token', rt_token, {
+			httpOnly: true,
+			path: '/',
+			maxAge: 1000 * 60 * 60 * 1000,
+			sameSite: "strict",
+		});
+
 		let created: boolean = (userCookie.username) ? false : true;
 		return {
 			userid: userid,
@@ -104,11 +130,12 @@ export class AuthService {
 			});
 
 		if (!res2)
-			throw new InternalServerErrorException("Call to 42API failed");
+			throw new HttpException("Call to 42API failed", HttpStatus.INTERNAL_SERVER_ERROR);
 
 		createUserDto = {
 			...createUserDto,
 			login: res2.data.login,
+			username: res2.data.login,
 			email: res2.data.email,
 		};
 
@@ -187,6 +214,15 @@ export class AuthService {
 	}
 
 	async registerUser(registerUser: RegisterInterface): Promise<User> {
+		var user: User = await this.usersService.findOneByEmail(registerUser.email);
+		if (!user) {
+			user = await this.usersService.findOneByUsername(registerUser.username);
+			if (user)
+				throw new HttpException("Username already used", HttpStatus.INTERNAL_SERVER_ERROR);
+		}
+		else {
+			throw new HttpException("Email already used", HttpStatus.INTERNAL_SERVER_ERROR);
+		}
 		try {
 			const salt_pass = await bcrypt.genSalt();
 			const hash_pass = await bcrypt.hash(registerUser.password, salt_pass);
@@ -199,7 +235,7 @@ export class AuthService {
 			}
 			return this.usersService.createUser(createUserDto);
 		} catch (error) {
-			throw new InternalServerErrorException("Password hashing failed");
+			throw new HttpException("Register failed", HttpStatus.INTERNAL_SERVER_ERROR);
 		}
 	}
 }
