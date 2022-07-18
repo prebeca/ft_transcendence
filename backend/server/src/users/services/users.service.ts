@@ -253,7 +253,7 @@ export class UsersService {
 		if (user.channels.find((e) => { return e.id == chan.id }) != undefined)
 			return
 		user.channels.push(chan)
-		this.userRepository.save(user);
+		await this.userRepository.save(user);
 	}
 
 	async removeChannel(user_id: number, chan: Channel): Promise<void> {
@@ -266,7 +266,7 @@ export class UsersService {
 			return
 		let index = user.channels.findIndex(e => { return e.id == chan.id });
 		user.channels.splice(index, 1);
-		this.userRepository.save(user);
+		await this.userRepository.save(user);
 		console.log("channel removed from user B")
 	}
 
@@ -282,21 +282,21 @@ export class UsersService {
 		if (target == null) return // wrong id
 		if (user.blocked.find(e => { return e.id == target.id }) != undefined) return // already blocked
 
-		this.friendsService.removeFriend(user, target.id);
-		this.friendsService.removeFriend(target, user.id);
+		await this.friendsService.removeFriend(user, target.id);
+		await this.friendsService.removeFriend(target, user.id);
 
 		user.blocked.push(target);
-		this.userRepository.save(user);
+		await this.userRepository.save(user);
 	}
 
 	async removeFromBlocked(user: User, id: number) {
 		let target = await this.userRepository.findOne(id);
 
 		if (target == null) return // wrong id
-		if (user.blocked.find(e => e == target) == undefined) return // not blocked
+		let index = user.blocked.findIndex(e => { return e.id == target.id });
+		if (index == -1) return // not blocked
 
-		let index = user.blocked.findIndex(e => { return e == target });
 		user.blocked.splice(index, 1);
-		this.userRepository.save(user);
+		await this.userRepository.save(user);
 	}
 }

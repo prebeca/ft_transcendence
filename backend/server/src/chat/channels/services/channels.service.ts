@@ -22,9 +22,9 @@ export class ChannelsService {
 		let channel: Channel = await this.channelRepository.findOne({ where: { name: createChannelDto.name } })
 
 		if (channel != null)
-			throw new InternalServerErrorException("Channel already exist");
+			return "Channel already exist";
 		if (createChannelDto.scope == 'protected' && createChannelDto.password.length == 0)
-			throw new InternalServerErrorException("Empty password for Protected Channel");
+			return "Empty password for Protected Channel";
 
 		if (createChannelDto.scope != "protected")
 			createChannelDto.password = null
@@ -143,7 +143,7 @@ export class ChannelsService {
 		if (user == null)
 			return
 
-		let index: number = channel.invited.findIndex(e => { return e == user });
+		let index: number = channel.invited.findIndex(e => { return e.id == user.id });
 		if (index != -1)
 			return
 
@@ -157,7 +157,7 @@ export class ChannelsService {
 
 		if (user == null)
 			return
-		let index: number = channel.invited.findIndex(e => { return e == user });
+		let index: number = channel.invited.findIndex(e => { return e.id == user.id });
 		if (index == -1)
 			return
 		channel.invited.splice(index, 1);
@@ -201,13 +201,13 @@ export class ChannelsService {
 		if (channel.users.find(e => { return e.id == user.id }) != undefined)
 			return channel;
 		if (channel.scope == "protected" && channel.password != message.content)
-			return null;
+			return "Wrong Password";
 		if (channel.scope == "private" && channel.invited.find((e) => { return e.id == user.id }) == undefined)
-			return null;
+			return "Not Invited";
 		let i = channel.banned.findIndex(e => { return e.user.id == user.id });
 		if (i != -1) {
 			if (channel.banned[i].end > new Date())
-				return; // user is banned
+				return "You are still banned for " + ((channel.banned[i].end.valueOf() - (new Date()).valueOf()) / (60 * 1000)).toFixed() + " minutes"; // user is banned
 			else
 				this.BanRepository.delete(channel.banned[i].id);
 		}
@@ -319,5 +319,9 @@ export class ChannelsService {
 
 	async removeFromMuteList(mute: Mute) {
 		this.MuteRepository.delete(mute.id);
+	}
+
+	async removeFromBanList(ban: Ban) {
+		this.BanRepository.delete(ban.id);
 	}
 }

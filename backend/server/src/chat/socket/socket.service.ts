@@ -15,8 +15,11 @@ export class SocketService {
 		if (channel == null)
 			return null
 
-		if (await this.channelService.joinChannel(user, data) == null)
+		let res = await this.channelService.joinChannel(user, data);
+		if (typeof (res) == "string") {
+			client.emit("Alert", { content: "ERROR: " + res, color: "red" })
 			return null
+		}
 
 		client.to(channel.id.toString()).emit("NewUser", { user: user, channel_id: channel.id })
 		client.join(channel.id.toString())							// join socket room
@@ -46,11 +49,8 @@ export class SocketService {
 		let muted = channel.muted.find(e => { return e.user.id == user.id });
 		if (muted != undefined) {
 			if (muted.end > new Date()) {
-				server.to(user.socket_id).emit('NewMessage', {
-					id: -1,
-					target_id: channel.id,
-					user_id: -1,
-					user_name: "Info",
+				server.to(user.socket_id).emit('Alert', {
+					color: "red",
 					content: "You are still muted for " + ((muted.end.valueOf() - (new Date()).valueOf()) / (60 * 1000)).toFixed() + " minutes",
 				});
 
@@ -73,15 +73,30 @@ export class SocketService {
 		server.to(message.target_id.toString()).except(except).emit('NewMessage', message);
 	}
 
-	async invite(user: User, messageDto: CreateMessageDto, server: Server) {
-		let message = await this.channelService.handleMessage(user, messageDto)
-		let target = await this.userService.findUsersById(message.target_id);
-		let channel = await this.channelService.findOneByName(message.content)
+	async invite(user: User, data: any, server: Server) {
+		let target = await this.userService.findUsersById(data.target_id);
+		let channel = await this.channelService.findOneById(data.channel_id)
 
 		if (target == null || channel == null) return
+		if (channel.admins.find(e => { return e.id == user.id }) == undefined) {
+			server.to(user.socket_id).emit("Alert", { content: "Invite require admin rights", color: "red" })
+			return;
+		}
+		if (user.blocked.find(e => { return e.id == target.id }) != undefined || target.blocked.find(e => { return e.id == user.id }) != undefined) {
+			server.to(user.socket_id).emit("Alert", { content: "You can't invite this player.", color: "red" })
+			return;
+		}
+		let ban = channel.banned.find(e => { return e.user.id == target.id })
+		if (ban != undefined) {
+			if (ban.end > new Date()) {
+				server.to(user.socket_id).emit("Alert", { content: "This player is banned from this channel.", color: "red" })
+				return;
+			}
+			this.channelService.removeFromBanList(ban);
+		}
 
-		this.channelService.addInvite(channel.id, messageDto.target_id)
-		server.to(target.socket_id).emit('invite', message);
+		this.channelService.addInvite(channel.id, target.id)
+		server.to(target.socket_id).emit("Alert", { content: user.username + " has invited you to " + channel.name + " channel !", color: "blue" })
 	}
 
 	async setSocket(user: User, client: Socket) {

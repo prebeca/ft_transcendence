@@ -40,7 +40,15 @@
         <NuxtChild :user="user" :socket="socket" />
       </v-container>
     </v-main>
+    <v-snackbar :color="snackcolor" right v-model="snackbar" :timeout="timeout">
+      {{ notif_text }}
 
+      <template v-slot:action="{ attrs }">
+        <v-btn color="blue" text v-bind="attrs" @click="snackbar = false">
+          Close
+        </v-btn>
+      </template>
+    </v-snackbar>
     <LayoutFooter />
   </v-app>
 </template>
@@ -69,6 +77,13 @@ interface User {
   id: number;
   username: string;
   friends: Channel[];
+  avatar: string;
+}
+
+interface Alert {
+  type: string;
+  content: string;
+  color: string;
 }
 
 export default Vue.extend({
@@ -76,6 +91,10 @@ export default Vue.extend({
 
   data() {
     return {
+      snackbar: false,
+      snackcolor: "white",
+      timeout: 5000,
+      notif_text: "",
       user: {} as User,
       socket: {} as NuxtSocket,
       title: "PONG GAME",
@@ -137,6 +156,12 @@ export default Vue.extend({
           })
           ?.messages.push(msg);
       }
+    });
+    this.socket.on("Alert", async (alert: Alert, cb) => {
+      console.log("new Alert");
+      this.notif_text = alert.content;
+      this.snackcolor = alert.color;
+      this.snackbar = true;
     });
   },
   methods: {

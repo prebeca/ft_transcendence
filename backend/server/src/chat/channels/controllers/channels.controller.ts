@@ -55,14 +55,15 @@ export class ChannelsController {
 
 	@UseGuards(JwtAuthGuard)
 	@Post('join')
-	async joinChannel(@Req() req: Request, @Body() data: Message): Promise<Channel> {
+	async joinChannel(@Req() req: Request, @Body() data: Message): Promise<Channel | String> {
 		return this.channelService.joinChannel(req.user as User, data);
 	}
 
 	@UseGuards(JwtAuthGuard)
 	@Post('create')
-	async createChannel(@Req() req: Request, @Body() createChannelDto: CreateChannelDto): Promise<Channel> {
+	async createChannel(@Req() req: Request, @Body() createChannelDto: CreateChannelDto): Promise<Channel | String> {
 		return this.channelService.createChannel(req.user as User, createChannelDto)
+
 	}
 
 	@UseGuards(JwtAuthGuard)

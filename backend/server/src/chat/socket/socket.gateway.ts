@@ -23,10 +23,17 @@ export class SocketGateway {
 	server: Server;
 
 	@UseGuards(WsJwtAuthGuard)
+	@SubscribeMessage('Alert')
+	async alert(@Req() req: Request, @MessageBody() data: CreateMessageDto) {
+		this.server.to((req.user as User).socket_id).emit("Alert", data)
+	}
+
+	@UseGuards(WsJwtAuthGuard)
 	@SubscribeMessage('JoinChan')
 	async joinChannel(@Req() req: Request, @MessageBody() data: CreateMessageDto, @ConnectedSocket() client: Socket) {
 		return this.socketService.joinChannel(req.user as User, data, client)
 	}
+
 
 	@UseGuards(WsJwtAuthGuard)
 	@SubscribeMessage('LeaveChan')
@@ -41,10 +48,10 @@ export class SocketGateway {
 	}
 
 	@UseGuards(WsJwtAuthGuard)
-	@SubscribeMessage('invite')
-	async invite(@Req() req: Request, @MessageBody() messageDto: CreateMessageDto, @ConnectedSocket() client: Socket) {
+	@SubscribeMessage('Invite')
+	async invite(@Req() req: Request, @MessageBody() data: any, @ConnectedSocket() client: Socket) {
 		let user = req.user as User;
-		return this.socketService.invite(user, messageDto, this.server)
+		return this.socketService.invite(user, data, this.server)
 	}
 
 	@UseGuards(WsJwtAuthGuard)

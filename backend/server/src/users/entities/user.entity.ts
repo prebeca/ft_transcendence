@@ -45,9 +45,6 @@ export class User {
 	@JoinTable()
 	channels: Channel[]
 
-	// @Column("bigint", { default: {}, array: true })
-	// channels: number[];
-
 	@OneToOne(() => Player, {
 		cascade: ["insert"],
 	})
@@ -61,9 +58,6 @@ export class User {
 	@ManyToMany(() => User)
 	@JoinTable()
 	blocked: User[]
-
-	// @Column("bigint", { default: {}, array: true })
-	// blocked: number[];
 
 	@Column({ nullable: true, default: null })
 	socket_id: string

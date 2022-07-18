@@ -489,11 +489,12 @@
                         <v-select
                           :items="users"
                           name="user"
-                          v-model="user"
+                          v-model="invited_user"
+                          return-object
                           filled
                           item-text="username"
                           label="Select"
-                          item-value="text"
+                          item-value="id"
                           hint="Send an invitation to a player"
                           persistent-hint
                         >
@@ -516,7 +517,7 @@
                     color="success white--text"
                     :disabled="!valid"
                     depressed
-                    @click=""
+                    @click="options"
                   >
                     SAVE
                   </v-btn>
@@ -628,6 +629,7 @@ interface User {
 export default Vue.extend({
   data() {
     return {
+      invited_user: {} as User,
       messages: [] as Message[],
       allChannels: [] as Channel[],
       channels: [] as Channel[],
@@ -913,6 +915,13 @@ export default Vue.extend({
           password: this.password,
         })
         .then((res) => {
+          if (typeof res.data === "string") {
+            this.socket.emit("Alert", {
+              color: "red",
+              content: "ERROR : " + res.data,
+            });
+            return;
+          }
           this.socket.emit("JoinChan", {
             target_id: res.data.id,
             content: this.password,
@@ -922,6 +931,10 @@ export default Vue.extend({
         })
         .catch((error) => {
           console.error(error);
+          this.socket.emit("Alert", {
+            color: "red",
+            content: "ERROR : " + error.message,
+          });
         });
       this.password = "";
       this.addChannelDialog = false;
@@ -1041,6 +1054,17 @@ export default Vue.extend({
         }
       }
       return false;
+    },
+
+    async options(choice: string) {
+      if (this.currentChannel == undefined) return;
+      if (this.currentChannel.scope == "private") {
+        console.log(this.invited_user);
+        this.socket.emit("Invite", {
+          target_id: this.invited_user.id,
+          channel_id: this.currentChannel.id,
+        });
+      }
     },
   },
   components: {},
