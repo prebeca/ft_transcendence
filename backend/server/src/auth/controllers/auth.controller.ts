@@ -52,12 +52,10 @@ export class AuthController {
 	@Post('login')
 	async login(@Res({ passthrough: true }) response: Response, @Req() req: Request): Promise<boolean> {
 		const user: User = { ...req.user as User };
-		console.log(JSON.stringify(user));
 		if (!user)
 			throw new UnauthorizedException("Credentials don't match");
 		const ret: cookiePayload = await this.authService.createCookie(response, false, null, user);
 		response = ret.response;
-		console.log(response.cookie);
 		if (!response)
 			throw new UnauthorizedException("JWT Generation error");
 		this.gatewayStatus.onConnection(ret.userid);

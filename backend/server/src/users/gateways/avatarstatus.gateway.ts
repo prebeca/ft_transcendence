@@ -81,7 +81,8 @@ export class AvatarStatusGateway implements OnGatewayConnection, OnGatewayDiscon
 	@SubscribeMessage("information")
 	emitInformationToUser(@Req() req: Request, @MessageBody() user_id: number, @ConnectedSocket() client: Socket): void {
 		const user: User = { ...req.user as User };
-		this.logger.log(user_id);
+
+		this.logger.log("user_id " + user_id);
 		if (user.id === user_id) {
 			this.user_socket.set(user.id, client.id);
 		}
@@ -93,8 +94,7 @@ export class AvatarStatusGateway implements OnGatewayConnection, OnGatewayDiscon
 		}
 		else
 			status = "disconnected";
-		console.log(this.user_socket);
-		console.log(this.status);
+
 		client.emit("changeStatus" + user_id, status);
 	}
 }

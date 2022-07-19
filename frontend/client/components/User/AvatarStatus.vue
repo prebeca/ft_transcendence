@@ -9,7 +9,6 @@
 </template>
 
 <script lang="ts">
-import type { NuxtSocket } from "nuxt-socket-io";
 import Vue from "vue";
 /*
  ** The idea is to use this component everywhere we see the avatars
@@ -46,33 +45,20 @@ export default Vue.extend({
   },
   created() {
     this.statusSocket.on("changeAvatar" + this.user.id, (data) => {
-      console.log(
-        "change in avatar for user " + this.user.id,
-        "data = " + data
-      );
       this.user.avatar = `${process.env.API_URL}/users/profile/avatar/` + data;
     });
     this.statusSocket.on("changeStatus" + this.user.id, (data) => {
-      console.log(
-        "change in status for user " + this.user.id,
-        "data = " + data
-      );
       this.status = data;
       if (this.status === "connected") this.status_color = "green";
       else if (this.status === "disconnected") this.status_color = "grey";
       else if (this.status === "inGame") this.status_color = "yellow";
       else this.status_color = "blue";
     });
-    this.statusSocket.on("handshake", (data) => {
-      console.log(data);
-    });
+    this.statusSocket.on("handshake", (data) => {});
   },
   mounted() {
     this.statusSocket.emit("information", this.user.id);
-    console.log("ask for info");
   },
-  beforeDestroy() {
-    console.log("BeforeDestruction: leaving avatar Status component");
-  },
+  beforeDestroy() {},
 });
 </script>

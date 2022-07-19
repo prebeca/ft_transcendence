@@ -9,11 +9,8 @@
       <v-menu bottom min-width="200px" rounded offset-y>
         <template v-slot:activator="{ on }">
           <v-btn icon x-large v-on="on">
-            <!-- <v-avatar>
-              <v-img :src="avatar"></v-img>
-            </v-avatar> -->
             <UserAvatarStatus
-              v-if="user.id !== 0"
+              v-if="user.id !== undefined"
               :size="sizeOfAvatar"
               :user="user"
               :offset="20"
@@ -130,9 +127,7 @@ export default Vue.extend({
     await this.$axios
       .get("/users/profile")
       .then((res) => {
-        console.log(res.data);
         this.user = res.data;
-        console.log(this.user.id);
         this.changeAvatar(res.data.avatar);
         this.user.friends.forEach((e) => {
           e.messages = [];
