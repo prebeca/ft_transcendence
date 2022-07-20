@@ -2,4 +2,4 @@ import { Injectable, ExecutionContext, UnauthorizedException } from '@nestjs/com
 import { AuthGuard } from '@nestjs/passport';
 
 @Injectable()
-export class JwtAuthGuard extends AuthGuard('jwt') { }
+export class JwtAuthGuard extends AuthGuard(['jwt', 'jwt-rt']) { }

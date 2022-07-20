@@ -41,6 +41,7 @@ export class WsJwtStrategy extends PassportStrategy(Strategy, "ws-jwt") {
 		if (!payload)
 			throw new UnauthorizedException("No credentials cookie found");
 		const user: User = await this.userService.findUsersByIdWithRelations(payload.id);
+
 		if (!user) {
 			throw new UnauthorizedException("user not found")
 		}

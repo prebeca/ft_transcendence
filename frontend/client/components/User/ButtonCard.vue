@@ -93,12 +93,14 @@ export default Vue.extend({
       });
 
     console.log(this.currentUser.blocked);
-    if (
-      this.currentUser.blocked.find((e: any) => {
-        return e.id == this.user.id;
-      }) != undefined
-    )
-      this.isBlocked = true;
+    if (this.currentUser.blocked !== undefined) {
+      if (
+        this.currentUser.blocked.find((e: any) => {
+          return e.id == this.user.id;
+        }) != undefined
+      )
+        this.isBlocked = true;
+    }
   },
   methods: {
     async block() {
