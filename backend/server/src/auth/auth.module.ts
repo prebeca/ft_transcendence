@@ -23,7 +23,7 @@ import { JwtRtStrategy } from './strategies/jwt-rt.strategy';
 		HttpModule,
 		JwtModule.register({
 			secret: jwtConstants.secret,
-			signOptions: { expiresIn: '1d' },
+			signOptions: { expiresIn: '7d' },
 		}),
 	],
 	controllers: [AuthController, TwoFactorAuthController],
