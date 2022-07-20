@@ -50,7 +50,7 @@ export class AuthService {
 		response.cookie('access_token', token_client, {
 			httpOnly: true,
 			path: '/',
-			maxAge: 1000 * 5,
+			maxAge: 1000 * 60 * 60 * 20,
 			sameSite: "strict",
 			/* secure: true, -> only for localhost AND https */
 		});
@@ -87,7 +87,7 @@ export class AuthService {
 		response.cookie('access_token', token_client, {
 			httpOnly: true,
 			path: '/',
-			maxAge: 1000 * 5,
+			maxAge: 1000 * 60 * 60 * 20,
 			sameSite: "strict",
 			/* secure: true, -> only for localhost AND https */
 		});

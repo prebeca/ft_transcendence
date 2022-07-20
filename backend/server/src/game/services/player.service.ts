@@ -1,4 +1,4 @@
-import { Injectable, InternalServerErrorException } from '@nestjs/common';
+import { HttpStatus, Injectable, HttpException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Player } from '../entities/player.entity';
@@ -11,7 +11,7 @@ export class PlayerService {
 		try {
 			return this.playerRepository.find();
 		} catch (error) {
-			throw new InternalServerErrorException("Query to find every users failed");
+			throw new HttpException("Query to find every users failed", HttpStatus.INTERNAL_SERVER_ERROR);
 		}
 	}
 

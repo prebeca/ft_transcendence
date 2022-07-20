@@ -30,7 +30,7 @@ export class WsJwtStrategy extends PassportStrategy(Strategy, "ws-jwt") {
 		private readonly userService: UsersService) {
 		super({
 			jwtFromRequest: cookieExtractorWs,
-			ignoreExpiration: false,
+			ignoreExpiration: true,
 			secretOrKey: jwtConstants.secret,
 		});
 	}
