@@ -5,6 +5,7 @@ import { Response, Request } from 'express';
 import { UseGuards } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 import { RegisterAuthDto } from '../dto/register-auth.dto';
+import { JwtTwoFactorAuthGuard } from '../guards/jwt-twofa.guard';
 import { User } from 'src/users/entities/user.entity';
 import { AvatarStatusGateway } from 'src/users/gateways/avatarstatus.gateway';
 import cookiePayload from '../interfaces/cookiePayload.interface';
@@ -46,6 +47,13 @@ export class AuthController {
 	@Post('register')
 	async register(@Body() userCredentials: RegisterAuthDto): Promise<User> {
 		return this.authService.registerUser({ ...userCredentials });
+	}
+
+	@UseGuards(JwtTwoFactorAuthGuard)
+	@Get('logout')
+	async logout(@Res({ passthrough: true }) response: Response, @Req() req: Request) {
+		const user: User = { ...req.user as User };
+		this.authService.logout(response, user);
 	}
 
 	@UseGuards(AuthGuard('local'))

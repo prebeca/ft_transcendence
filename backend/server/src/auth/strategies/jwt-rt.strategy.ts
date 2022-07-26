@@ -26,10 +26,11 @@ export class JwtRtStrategy extends PassportStrategy(Strategy, 'jwt-rt') {
 	}
 
 	async validate(payload: JwtPayload): Promise<User> {
-		console.log("rt strat");
+		console.log("rt strat" + JSON.stringify(payload));
 		if (!payload)
 			throw new UnauthorizedException("No credentials cookie found");
 		const user: User = await this.userService.findUsersByIdWithRelations(payload.id);
+		console.log(user);
 		if (!user)
 			throw new UnauthorizedException("No match for current session");
 		return { ...user, email: undefined };
