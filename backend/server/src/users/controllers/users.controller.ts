@@ -12,7 +12,6 @@ import { User } from '../entities/user.entity';
 import { ChannelsService } from 'src/chat/channels/services/channels.service';
 import { Channel } from 'src/typeorm';
 import { JwtTwoFactorAuthGuard } from 'src/auth/guards/jwt-twofa.guard';
-import { Hmac } from 'crypto';
 
 @Controller('users')
 export class UsersController {
@@ -28,11 +27,12 @@ export class UsersController {
 
 	@UseGuards(JwtTwoFactorAuthGuard)
 	@Get('profile')
-	getProfile(@Req() req: Request): User {
+	async getProfile(@Req() req: Request): Promise<User> {
 		const user: User = { ... (req.user as User) };
 		if (!user)
 			return null;
-		return user;
+		const is2fa: boolean = (await this.userService.findUserbyIdWithSensibleData(user.id)).twofauser;
+		return { ...user, twofauser: is2fa };
 	}
 
 	@UseGuards(JwtTwoFactorAuthGuard)

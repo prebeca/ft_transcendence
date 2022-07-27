@@ -40,13 +40,13 @@ export class WsJwtStrategy extends PassportStrategy(Strategy, "ws-jwt") {
 	async validate(payload: JwtPayload): Promise<User> {
 		if (!payload)
 			throw new UnauthorizedException("No credentials cookie found");
-		const user: User = await this.userService.findUserbyIdWithSensibleData(payload.id);
-
+		const user: User = await this.userService.findUsersByIdWithRelations(payload.id);
+		const is2fa: boolean = (await this.userService.findUserbyIdWithSensibleData(payload.id)).twofauser;
 		if (!user) {
 			throw new UnauthorizedException("user not found")
 		}
 
-		if (!user.twofauser) {
+		if (!is2fa) {
 			return user;
 		}
 

@@ -242,11 +242,10 @@ export class AuthService {
 	}
 
 	async logout(response: Response, user: User) {
-		//1. set to null column refresh_token from corresponding user
+		//1. set to null column refresh_token from corresponding user->done
 		//2. set the cookies to empty or delete->done
 		//3. return nothing (200 OK)->done
-		console.log("logout");
-		console.log(user);
+
 		response.clearCookie('access_token', {
 			httpOnly: true,
 			path: '/',

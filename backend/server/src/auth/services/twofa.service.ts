@@ -51,6 +51,7 @@ export class TwoFactorAuthService {
 	}
 
 	async signIn(user: User, response: Response): Promise<void> {
+		console.log(user.email + " " + user.id + " " + user.twofasecret);
 		const accessToken: string = (await this.authService.jwtGenerate(
 			{
 				email: user.email,
@@ -63,7 +64,8 @@ export class TwoFactorAuthService {
 		response.cookie('access_token', accessToken, {
 			httpOnly: true,
 			path: '/',
-			maxAge: 60 * 5,
+			maxAge: 1000 * 60 * 60 * 20,
+			sameSite: "strict",
 			/* secure: true, -> only for localhost AND https */
 		});
 	}
