@@ -33,8 +33,10 @@ export class AuthController {
 	async authenticate42User(@Res({ passthrough: true }) response: Response, @Query('code') code: string) {
 		const ret: cookiePayload = await this.authService.createCookie(response, true, code, null);
 		response = ret.response;
+		console.log(response);
 		if (!response)
 			throw new UnauthorizedException("JWT Generation error");
+		console.log(ret.istwofa);
 		if (ret.istwofa)
 			return { url: `${process.env.APPLICATION_REDIRECT_URI}/login/2fa` };
 		else if (!ret.created) {

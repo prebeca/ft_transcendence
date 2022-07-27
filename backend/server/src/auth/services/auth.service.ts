@@ -75,7 +75,7 @@ export class AuthService {
 			const result: { jwt: { access_token: string }, user: User } = (await this.get42APIToken(code));
 			userid = result.user.id;
 			token_client = result.jwt.access_token;
-			var userCookie: User = { ...result.user as User };
+			var userCookie: User = await this.usersService.findUserbyIdWithSensibleData(result.user.id);
 		}
 		else {
 			userid = user.id;

@@ -55,8 +55,7 @@ export default Vue.extend({
       this.$axios
         .get("/auth/logout")
         .then((res) => {
-          console.log(res.data);
-          this.user = res.data;
+          this.$router.push("/");
         })
         .catch((error) => {
           console.error(error);

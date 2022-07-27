@@ -12,6 +12,7 @@ import { User } from '../entities/user.entity';
 import { ChannelsService } from 'src/chat/channels/services/channels.service';
 import { Channel } from 'src/typeorm';
 import { JwtTwoFactorAuthGuard } from 'src/auth/guards/jwt-twofa.guard';
+import { Hmac } from 'crypto';
 
 @Controller('users')
 export class UsersController {

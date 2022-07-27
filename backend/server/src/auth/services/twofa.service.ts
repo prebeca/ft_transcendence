@@ -59,7 +59,7 @@ export class TwoFactorAuthService {
 				isTwoFaAuthenticated: true
 			}
 		)).access_token;
-
+		console.log(accessToken);
 		response.cookie('access_token', accessToken, {
 			httpOnly: true,
 			path: '/',
