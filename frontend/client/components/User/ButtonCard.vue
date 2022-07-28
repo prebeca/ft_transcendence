@@ -27,20 +27,10 @@
         </div>
 
         <div class="pt-2">
-          <v-btn
-            color="accent"
-            width="200px"
-            v-if="!isBlocked"
-            @click="isBlocked = true"
-          >
+          <v-btn color="accent" width="200px" v-if="!isBlocked" @click="block">
             Block User
           </v-btn>
-          <v-btn
-            color="primary"
-            width="200px"
-            v-else
-            @click="isBlocked = false"
-          >
+          <v-btn color="primary" width="200px" v-else @click="unblock">
             Unblock User
           </v-btn>
         </div>
@@ -67,6 +57,7 @@ export default Vue.extend({
       isBlocked: false,
       currentUser: {
         id: "",
+        blocked: [] as any,
         friends: [
           {
             id: "",
@@ -81,25 +72,60 @@ export default Vue.extend({
       required: true,
     },
   },
-  created: function () {
-    this.$axios
+  created: async function () {
+    await this.$axios
       .get("/users/profile")
       .then((res) => {
         console.log(res.data);
         this.currentUser = res.data;
-        if (res.data.id === this.user.id) {
+        if (this.currentUser.id === this.user.id) {
           this.isUser = true;
         }
-        for (let i = 0; i < this.currentUser.friends.length; i++) {
-          if (this.currentUser.friends[i].id === this.user.id)
-            this.isFriend = true;
-        }
+        if (
+          this.currentUser.friends.find((e) => {
+            return e.id == this.user.id;
+          })
+        )
+          this.isFriend = true;
       })
       .catch((error) => {
         console.error(error);
       });
+
+    console.log(this.currentUser.blocked);
+    if (this.currentUser.blocked !== undefined) {
+      if (
+        this.currentUser.blocked.find((e: any) => {
+          return e.id == this.user.id;
+        }) != undefined
+      )
+        this.isBlocked = true;
+    }
   },
   methods: {
+    async block() {
+      console.log("block user");
+      await this.$axios
+        .post("users/block/" + this.user.id)
+        .then((res) => {
+          this.isBlocked = true;
+          this.isFriend = false;
+        })
+        .catch((error) => {
+          console.log(error);
+        });
+    },
+    async unblock() {
+      console.log("unblock user");
+      await this.$axios
+        .post("users/unblock/" + this.user.id)
+        .then((res) => {
+          this.isBlocked = false;
+        })
+        .catch((error) => {
+          console.log(error);
+        });
+    },
     async addFriend() {
       this.$axios
         .post("/friends/add", {

@@ -1,15 +1,5 @@
 import { Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
 
-
-export class MessageData {
-	type: string;
-	user_id: number;
-	username: string;
-	target_id: number;
-	channel_name: string;
-	content: string;
-}
-
 @Entity()
 export class Message {
 	@PrimaryGeneratedColumn({

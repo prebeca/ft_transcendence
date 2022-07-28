@@ -1,16 +1,5 @@
-import { User } from 'src/typeorm';
-import { Column, Entity, JoinTable, ManyToMany, ManyToOne, PrimaryGeneratedColumn } from 'typeorm';
-import { MessageData } from './message.entity';
-
-
-// export class Message {
-// 	type: string;
-// 	user_id: number;
-// 	username: string;
-// 	channel_id: number;
-// 	channel_name: string;
-// 	content: string;
-// }
+import { User, Ban, Mute } from 'src/typeorm';
+import { Column, Entity, JoinTable, ManyToMany, ManyToOne, OneToMany, PrimaryGeneratedColumn } from 'typeorm';
 
 @Entity()
 export class Channel {
@@ -40,9 +29,6 @@ export class Channel {
 	@JoinTable()
 	owner: User
 
-	// @Column("bigint", { default: [], array: true })
-	// admin_ids: number[];
-
 	@ManyToMany(() => User)
 	@JoinTable()
 	admins: User[]
@@ -51,13 +37,15 @@ export class Channel {
 	@JoinTable()
 	invited: User[]
 
-	// @Column("bigint", { default: [], array: true })
-	// invited_ids: number[];
+	@OneToMany(() => Ban, Ban => Ban.channel)
+	@JoinTable()
+	banned: Ban[]
+
+	@OneToMany(() => Mute, Mute => Mute.channel)
+	@JoinTable()
+	muted: Ban[]
 
 	@ManyToMany(() => User)
 	@JoinTable()
 	users: User[]
-
-	// @Column("bigint", { default: [], array: true })
-	// users_ids: number[];
 }

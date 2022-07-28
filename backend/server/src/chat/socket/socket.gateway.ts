@@ -23,10 +23,17 @@ export class SocketGateway {
 	server: Server;
 
 	@UseGuards(WsJwtAuthGuard)
+	@SubscribeMessage('Alert')
+	async alert(@Req() req: Request, @MessageBody() data: CreateMessageDto) {
+		this.server.to((req.user as User).socket_id).emit("Alert", data)
+	}
+
+	@UseGuards(WsJwtAuthGuard)
 	@SubscribeMessage('JoinChan')
-	async joinChannel(@Req() req: Request, @MessageBody() data: CreateMessageDto, @ConnectedSocket() client: Socket): Promise<Channel> {
+	async joinChannel(@Req() req: Request, @MessageBody() data: CreateMessageDto, @ConnectedSocket() client: Socket) {
 		return this.socketService.joinChannel(req.user as User, data, client)
 	}
+
 
 	@UseGuards(WsJwtAuthGuard)
 	@SubscribeMessage('LeaveChan')
@@ -41,16 +48,22 @@ export class SocketGateway {
 	}
 
 	@UseGuards(WsJwtAuthGuard)
-	@SubscribeMessage('invite')
-	async invite(@Req() req: Request, @MessageBody() messageDto: CreateMessageDto, @ConnectedSocket() client: Socket) {
+	@SubscribeMessage('Invite')
+	async invite(@Req() req: Request, @MessageBody() data: any, @ConnectedSocket() client: Socket) {
 		let user = req.user as User;
-		return this.socketService.invite(user, messageDto, this.server)
+		return this.socketService.invite(user, data, this.server)
 	}
 
 	@UseGuards(WsJwtAuthGuard)
 	@SubscribeMessage('SetSocket')
 	async updateSocket(@Req() req: Request, @ConnectedSocket() client: Socket) {
 		return this.socketService.setSocket(req.user as User, client)
+	}
+
+	@UseGuards(WsJwtAuthGuard)
+	@SubscribeMessage('SetAdmin')
+	async setAdmin(@Req() req: Request, @MessageBody() message: Message, @ConnectedSocket() client: Socket) {
+		return this.socketService.setAdmin(req.user as User, message, this.server)
 	}
 
 	@UseGuards(WsJwtAuthGuard)
@@ -63,6 +76,24 @@ export class SocketGateway {
 	@SubscribeMessage('PrivateMessage')
 	async privateMessage(@Req() req: Request, @MessageBody() messageDto: CreateMessageDto, @ConnectedSocket() client: Socket) {
 		return this.socketService.privateMessage(req.user as User, messageDto, this.server)
+	}
+
+	@UseGuards(WsJwtAuthGuard)
+	@SubscribeMessage('Kick')
+	async kick(@Req() req: Request, @MessageBody() data, @ConnectedSocket() client: Socket) {
+		return this.socketService.kick(req.user as User, data, this.server)
+	}
+
+	@UseGuards(WsJwtAuthGuard)
+	@SubscribeMessage('Ban')
+	async ban(@Req() req: Request, @MessageBody() data, @ConnectedSocket() client: Socket) {
+		return this.socketService.ban(req.user as User, data, this.server)
+	}
+
+	@UseGuards(WsJwtAuthGuard)
+	@SubscribeMessage('Mute')
+	async mute(@Req() req: Request, @MessageBody() data, @ConnectedSocket() client: Socket) {
+		return this.socketService.mute(req.user as User, data, this.server)
 	}
 
 }

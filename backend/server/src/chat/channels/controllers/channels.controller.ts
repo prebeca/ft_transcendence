@@ -5,22 +5,16 @@ import {
 	Param,
 	ParseIntPipe,
 	Post,
-	UsePipes,
-	ValidationPipe,
-	ParseArrayPipe,
-	Headers,
 	Req,
 	UseGuards,
-	InternalServerErrorException,
 } from '@nestjs/common';
 import { Request } from 'express';
 import { JwtAuthGuard } from 'src/auth/guards/jwt-auth.guard';
 import { User } from 'src/typeorm';
-import { UsersService } from 'src/users/services/users.service';
 import { CreateChannelDto } from '../dto/channels.dto';
 import { CreateMessageDto } from '../dto/messages.dto';
 import { Channel } from '../entities/channel.entity';
-import { Message, MessageData } from '../entities/message.entity';
+import { Message } from '../entities/message.entity';
 import { ChannelsService } from '../services/channels.service';
 
 @Controller('channels')
@@ -55,14 +49,15 @@ export class ChannelsController {
 
 	@UseGuards(JwtAuthGuard)
 	@Post('join')
-	async joinChannel(@Req() req: Request, @Body() data: MessageData): Promise<Channel> {
+	async joinChannel(@Req() req: Request, @Body() data: Message): Promise<Channel | String> {
 		return this.channelService.joinChannel(req.user as User, data);
 	}
 
 	@UseGuards(JwtAuthGuard)
 	@Post('create')
-	async createChannel(@Req() req: Request, @Body() createChannelDto: CreateChannelDto): Promise<Channel> {
+	async createChannel(@Req() req: Request, @Body() createChannelDto: CreateChannelDto): Promise<Channel | String> {
 		return this.channelService.createChannel(req.user as User, createChannelDto)
+
 	}
 
 	@UseGuards(JwtAuthGuard)
@@ -78,8 +73,26 @@ export class ChannelsController {
 	}
 
 	@UseGuards(JwtAuthGuard)
+	@Get(':id/admins')
+	async getAdmins(@Req() req: Request, @Param('id', ParseIntPipe) id: number): Promise<User[]> {
+		return this.channelService.getAdmins(id);
+	}
+
+	@UseGuards(JwtAuthGuard)
+	@Get(':id/owner')
+	async getOwner(@Req() req: Request, @Param('id', ParseIntPipe) id: number): Promise<User> {
+		return this.channelService.getOwner(id);
+	}
+
+	@UseGuards(JwtAuthGuard)
 	@Post('handleMessage')
 	async handleMessage(@Req() req: Request, @Body() messageDto: CreateMessageDto) {
 		this.channelService.handleMessage(req.user as User, messageDto);
+	}
+
+	@UseGuards(JwtAuthGuard)
+	@Post(':id/update/password')
+	async updatePassword(@Req() req: Request, @Body() data: any): Promise<any> {
+		return this.channelService.updatePassword(req.user as User, data);
 	}
 }

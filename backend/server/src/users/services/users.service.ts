@@ -1,21 +1,22 @@
-import { HttpException, HttpStatus, Inject, Injectable, InternalServerErrorException, StreamableFile, UnauthorizedException } from '@nestjs/common';
+import { HttpStatus, Inject, Injectable, HttpException, StreamableFile, UnauthorizedException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { User } from 'src/users/entities/user.entity';
-import { QueryRunner, Repository } from 'typeorm';
+import { Repository } from 'typeorm';
 import { UserDto } from 'src/users/dto/users.dto';
 import { createReadStream } from 'fs';
 import { ReadStream } from 'typeorm/platform/PlatformTools';
 import { UpdateUserDto } from '../dto/updateUser.dto';
 import { Player } from 'src/game/entities/player.entity';
 import { AvatarStatusGateway } from '../gateways/avatarstatus.gateway';
-import { Socket } from 'socket.io';
 import { Channel } from 'src/typeorm';
+import { FriendsService } from 'src/friends/services/friends.service';
 
 @Injectable()
 export class UsersService {
 	constructor(
 		@InjectRepository(User)
 		private readonly userRepository: Repository<User>,
+		private readonly friendsService: FriendsService
 	) { }
 
 	@Inject()
@@ -25,7 +26,7 @@ export class UsersService {
 		try {
 			return this.userRepository.find({ relations: ["player", "friends"] });
 		} catch (error) {
-			throw new InternalServerErrorException("Query to find every users failed");
+			throw new HttpException("Query to find every users failed", HttpStatus.INTERNAL_SERVER_ERROR);
 		}
 	}
 
@@ -37,7 +38,7 @@ export class UsersService {
 			newuser.channels = []
 			return this.userRepository.save(newuser);
 		} catch (error) {
-			throw new InternalServerErrorException("Creation of user failed");
+			throw new HttpException("Creation of user failed", HttpStatus.INTERNAL_SERVER_ERROR);
 		}
 	}
 
@@ -48,7 +49,7 @@ export class UsersService {
 				return null;
 			return user as User;
 		} catch (error) {
-			throw new InternalServerErrorException("Query to find user failed");
+			throw new HttpException("Query to find user failed", HttpStatus.INTERNAL_SERVER_ERROR);
 		}
 	}
 
@@ -64,7 +65,7 @@ export class UsersService {
 		try {
 			return await this.userRepository.findOne({ where: { socket_id: id }, relations: ["friends", "channels", "blocked"] });
 		} catch (error) {
-			throw new InternalServerErrorException("Query to find user failed");
+			throw new HttpException("Query to find user failed", HttpStatus.INTERNAL_SERVER_ERROR);
 		}
 	}
 
@@ -78,7 +79,7 @@ export class UsersService {
 			user.friends = friends;
 			return user as User;
 		} catch (error) {
-			throw new InternalServerErrorException("Query to find user failed");
+			throw new HttpException("Query to find user failed", HttpStatus.INTERNAL_SERVER_ERROR);
 		}
 	}
 
@@ -93,7 +94,7 @@ export class UsersService {
 					.getOne();
 			return user;
 		} catch (error) {
-			throw new InternalServerErrorException("Query to search for user with id: " + id + " failed");
+			throw new HttpException("Query to search for user with id: " + id + " failed", HttpStatus.INTERNAL_SERVER_ERROR);
 		}
 	}
 
@@ -103,7 +104,7 @@ export class UsersService {
 			return await this.userRepository.save(same_user);
 		}
 		catch (error) {
-			throw new InternalServerErrorException("update of user failed");
+			throw new HttpException("update of user failed", HttpStatus.INTERNAL_SERVER_ERROR);
 		}
 	}
 
@@ -120,17 +121,21 @@ export class UsersService {
 			this.updateUsersById(user, { twofasecret: new_secret })
 		}
 		catch (error) {
-			throw new InternalServerErrorException("Update of 2FA secret did not work");
+			throw new HttpException("Update of 2FA secret did not work", HttpStatus.INTERNAL_SERVER_ERROR);
 		}
 	}
+
 	async updateUsername(user: User, new_username: string): Promise<void> {
 		if (!new_username)
 			throw new HttpException('Username cannot be empty', HttpStatus.FORBIDDEN);
+		const username_user: User = await this.userRepository.findOne({ where: { username: new_username } });
+		if (username_user)
+			return; // send something to frontend
 		try {
 			this.updateUsersById(user, { username: new_username })
 		}
 		catch (error) {
-			throw new InternalServerErrorException("Update of username did not work");
+			throw new HttpException("Update of username did not work", HttpStatus.INTERNAL_SERVER_ERROR);
 		}
 	}
 
@@ -151,7 +156,7 @@ export class UsersService {
 						fs.unlinkSync('src/avatar/' + ancient_filename);
 					}
 				} catch (error) {
-					throw new InternalServerErrorException("Deletion of old avatar failed");
+					throw new HttpException("Deletion of old avatar failed", HttpStatus.INTERNAL_SERVER_ERROR);
 				}
 			}
 		}
@@ -163,7 +168,7 @@ export class UsersService {
 		try {
 			await this.updateUsersById(user, { twofauser: istwofa });
 		} catch (error) {
-			throw new InternalServerErrorException("Update TwoFAUser not work");
+			throw new HttpException("Update TwoFAUser not work", HttpStatus.INTERNAL_SERVER_ERROR);
 		}
 		return await this.userRepository.findOne(user.id);
 	}
@@ -172,7 +177,7 @@ export class UsersService {
 		try {
 			return this.updateUsersById(user, { twofasecret: twofasecret });
 		} catch (error) {
-			throw new InternalServerErrorException("Update of twofasecret failed");
+			throw new HttpException("Update of twofasecret failed", HttpStatus.INTERNAL_SERVER_ERROR);
 		}
 	}
 
@@ -180,7 +185,7 @@ export class UsersService {
 		try {
 			return (await this.userRepository.findOne(userid)).avatar;
 		} catch (error) {
-			throw new InternalServerErrorException("Query to search for avatar failed");
+			throw new HttpException("Query to search for avatar failed", HttpStatus.INTERNAL_SERVER_ERROR);
 		}
 	}
 
@@ -204,7 +209,7 @@ export class UsersService {
 			}
 			return null;
 		} catch (error) {
-			throw new InternalServerErrorException("Creation of StreamableFile(" + filename + ") failed");
+			throw new HttpException("Creation of StreamableFile(" + filename + ") failed", HttpStatus.INTERNAL_SERVER_ERROR);
 		}
 	}
 
@@ -213,7 +218,7 @@ export class UsersService {
 			await this.userRepository.clear();
 			return this.getUsers();
 		} catch (error) {
-			throw new InternalServerErrorException("Deletion of every users failed");
+			throw new HttpException("Deletion of every users failed", HttpStatus.INTERNAL_SERVER_ERROR);
 		}
 	}
 
@@ -221,7 +226,21 @@ export class UsersService {
 		try {
 			return this.userRepository.findOne({ where: { login: login_user } });
 		} catch (error) {
-			throw new InternalServerErrorException("Query to search for user with login: " + login_user + " failed");
+			throw new HttpException("Query to search for user with login: " + login_user + " failed", HttpStatus.INTERNAL_SERVER_ERROR);
+		}
+	}
+
+	async findOneByUsername(username: string): Promise<User> {
+		try {
+			const user = await
+				this.userRepository
+					.createQueryBuilder("user")
+					.select("user")
+					.where("user.username = :username", { username: username })
+					.getOne();
+			return user;
+		} catch (error) {
+			throw new HttpException("Query to search for user with username: " + username + " failed", HttpStatus.INTERNAL_SERVER_ERROR);
 		}
 	}
 
@@ -236,29 +255,31 @@ export class UsersService {
 					.getOne();
 			return user;
 		} catch (error) {
-			throw new InternalServerErrorException("Query to search for user with email: " + email_user + " failed");
+			throw new HttpException("Query to search for user with email: " + email_user + " failed", HttpStatus.INTERNAL_SERVER_ERROR);
 		}
 	}
-
 	async addChannel(user_id: number, chan: Channel): Promise<void> {
 		let user = await this.userRepository.findOne(user_id, { relations: ["channels"] });
 		if (user == null)
 			return
-		if (user.channels.find((e) => { return e == chan }) != undefined)
+		if (user.channels.find((e) => { return e.id == chan.id }) != undefined)
 			return
 		user.channels.push(chan)
-		this.userRepository.save(user);
+		await this.userRepository.save(user);
 	}
 
 	async removeChannel(user_id: number, chan: Channel): Promise<void> {
-		let user = await this.userRepository.findOne(user_id);
+		let user = await this.userRepository.findOne(user_id, { relations: ["channels"] });
+		console.log("channel removed from user 0")
 		if (user == null)
 			return
-		if (user.channels.find((e) => { return e == chan }) === undefined)
+		console.log("channel removed from user A")
+		if (user.channels.find((e) => { return e.id == chan.id }) == undefined)
 			return
-		let index = user.channels.findIndex(e => { return e == chan });
+		let index = user.channels.findIndex(e => { return e.id == chan.id });
 		user.channels.splice(index, 1);
-		this.userRepository.save(user);
+		await this.userRepository.save(user);
+		console.log("channel removed from user B")
 	}
 
 	async updateSocket(user: User, socket_id: string) {
@@ -267,22 +288,27 @@ export class UsersService {
 	}
 
 	async addToBlocked(user: User, id: number) {
-		let target = await this.userRepository.findOne(id);
+		user = await this.userRepository.findOne(user.id, { relations: ["blocked", "friends"] });
+		let target = await this.userRepository.findOne(id, { relations: ["blocked", "friends"] });
+		if (user.id == id) return
 		if (target == null) return // wrong id
-		if (user.blocked.find(e => { return e == target }) != undefined) return // already blocked
+		if (user.blocked.find(e => { return e.id == target.id }) != undefined) return // already blocked
+
+		await this.friendsService.removeFriend(user, target.id);
+		await this.friendsService.removeFriend(target, user.id);
 
 		user.blocked.push(target);
-		this.userRepository.save(user);
+		await this.userRepository.save(user);
 	}
 
 	async removeFromBlocked(user: User, id: number) {
 		let target = await this.userRepository.findOne(id);
 
 		if (target == null) return // wrong id
-		if (user.blocked.find(e => e == target) == undefined) return // not blocked
+		let index = user.blocked.findIndex(e => { return e.id == target.id });
+		if (index == -1) return // not blocked
 
-		let index = user.blocked.findIndex(e => { return e == target });
 		user.blocked.splice(index, 1);
-		this.userRepository.save(user);
+		await this.userRepository.save(user);
 	}
 }

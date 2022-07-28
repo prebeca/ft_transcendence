@@ -65,7 +65,7 @@ export class GameRoomService {
 					player1: players[0],
 					avatar1: avatars[0],
 					player2: players[1],
-					avatar2: avatars[2]
+					avatar2: avatars[1],
 				};
 				ppr.push(gri);
 			}

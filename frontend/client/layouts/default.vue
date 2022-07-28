@@ -9,11 +9,8 @@
       <v-menu bottom min-width="200px" rounded offset-y>
         <template v-slot:activator="{ on }">
           <v-btn icon x-large v-on="on">
-            <!-- <v-avatar>
-              <v-img :src="avatar"></v-img>
-            </v-avatar> -->
             <UserAvatarStatus
-              v-if="user.id !== 0"
+              v-if="user.id !== undefined"
               :size="sizeOfAvatar"
               :user="user"
               :offset="20"
@@ -37,27 +34,68 @@
 
     <v-main>
       <v-container>
-        <Nuxt />
+        <NuxtChild :user="user" :socket="socket" />
       </v-container>
     </v-main>
+    <v-snackbar :color="snackcolor" right v-model="snackbar" :timeout="timeout">
+      {{ notif_text }}
 
+      <template v-slot:action="{ attrs }">
+        <v-btn color="blue" text v-bind="attrs" @click="snackbar = false">
+          Close
+        </v-btn>
+      </template>
+    </v-snackbar>
     <LayoutFooter />
   </v-app>
 </template>
 
 <script lang="ts">
+import { NuxtSocket } from "nuxt-socket-io";
 import Vue from "vue";
+
+interface Message {
+  id: number;
+  target_id: number;
+  user_id: number;
+  user_name: string;
+  content: string;
+}
+
+interface Channel {
+  id: number;
+  name: string; // for classic channels
+  username: string; // for DM channel
+  users: User[];
+  messages: Message[];
+}
+
+interface User {
+  id: number;
+  username: string;
+  friends: Channel[];
+  avatar: string;
+}
+
+interface Alert {
+  type: string;
+  content: string;
+  color: string;
+}
 
 export default Vue.extend({
   name: "DefaultLayout",
+
   data() {
     return {
+      snackbar: false,
+      snackcolor: "white",
+      timeout: 5000,
+      notif_text: "",
+      user: {} as User,
+      socket: {} as NuxtSocket,
       title: "PONG GAME",
       sizeOfAvatar: "50px",
-      user: {
-        id: 0,
-        avatar: "",
-      },
       drawer: false,
       avatar: "",
       cacheKey: +new Date(),
@@ -89,14 +127,37 @@ export default Vue.extend({
     await this.$axios
       .get("/users/profile")
       .then((res) => {
-        console.log(res.data);
-        this.user.id = res.data.id;
-        console.log(this.user.id);
+        this.user = res.data;
         this.changeAvatar(res.data.avatar);
+        this.user.friends.forEach((e) => {
+          e.messages = [];
+        });
       })
       .catch((error) => {
         console.error(error);
       });
+
+    this.socket = this.$nuxtSocket({ name: "chat", withCredentials: true });
+
+    this.socket.emit("SetSocket");
+
+    this.socket.on("PrivateMessage", async (msg, cb) => {
+      console.log(msg.user_name + ": " + msg.content);
+      let id = this.user.id == msg.target_id ? msg.user_id : msg.target_id;
+      if (msg != null) {
+        this.user.friends
+          .find((e) => {
+            return e.id == id;
+          })
+          ?.messages.push(msg);
+      }
+    });
+    this.socket.on("Alert", async (alert: Alert, cb) => {
+      console.log("new Alert");
+      this.notif_text = alert.content;
+      this.snackcolor = alert.color;
+      this.snackbar = true;
+    });
   },
   methods: {
     changeAvatar(filename: string) {
