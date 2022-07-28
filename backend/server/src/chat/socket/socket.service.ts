@@ -1,17 +1,17 @@
 import { Injectable, Scope, UseGuards } from '@nestjs/common';
+import { bufferToggle, empty } from 'rxjs';
 import { Server, Socket } from 'socket.io';
 import { ChannelsService } from 'src/chat/channels/services/channels.service';
 import { User, Channel } from 'src/typeorm';
 import { UsersService } from 'src/users/services/users.service';
-import { CreateMessageDto } from '../channels/dto/messages.dto';
 import { Message } from '../channels/entities/message.entity';
 
 @Injectable()
 export class SocketService {
 	constructor(private readonly channelService: ChannelsService, private readonly userService: UsersService) { }
 
-	async joinChannel(user: User, data: CreateMessageDto, client: Socket) {
-		let channel = await this.channelService.findOneById(data.target_id);
+	async joinChannel(user: User, data: any, client: Socket) {
+		let channel = await this.channelService.findOneById(data.channel_id);
 		if (channel == null)
 			return null
 
@@ -27,25 +27,23 @@ export class SocketService {
 		return channel
 	}
 
-	async leaveChannel(user: User, data: CreateMessageDto, client: Socket): Promise<Channel> {
-		let channel = await this.channelService.findOneById(data.target_id);
+	async leaveChannel(user: User, data: any, client: Socket): Promise<Channel> {
+		let channel = await this.channelService.findOneById(data.channel_id);
 		if (channel != null)
 			client.leave(channel.id.toString())							// leave socket room
 		return channel
 	}
 
-	async newMessage(user: User, messageDto: CreateMessageDto, server: Server) {
+	async newMessage(user: User, message: Message, server: Server) {
 
-
-		let message: Message;
 		try {
-			message = await this.channelService.handleMessage(user, messageDto)
+			message = await this.channelService.handleMessage(user, message)
 		} catch (error) {
 			console.log(error);
 			return
 		}
 
-		const channel = await this.channelService.findOneById(message.target_id);
+		const channel = await this.channelService.findOneById(message.channel.id);
 		let muted = channel.muted.find(e => { return e.user.id == user.id });
 		if (muted != undefined) {
 			if (muted.end > new Date()) {
@@ -61,7 +59,7 @@ export class SocketService {
 		}
 
 		// manage block users
-		const socket_ids = await server.to(message.target_id.toString()).allSockets()
+		const socket_ids = await server.to(message.channel.id.toString()).allSockets()
 
 		let except = [];
 		for (let item of socket_ids) {
@@ -69,8 +67,7 @@ export class SocketService {
 			if (other_user && other_user.blocked.find(e => { return e.id == user.id }) != undefined)
 				except.push(item)
 		}
-		console.log(except)
-		server.to(message.target_id.toString()).except(except).emit('NewMessage', message);
+		server.to(message.channel.id.toString()).except(except).emit('NewMessage', message);
 	}
 
 	async invite(user: User, data: any, server: Server) {
@@ -103,28 +100,46 @@ export class SocketService {
 		this.userService.updateSocket(user, client.id);
 	}
 
-	async privateMessage(user: User, messageDto: CreateMessageDto, server: Server): Promise<Message> {
-		let target = await this.userService.findUsersById(messageDto.target_id)
-		let message = await this.channelService.createMessage(user, messageDto);
+	async newDMChannel(user: User, target_id: number, server: Server, client: Socket): Promise<Channel | string> {
+		let target_user = await this.userService.findUsersById(target_id);
 
-		if (user.friends.find(e => { return e.id == target.id }) == undefined)
-			return; // target is not user's friend
-		if (target.friends.find(e => { return e.id == user.id }) == undefined)
-			return; // user is not target's friend
+		if (target_user.id == user.id) {
+			server.to(user.socket_id).emit("Alert", { content: "Error: user and target are the same", color: "red" })
+			return
+		}
 
-		server.to(user.socket_id).emit('PrivateMessage', message);
-		server.to(target.socket_id).emit('PrivateMessage', message);
-		return message
+		if (user.blocked.find(e => { return e.id == target_user.id })) {
+			server.to(user.socket_id).emit("Alert", { content: "DM target is blocked", color: "red" })
+			return
+		}
+
+		if (target_user.blocked.find(e => { return e.id == user.id })) {
+			server.to(user.socket_id).emit("Alert", { content: "Unable to DM this user", color: "red" })
+			return
+		}
+
+		if (await this.channelService.findOneByName("dm_" + user.id + "_" + target_user.id) != null || await this.channelService.findOneByName("dm_" + target_user.id + "_" + user.id) != null) {
+			server.to(user.socket_id).emit("Alert", { content: "DM channel already exist", color: "red" })
+			return
+		}
+
+		let channel = await this.channelService.createChannel(user, { scope: "dm", name: "dm_" + user.id + "_" + target_user.id, password: "" })
+		if (typeof (channel) == "string")
+			return channel;
+		await this.channelService.joinChannel(target_user, { channel_id: channel.id, password: "" });
+		await this.joinChannel(user, { channel_id: channel.id, password: "" }, client)
+		server.to(target_user.socket_id).emit('PrivateMessage', { id: -1, channel: channel, user: null, content: user.username + "Invited you to chat !" });
+		return channel
 	}
 
 	async setAdmin(user: User, data, server: Server) {
 		let new_admin = await this.channelService.addAdmin(data.channel_id, data.user_id);
+		let channel = await this.channelService.findOneById(data.channel_id);
 		if (new_admin != null)
 			server.to(data.channel_id).emit('NewMessage', {
 				id: -1,
-				target_id: data.channel_id,
-				user_id: -1,
-				user_name: "Info",
+				channel: channel,
+				user: { username: "Info" },
 				content: new_admin.username + " is now Admin ! Congrats !",
 			});
 	}
@@ -141,9 +156,8 @@ export class SocketService {
 
 		server.to(data.channel_id).emit('NewMessage', {
 			id: -1,
-			target_id: channel.id,
-			user_id: -1,
-			user_name: "Info",
+			channel: channel,
+			user: { username: "Info" },
 			content: target.username + " has been kicked ! So sad !",
 		});
 
@@ -169,9 +183,8 @@ export class SocketService {
 
 		server.to(data.channel_id).emit('NewMessage', {
 			id: -1,
-			target_id: channel.id,
-			user_id: -1,
-			user_name: "Info",
+			channel: channel,
+			user: { username: "Info" },
 			content: target.username + " has been Banned for " + data.duration + " minutes ! See you never !",
 		});
 
@@ -208,19 +221,20 @@ export class SocketService {
 	}
 
 	async deleteMessage(user: User, message: Message, server: Server) {
-		let channel = await this.channelService.findOneById(message.target_id)
+		let channel = await this.channelService.findOneById(message.channel.id)
 
-		if (channel == undefined)
-			return;	// not valid channel (probably DM channel)
+		if (message.id == -1)
+			return;
 
-		if (channel.admins.find(e => { return (e.id == user.id) }) == undefined)
-			return; // not admin
+		if (message.user.id != user.id) {
+			if (channel.admins.find(e => { return (e.id == user.id) }) == undefined)
+				return; // not admin
 
-		let messages = await this.channelService.getMessages(user, channel.id);
-		if (messages.find(e => { return e.id == message.id }) == undefined)
-			return; // message not found in channel
+			if (channel.messages.find(e => { return e.id == message.id }) == undefined)
+				return; // message not found in channel
+		}
 
 		this.channelService.deleteMessage(message.id);
-		server.to(message.target_id.toString()).emit("DeleteMessage", message);
+		server.to(channel.id.toString()).emit("DeleteMessage", message);
 	}
 }

@@ -53,6 +53,18 @@ export class UsersService {
 		}
 	}
 
+	async findUsersByIdWithChannels(id: number): Promise<User> {
+		try {
+			const { password, salt, ...user } = await this.userRepository.findOne(id, { relations: ["friends", "blocked", "channels", "channels.messages", "channels.users", "channels.messages.user", "channels.messages.channel", "channels.admins", "channels.owner"] });
+			if (!(user as User))
+				return null;
+			user.channels.forEach(e => { e.password = undefined })
+			return user as User;
+		} catch (error) {
+			throw new HttpException("Query to find user failed", HttpStatus.INTERNAL_SERVER_ERROR);
+		}
+	}
+
 	removeDataFromFriends(friend: User, index: number, array: User[]) {
 		friend.email = undefined;
 		friend.channels = undefined;
@@ -71,7 +83,7 @@ export class UsersService {
 
 	async findUsersByIdWithRelations(id: number): Promise<User> {
 		try {
-			const { password, salt, ...user } = await this.userRepository.findOne(id, { relations: ["player", "friends", "channels"] });
+			const { password, salt, ...user } = await this.userRepository.findOne(id, { relations: ["player", "friends", "channels", "blocked"] });
 			if (!(user as User))
 				return null;
 			var friends: User[] = user.friends;
