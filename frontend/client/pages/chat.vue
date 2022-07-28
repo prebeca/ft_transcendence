@@ -332,16 +332,81 @@
             </v-tab-item>
 
             <!-- DM LIST  -->
+
             <v-tab-item>
-              <v-list height="635px" color="secondary" mandatory>
+              <div class="d-flex flex-column align-center">
+                <!-- DIALOG CARD TO ADD DM CHANNEL -->
+                <v-dialog v-model="addDMDialog" persistent max-width="600px">
+                  <template v-slot:activator>
+                    <!-- ADD DM CHANNEL BUTTON -->
+                    <v-btn
+                      color="primary"
+                      width="190px"
+                      class="my-5"
+                      @click="addDMDialog = true"
+                    >
+                      NEW DIRECT MESSAGE
+                    </v-btn>
+                  </template>
+
+                  <v-card>
+                    <v-card-title class="d-flex justify-center secondary">
+                      <h3 class="font-weight-black info--text">
+                        SELECT A USER
+                      </h3>
+                    </v-card-title>
+                    <v-card-text>
+                      <v-container>
+                        <v-row>
+                          <v-col class="mt-5" cols="12">
+                            <v-overflow-btn
+                              v-model="choice"
+                              filled
+                              :items="user.friends"
+                              item-text="username"
+                              item-value="id"
+                            >
+                            </v-overflow-btn>
+                          </v-col>
+                        </v-row>
+                      </v-container>
+                    </v-card-text>
+                    <v-card-actions>
+                      <v-spacer></v-spacer>
+                      <v-btn
+                        color="accent"
+                        depressed
+                        dark
+                        @click="addDMDialog = false"
+                      >
+                        Cancel
+                      </v-btn>
+                      <v-btn
+                        color="success white--text"
+                        depressed
+                        @click="
+                          createDMChannel();
+                          addDMDialog = false;
+                        "
+                      >
+                        Add
+                      </v-btn>
+                    </v-card-actions>
+                  </v-card>
+                </v-dialog>
+                <!-- END OF DIALOG CARD TO ADD DM -->
+              </div>
+
+              <v-divider></v-divider>
+              <v-list height="557px" color="secondary" mandatory>
                 <v-list-group
-                  v-for="(friend, index) in user.friends"
+                  v-for="(channel, index) in channels_dm"
                   :key="index"
                 >
                   <template v-slot:activator>
                     <v-list-item-content
                       @click="
-                        currentChannel = friend;
+                        currentChannel = channel;
                         messages = currentChannel.messages;
                         scrollToNewMsg();
                       "
@@ -350,13 +415,13 @@
                         <td>
                           <UserAvatarStatus
                             size="80px"
-                            :user="friend"
+                            :user="getDMUser(channel)"
                             :offset="20"
                           />
                         </td>
                         <td>
                           <v-list-item-title class="font-weight-bold">
-                            {{ friend.username }}
+                            {{ getDMUserName(channel) }}
                           </v-list-item-title>
                         </td>
                       </tr>
@@ -368,13 +433,13 @@
                       class="d-flex justify-center text-button"
                     >
                       <v-btn
-                        :to="'/profile/' + friend.username"
+                        :to="getUserProfile(channel)"
                         color="primary"
                         class="mx-1"
                         min-width="100%"
                       >
-                        PROFILE</v-btn
-                      >
+                        PROFILE
+                      </v-btn>
                     </v-list-item-title>
                   </v-list-item>
                   <v-list-item dense>
@@ -391,7 +456,13 @@
                       class="d-flex justify-center text-button"
                     >
                       <v-btn
-                        @click="blockUser(friend.id)"
+                        @click="
+                          () => {
+                            let user = getDMUser(channel);
+                            if (user == undefined) return;
+                            blockUser(user.id);
+                          }
+                        "
                         color="accent"
                         min-width="100%"
                       >
@@ -420,7 +491,7 @@
           class="d-flex flex-column justify-center ml-2"
         >
           <v-toolbar color="primary">
-            <div v-if="currentChannel.name !== undefined">
+            <div v-if="currentChannel.scope !== 'dm'">
               <v-toolbar-title
                 class="font-weight-black"
                 style="font-size: 20px"
@@ -433,7 +504,7 @@
                 class="font-weight-black"
                 style="font-size: 20px"
               >
-                {{ currentChannel.username }}
+                {{ getDMUserName(currentChannel) }}
               </v-toolbar-title>
             </div>
 
@@ -538,7 +609,7 @@
                         <v-list-item-title
                           class="font-weight-bold purple--text"
                         >
-                          {{ msg.user_name }}
+                          {{ msg.user.username }}
                         </v-list-item-title>
                         <v-list-item-content>
                           {{ msg.content }}
@@ -548,7 +619,7 @@
                   </td>
                   <td
                     v-if="
-                      user.id === msg.user_id ||
+                      user.id === msg.user.id ||
                       (currentChannel.name != undefined &&
                         isAdmin(currentChannel))
                     "
@@ -579,6 +650,7 @@
                   class="mt-5"
                   v-model="input"
                   @click:append-outer="sendMessage"
+                  @keyup.enter="sendMessage"
                   append-outer-icon="mdi-send"
                   label="Message"
                   type="text"
@@ -601,9 +673,8 @@ import AvatarStatusVue from "~/components/User/AvatarStatus.vue";
 
 interface Message {
   id: number;
-  target_id: number;
-  user_id: number;
-  user_name: string;
+  channel: Channel;
+  user: User;
   content: string;
 }
 
@@ -623,7 +694,7 @@ interface Channel {
 interface User {
   id: number;
   username: string;
-  friends: Channel[];
+  friends: User[];
 }
 
 export default Vue.extend({
@@ -633,11 +704,12 @@ export default Vue.extend({
       messages: [] as Message[],
       allChannels: [] as Channel[],
       channels: [] as Channel[],
-      availableChannels: [] as Channel[],
+      channels_dm: [] as Channel[],
       users: [] as User[],
       tabs: null,
       tab: ["Channels", "DM"],
       addChannelDialog: false,
+      addDMDialog: false,
       joinChannelDialog: false,
       channelSettingDialog: false,
       valid: true,
@@ -646,7 +718,7 @@ export default Vue.extend({
         { text: "private" },
         { text: "protected" },
       ],
-      choice: "",
+      choice: "" as string,
       choice_user: {} as User,
       currentChannel: {} as Channel,
       name: "",
@@ -679,19 +751,6 @@ export default Vue.extend({
     },
   },
   async created() {
-    // this.$axios
-    //   .get("/users/profile")
-    //   .then((res) => {
-    //     console.log(res.data);
-    //     this.currentUser = res.data;
-    //     this.currentUser.friends.forEach((e) => {
-    //       e.messages = [];
-    //     });
-    //   })
-    //   .catch((error) => {
-    //     console.error(error);
-    //   });
-
     this.$axios
       .get("/users")
       .then((res) => {
@@ -715,75 +774,26 @@ export default Vue.extend({
     // fetch users channels
     await this.$axios
       .get("/users/channels")
-      .then((res) => {
+      .then(async (res) => {
         this.channels = res.data;
+        await this.joinChannels();
+        this.channels.forEach((e) => {
+          e.messages.sort((a, b) => {
+            return a.id - b.id;
+          });
+        });
+        this.channels_dm = this.channels.filter((e) => {
+          return e.scope == "dm";
+        });
+        this.channels = this.channels.filter((e) => {
+          return e.scope != "dm";
+        });
+        console.log(this.channels_dm);
+        console.log(this.channels);
       })
       .catch((error) => {
         console.error(error);
       });
-
-    this.channels.forEach(async (e) => {
-      await this.$axios
-        .get("/channels/" + e.id + "/users")
-        .then((res) => {
-          e.users = res.data;
-        })
-        .catch((error) => {
-          console.error(error);
-        });
-    });
-
-    // fetch admins channels
-    this.channels.forEach(async (e) => {
-      await this.$axios
-        .get("/channels/" + e.id + "/admins")
-        .then((res) => {
-          e.admins = res.data;
-        })
-        .catch((error) => {
-          console.error(error);
-        });
-    });
-
-    // fetch owner channels
-    this.channels.forEach(async (e) => {
-      await this.$axios
-        .get("/channels/" + e.id + "/owner")
-        .then((res) => {
-          e.owner = res.data;
-        })
-        .catch((error) => {
-          console.error(error);
-        });
-    });
-
-    // fetch channels messages
-    for (let i = 0; i < this.channels.length; i++) {
-      this.channels[i].messages = [];
-      await this.$axios
-        .get("channels/" + this.channels[i].id + "/messages")
-        .then((res) => {
-          this.channels[i].messages = res.data;
-        })
-        .catch((error) => {
-          console.error(error);
-        });
-    }
-
-    // setup client socket
-    // this.socket = this.$nuxtSocket({ name: "chat", withCredentials: true });
-
-    // this.socket.emit("SetSocket");
-
-    this.socket.on("connect", async () => {
-      console.log("Connection !");
-      this.joinChannels();
-    });
-
-    this.socket.on("disconnect", async () => {
-      console.log("Disconnection !");
-      //   this.leaveChannels();
-    });
 
     this.socket.on("UserKick", async (msg: any) => {
       console.log("you have been kick from a channel");
@@ -809,44 +819,67 @@ export default Vue.extend({
     });
 
     this.socket.on("JoinChan", async (channel: Channel) => {
-      channel.messages = [];
-      this.$axios
-        .get("channels/" + channel.id + "/messages")
-        .then((res) => {
-          channel.messages = res.data;
-        })
-        .catch((error) => {
-          console.error(error);
-        });
+      console.log("adding channel:");
+      console.log(channel);
       if (
+        channel.scope == "dm" &&
+        this.channels_dm.find((e) => {
+          return e.id == channel.id;
+        }) == undefined
+      ) {
+        console.log("channel dm added");
+        this.channels_dm.push(channel);
+      }
+      if (
+        channel.scope != "dm" &&
         this.channels.find((e) => {
           return e.id == channel.id;
         }) == undefined
-      )
+      ) {
+        console.log("channel added");
         this.channels.push(channel);
+      }
     });
 
     this.socket.on("NewMessage", async (msg: Message) => {
       console.log("New message received !");
       if (msg != null) {
-        this.channels
-          .find((e) => {
-            return e.id == msg.target_id;
-          })
-          ?.messages.push(msg);
+        if (msg.channel.scope != "dm")
+          this.channels
+            .find((e) => {
+              return e.id == msg.channel.id;
+            })
+            ?.messages.push(msg);
+        else
+          this.channels_dm
+            .find((e) => {
+              return e.id == msg.channel.id;
+            })
+            ?.messages.push(msg);
       }
-      if (this.currentChannel.id == msg.target_id) {
+      if (this.currentChannel.id == msg.channel.id) {
         this.scrollToNewMsg();
       }
     });
 
     this.socket.on("PrivateMessage", async (msg: Message) => {
       if (
-        this.currentChannel.id ==
-        (this.user.id == msg.target_id ? msg.user_id : msg.target_id)
-      ) {
-        this.scrollToNewMsg();
-      }
+        this.channels_dm.find((e) => {
+          return e.id == msg.channel.id;
+        }) != undefined
+      )
+        return;
+      this.socket.emit(
+        "JoinChan",
+        {
+          channel_id: msg.channel.id,
+          password: "",
+        },
+        (rep: any) => {
+          if (rep != null) console.log("chan joined");
+          else console.log("cannot join chan");
+        }
+      );
     });
 
     this.socket.on("NewUser", async (data: any) => {
@@ -869,7 +902,7 @@ export default Vue.extend({
       console.log("Message deleted !");
       if (msg != null) {
         let channel = this.channels.find((e) => {
-          return e.id == msg.target_id;
+          return e.id == msg.channel.id;
         }) as Channel;
         channel.messages.splice(
           channel.messages.findIndex((e) => {
@@ -879,8 +912,6 @@ export default Vue.extend({
         );
       }
     });
-
-    this.joinChannels();
 
     console.log("Created");
   },
@@ -901,6 +932,9 @@ export default Vue.extend({
         .get("/channels")
         .then((res) => {
           this.allChannels = res.data;
+          this.allChannels = this.allChannels.filter((e) => {
+            return e.scope != "dm";
+          });
         })
         .catch((error) => {
           console.error(error);
@@ -908,6 +942,7 @@ export default Vue.extend({
     },
 
     async createChannel() {
+      console.log("this.createChannel");
       await this.$axios
         .post("/channels/create", {
           name: this.name,
@@ -915,6 +950,7 @@ export default Vue.extend({
           password: this.password,
         })
         .then((res) => {
+          console.log("this.createChannel.then");
           if (typeof res.data === "string") {
             this.socket.emit("Alert", {
               color: "red",
@@ -926,8 +962,6 @@ export default Vue.extend({
             target_id: res.data.id,
             content: this.password,
           });
-          res.data.messages = [];
-          this.channels.push(res.data);
         })
         .catch((error) => {
           console.error(error);
@@ -942,11 +976,11 @@ export default Vue.extend({
 
     async joinChannels() {
       for (let i = 0; i < this.channels.length; ++i) {
-        this.socket.emit(
+        await this.socket.emit(
           "JoinChan",
           {
-            target_id: this.channels[i].id,
-            content: "",
+            channel_id: this.channels[i].id,
+            password: "",
           },
           (rep: any) => {
             if (rep != null) console.log("chan joined");
@@ -960,8 +994,8 @@ export default Vue.extend({
       this.socket.emit(
         "JoinChan",
         {
-          target_id: this.choice,
-          content: this.password,
+          channel_id: this.choice,
+          password: this.password,
         },
         (rep: any) => {
           if (rep != null) console.log("chan joined");
@@ -970,6 +1004,12 @@ export default Vue.extend({
       );
       this.password = "";
       this.joinChannelDialog = false;
+    },
+
+    async createDMChannel() {
+      await this.socket.emit("NewDMChannel", {
+        id: this.choice,
+      });
     },
 
     async kick(user: User, channel: Channel) {
@@ -1000,7 +1040,7 @@ export default Vue.extend({
         channel_id: channel.id,
         user_id: user.id,
       });
-      this.joinChannelDialog = false;
+      //   this.joinChannelDialog = false;
     },
 
     async deleteMessage(msg: Message) {
@@ -1010,19 +1050,12 @@ export default Vue.extend({
     },
 
     async sendMessage() {
-      console.log("sendMessage()");
       if (this.input.length == 0) return;
       if (this.channels.length == 0) return;
       if (this.currentChannel == undefined) return;
 
-      console.log("message sent");
-      let signal: String =
-        this.currentChannel.username == undefined
-          ? "NewMessage"
-          : "PrivateMessage";
-
-      await this.socket.emit(signal, {
-        target_id: this.currentChannel.id,
+      await this.socket.emit("NewMessage", {
+        channel: this.currentChannel,
         content: this.input,
       });
 
@@ -1054,6 +1087,27 @@ export default Vue.extend({
         }
       }
       return false;
+    },
+
+    getDMUser(channel: Channel): User | undefined {
+      //   console.log(channel.users.length);
+      return channel.users.find((e) => {
+        return e.id != this.user.id;
+      });
+    },
+
+    getUserProfile(channel: Channel): string {
+      let user = this.getDMUser(channel);
+      if (user == undefined) return "error";
+      return "/profile/" + this.getDMUser(channel)?.username;
+    },
+
+    getDMUserName(channel: Channel): string {
+      let name = channel.users.find((e) => {
+        return e.id != this.user.id;
+      })?.username;
+      if (name == undefined) name = "unknown";
+      return name;
     },
 
     async options(choice: string) {
@@ -1092,4 +1146,3 @@ export default Vue.extend({
   background-color: rgb(81, 45, 168) !important;
 }
 </style>
-
