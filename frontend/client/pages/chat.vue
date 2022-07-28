@@ -1,17 +1,9 @@
 <template>
-  <div
-    style="height: 80vh; max-height: 100%"
-    class="d-flex justify-center align-center"
-  >
+  <div style="height: 80vh; max-height: 100%" class="d-flex justify-center align-center">
     <v-container fluid>
       <v-row align="center" justify="center">
         <!-- CHANNEL LIST CARD -->
-        <v-card
-          width="30%"
-          height="80%"
-          color="secondary"
-          class="d-flex flex-column justify-center pb-5"
-        >
+        <v-card width="30%" height="80%" color="secondary" class="d-flex flex-column justify-center pb-5">
           <!-- CHANNELS / DM TABS -->
           <v-toolbar color="primary" height="16px">
             <template v-slot:extension>
@@ -26,19 +18,11 @@
           <v-tabs-items v-model="tabs">
             <v-tab-item>
               <div class="d-flex flex-column align-center">
-                <v-dialog
-                  v-model="addChannelDialog"
-                  persistent
-                  max-width="600px"
-                >
-                  <template v-slot:activator>
+                <v-dialog v-model="addChannelDialog" persistent max-width="600px">
+                  <template v-slot:activator="{ on }">
                     <!-- ADD CHANNEL BUTTON -->
-                    <v-btn
-                      width="190px"
-                      color="primary"
-                      class="mt-5"
-                      @click="addChannelDialog = !addChannelDialog"
-                    >
+                    <v-btn width="190px" color="primary" class="mt-5" @click="addChannelDialog = !addChannelDialog"
+                      v-on="on">
                       ADD CHANNEL
                     </v-btn>
                   </template>
@@ -55,31 +39,17 @@
                         <v-row>
                           <v-col cols="12">
                             <v-form ref="form" v-model="valid">
-                              <v-text-field
-                                v-model="name"
-                                :rules="rules"
-                                label="Name"
-                              >
+                              <v-text-field v-model="name" :rules="rules" label="Name">
                               </v-text-field>
                             </v-form>
                           </v-col>
                           <v-col cols="12" class="mt-5">
-                            <v-overflow-btn
-                              v-model="choice"
-                              filled
-                              :items="channelChoice"
-                              item-value="text"
-                            >
+                            <v-overflow-btn v-model="choice" filled :items="channelChoice" item-value="text">
                             </v-overflow-btn>
                           </v-col>
                           <v-col v-if="choice === 'protected'" cols="12">
                             <v-form>
-                              <v-text-field
-                                v-model="password"
-                                :rules="passwordRules"
-                                label="Password"
-                                type="password"
-                              >
+                              <v-text-field v-model="password" :rules="passwordRules" label="Password" type="password">
                               </v-text-field>
                             </v-form>
                           </v-col>
@@ -88,20 +58,10 @@
                     </v-card-text>
                     <v-card-actions>
                       <v-spacer></v-spacer>
-                      <v-btn
-                        color="accent"
-                        depressed
-                        dark
-                        @click="addChannelDialog = false"
-                      >
+                      <v-btn color="accent" depressed dark @click="addChannelDialog = false">
                         Cancel
                       </v-btn>
-                      <v-btn
-                        color="success white--text"
-                        :disabled="!valid"
-                        depressed
-                        @click="createChannel"
-                      >
+                      <v-btn color="success white--text" :disabled="!valid" depressed @click="createChannel">
                         Create
                       </v-btn>
                     </v-card-actions>
@@ -110,22 +70,13 @@
                 <!-- END OF DIALOG CARD TO ADD CHANNEL -->
 
                 <!-- DIALOG CARD TO JOIN CHANNEL -->
-                <v-dialog
-                  v-model="joinChannelDialog"
-                  persistent
-                  max-width="600px"
-                >
-                  <template v-slot:activator>
+                <v-dialog v-model="joinChannelDialog" persistent max-width="600px">
+                  <template v-slot:activator="{ on }">
                     <!-- JOIN CHANNEL BUTTON -->
-                    <v-btn
-                      color="primary"
-                      width="190px"
-                      class="my-5"
-                      @click="
-                        fetchAllChannels();
-                        joinChannelDialog = !joinChannelDialog;
-                      "
-                    >
+                    <v-btn color="primary" width="190px" class="my-5" @click="
+  fetchAllChannels();
+joinChannelDialog = !joinChannelDialog;
+                    " v-on="on">
                       JOIN CHANNEL
                     </v-btn>
                   </template>
@@ -141,22 +92,14 @@
                         <v-row>
                           <v-col class="mt-5" cols="12">
                             <!-- besoin de rajouter où chercher channel / changer :items="channels" -->
-                            <v-overflow-btn
-                              v-model="choice"
-                              filled
-                              :items="allChannels"
-                              item-text="name"
-                              item-value="id"
-                            >
+                            <v-overflow-btn v-model="choice" filled :items="allChannels" item-text="name"
+                              item-value="id">
                             </v-overflow-btn>
                           </v-col>
                           <v-col cols="12">
                             <v-form @submit.prevent="">
-                              <v-text-field
-                                v-model="password"
-                                :rules="passwordRules"
-                                label="Password"
-                              >
+                              <v-text-field v-model="password" :rules="passwordRules" label="Password"
+                                hint="If the channel is protected, enter password here !" persistent-hint>
                               </v-text-field>
                             </v-form>
                           </v-col>
@@ -165,22 +108,26 @@
                     </v-card-text>
                     <v-card-actions>
                       <v-spacer></v-spacer>
-                      <v-btn
-                        color="accent"
-                        depressed
-                        dark
-                        @click="joinChannelDialog = false"
-                      >
+                      <v-btn color="accent" depressed dark @click="joinChannelDialog = false">
                         Cancel
                       </v-btn>
                       <!-- removed :disabled="!valid" from v-btn for now-->
-                      <v-btn
-                        color="success white--text"
-                        depressed
-                        @click="joinChannel"
-                      >
-                        Join
-                      </v-btn>
+                      <v-dialog v-model="passwordDialog" persistent max-width="290">
+                        <template v-slot:activator="{ on }">
+                          <v-btn color="success white--text" depressed @click="joinChannel" v-on="on">
+                            Join
+                          </v-btn>
+                        </template>
+                        <v-card color="secondary">
+                          <v-card-text class="text-h6 pt-5">Wrong password. Try again !</v-card-text>
+                          <v-card-actions>
+                            <v-spacer></v-spacer>
+                            <v-btn color="primary" @click="passwordDialog = false">
+                              OK
+                            </v-btn>
+                          </v-card-actions>
+                        </v-card>
+                      </v-dialog>
                     </v-card-actions>
                   </v-card>
                 </v-dialog>
@@ -191,13 +138,11 @@
               <!-- CHANNEL LIST -->
               <v-list height="502px" color="secondary" mandatory>
                 <div v-for="(channel, index) in channels" :key="channel.id">
-                  <v-list-group
-                    @click="
-                      currentChannel = channel;
-                      messages = currentChannel.messages;
-                      scrollToNewMsg();
-                    "
-                  >
+                  <v-list-group @click="
+  currentChannel = channel;
+messages = currentChannel.messages;
+scrollToNewMsg();
+                  ">
                     <template v-slot:activator>
                       <v-list-item two-line>
                         <v-list-item-content>
@@ -206,30 +151,16 @@
                           </v-list-item-title>
                         </v-list-item-content>
                       </v-list-item>
-                      <v-divider
-                        v-if="index < channels.length - 1"
-                        :key="index"
-                      ></v-divider>
+                      <v-divider v-if="index < channels.length - 1" :key="index"></v-divider>
                     </template>
                     <v-list color="secondary" width="100%">
-                      <div
-                        v-for="(player, index) in channel.users"
-                        :key="index"
-                      >
-                        <v-list-group
-                          v-if="user.id != player.id"
-                          active-class="info--text"
-                          sub-group
-                        >
+                      <div v-for="(player, index) in channel.users" :key="index">
+                        <v-list-group v-if="user.id != player.id" active-class="info--text" sub-group>
                           <template v-slot:activator>
                             <v-list-item-content>
                               <tr>
                                 <td>
-                                  <UserAvatarStatus
-                                    :user="player"
-                                    size="50px"
-                                    offset="20"
-                                  />
+                                  <UserAvatarStatus :user="player" size="50px" offset="20" />
                                 </td>
                                 <td>
                                   <v-list-item-title class="font-weight-bold">
@@ -241,77 +172,89 @@
                           </template>
                           <div>
                             <v-list-item dense>
-                              <v-list-item-title
-                                class="d-flex justify-center text-button"
-                              >
-                                <v-btn
-                                  :to="'/profile/' + player.username"
-                                  color="primary"
-                                  class="mx-1"
-                                  min-width="100%"
-                                >
-                                  PROFILE</v-btn
-                                >
+                              <v-list-item-title class="d-flex justify-center text-button">
+                                <v-btn :to="'/profile/' + player.username" color="primary" class="mx-1"
+                                  min-width="100%">
+                                  PROFILE</v-btn>
                               </v-list-item-title>
                             </v-list-item>
                             <div v-if="isAdmin(channel) === true">
                               <v-list-item dense>
-                                <v-list-item-title
-                                  class="d-flex justify-center text-button"
-                                >
-                                  <v-btn
-                                    @click="mute(player, channel)"
-                                    color="accent"
-                                    class="mx-1"
-                                    min-width="48%"
-                                  >
-                                    MUTE</v-btn
-                                  >
-                                  <v-btn
-                                    @click="kick(player, channel)"
-                                    color="accent"
-                                    class="mx-1"
-                                    min-width="48%"
-                                    >KICK
+                                <v-list-item-title class="d-flex justify-center text-button">
+                                  <v-dialog v-model="muteDialog" persistent max-width="600px">
+                                    <template v-slot:activator="{ on }">
+                                      <v-btn @click="muteDialog = !muteDialog" color="accent" class="mx-1"
+                                        min-width="48%" v-on="on">
+                                        MUTE</v-btn>
+                                    </template>
+                                    <v-card color="secondary">
+                                      <v-card-text class="text-h6 pt-5">How many minutes do you want to mute this user ?
+                                      </v-card-text>
+                                      <v-slider v-model="muteMinutes" thumb-label="always" thumb-size="40" max="60"
+                                        min="10" class="mt-10 mx-10">
+                                        <template v-slot:thumb-label>
+                                          <span class="font-weight-bold" style="font-size: 15px">
+                                            {{ muteMinutes }}
+                                          </span>
+                                        </template>
+                                      </v-slider>
+                                      <v-card-actions>
+                                        <v-spacer></v-spacer>
+                                        <v-btn color="accent" @click="muteDialog = !muteDialog">
+                                          CANCEL
+                                        </v-btn>
+                                        <v-btn color="success" @click="mute(player, channel)">
+                                          OK
+                                        </v-btn>
+                                      </v-card-actions>
+                                    </v-card>
+                                  </v-dialog>
+                                  <v-btn @click="kick(player, channel)" color="accent" class="mx-1" min-width="48%">
+                                    KICK
                                   </v-btn>
                                 </v-list-item-title>
                               </v-list-item>
                               <v-list-item dense>
-                                <v-list-item-title
-                                  class="d-flex justify-center text-button"
-                                >
-                                  <v-btn
-                                    @click="ban(player, channel)"
-                                    color="accent"
-                                    min-width="100%"
-                                  >
-                                    BAN</v-btn
-                                  >
+                                <v-list-item-title class="d-flex justify-center text-button">
+                                  <v-dialog v-model="banDialog" persistent max-width="600px">
+                                    <template v-slot:activator="{ on }">
+                                      <v-btn @click="banDialog = !banDialog" color="accent" min-width="100%" v-on="on">
+                                        BAN</v-btn>
+                                    </template>
+                                    <v-card color="secondary">
+                                      <v-card-text class="text-h6 pt-5">How many minutes do you want to ban this user ?
+                                      </v-card-text>
+                                      <v-slider v-model="banMinutes" thumb-label="always" thumb-size="40" max="60"
+                                        min="10" class="mt-10 mx-10">
+                                        <template v-slot:thumb-label>
+                                          <span class="font-weight-bold" style="font-size: 15px">
+                                            {{ banMinutes }}
+                                          </span>
+                                        </template>
+                                      </v-slider>
+                                      <v-card-actions>
+                                        <v-spacer></v-spacer>
+                                        <v-btn color="accent" @click="banDialog = !banDialog">
+                                          CANCEL
+                                        </v-btn>
+                                        <v-btn color="success" @click="ban(player, channel)">
+                                          OK
+                                        </v-btn>
+                                      </v-card-actions>
+                                    </v-card>
+                                  </v-dialog>
                                 </v-list-item-title>
                               </v-list-item>
                               <v-list-item dense>
-                                <v-list-item-title
-                                  class="d-flex justify-center text-button"
-                                >
-                                  <v-btn
-                                    @click="blockUser(player.id)"
-                                    color="accent"
-                                    min-width="100%"
-                                  >
-                                    BLOCK</v-btn
-                                  >
+                                <v-list-item-title class="d-flex justify-center text-button">
+                                  <v-btn @click="blockUser(player.id)" color="accent" min-width="100%">
+                                    BLOCK</v-btn>
                                 </v-list-item-title>
                               </v-list-item>
                               <div v-if="isOwner(channel) === true">
                                 <v-list-item dense class="mb-2">
-                                  <v-list-item-title
-                                    class="d-flex justify-center text-button"
-                                  >
-                                    <v-btn
-                                      @click="setAdmin(player, channel)"
-                                      color="success"
-                                      min-width="100%"
-                                    >
+                                  <v-list-item-title class="d-flex justify-center text-button">
+                                    <v-btn @click="setAdmin(player, channel)" color="success" min-width="100%">
                                       ADMIN
                                     </v-btn>
                                   </v-list-item-title>
@@ -320,10 +263,7 @@
                             </div>
                           </div>
                         </v-list-group>
-                        <v-divider
-                          v-if="index < users.length - 1"
-                          :key="index"
-                        ></v-divider>
+                        <v-divider v-if="index < users.length - 1" :key="index"></v-divider>
                       </div>
                     </v-list>
                   </v-list-group>
@@ -334,25 +274,16 @@
             <!-- DM LIST  -->
             <v-tab-item>
               <v-list height="635px" color="secondary" mandatory>
-                <v-list-group
-                  v-for="(friend, index) in user.friends"
-                  :key="index"
-                >
+                <v-list-group v-for="(friend, index) in user.friends" :key="index">
                   <template v-slot:activator>
-                    <v-list-item-content
-                      @click="
-                        currentChannel = friend;
-                        messages = currentChannel.messages;
-                        scrollToNewMsg();
-                      "
-                    >
+                    <v-list-item-content @click="
+  currentChannel = friend;
+messages = currentChannel.messages;
+scrollToNewMsg();
+                    ">
                       <tr>
                         <td>
-                          <UserAvatarStatus
-                            size="80px"
-                            :user="friend"
-                            :offset="20"
-                          />
+                          <UserAvatarStatus size="80px" :user="friend" :offset="20" />
                         </td>
                         <td>
                           <v-list-item-title class="font-weight-bold">
@@ -364,45 +295,24 @@
                   </template>
 
                   <v-list-item dense>
-                    <v-list-item-title
-                      class="d-flex justify-center text-button"
-                    >
-                      <v-btn
-                        :to="'/profile/' + friend.username"
-                        color="primary"
-                        class="mx-1"
-                        min-width="100%"
-                      >
-                        PROFILE</v-btn
-                      >
+                    <v-list-item-title class="d-flex justify-center text-button">
+                      <v-btn :to="'/profile/' + friend.username" color="primary" class="mx-1" min-width="100%">
+                        PROFILE</v-btn>
                     </v-list-item-title>
                   </v-list-item>
                   <v-list-item dense>
-                    <v-list-item-title
-                      class="d-flex justify-center text-button"
-                    >
+                    <v-list-item-title class="d-flex justify-center text-button">
                       <v-btn @click="" color="primary" min-width="100%">
-                        INVITE TO GAME</v-btn
-                      >
+                        INVITE TO GAME</v-btn>
                     </v-list-item-title>
                   </v-list-item>
                   <v-list-item dense>
-                    <v-list-item-title
-                      class="d-flex justify-center text-button"
-                    >
-                      <v-btn
-                        @click="blockUser(friend.id)"
-                        color="accent"
-                        min-width="100%"
-                      >
-                        BLOCK</v-btn
-                      >
+                    <v-list-item-title class="d-flex justify-center text-button">
+                      <v-btn @click="blockUser(friend.id)" color="accent" min-width="100%">
+                        BLOCK</v-btn>
                     </v-list-item-title>
                   </v-list-item>
-                  <v-divider
-                    v-if="index < users.length - 1"
-                    :key="index"
-                  ></v-divider>
+                  <v-divider v-if="index < users.length - 1" :key="index"></v-divider>
                 </v-list-group>
               </v-list>
             </v-tab-item>
@@ -413,41 +323,25 @@
 
         <!-- CHAT CARD -->
         <!-- besoin de rajouter un bouton et dialog card params pour changer password (par exemple)-->
-        <v-card
-          width="60%"
-          height="80%"
-          color="secondary"
-          class="d-flex flex-column justify-center ml-2"
-        >
+        <v-card width="60%" height="80%" color="secondary" class="d-flex flex-column justify-center ml-2">
           <v-toolbar color="primary">
             <div v-if="currentChannel.name !== undefined">
-              <v-toolbar-title
-                class="font-weight-black"
-                style="font-size: 20px"
-              >
+              <v-toolbar-title class="font-weight-black" style="font-size: 20px">
                 {{ currentChannel.name }}
               </v-toolbar-title>
             </div>
             <div v-else>
-              <v-toolbar-title
-                class="font-weight-black"
-                style="font-size: 20px"
-              >
+              <v-toolbar-title class="font-weight-black" style="font-size: 20px">
                 {{ currentChannel.username }}
               </v-toolbar-title>
             </div>
 
             <v-spacer></v-spacer>
             <!-- TO CHANGE CHANNEL SETTING -->
-            <v-dialog
-              v-model="channelSettingDialog"
-              persistent
-              max-width="600px"
-            >
-              <template v-slot:activator>
-                <v-icon @click="channelSettingDialog = !channelSettingDialog">
-                  mdi-cog</v-icon
-                >
+            <v-dialog v-model="channelSettingDialog" persistent max-width="600px">
+              <template v-slot:activator="{ on }">
+                <v-icon @click="channelSettingDialog = !channelSettingDialog" v-on="on">
+                  mdi-cog</v-icon>
               </template>
 
               <v-card>
@@ -457,47 +351,22 @@
                 <v-card-text>
                   <v-container>
                     <v-row>
-                      <v-col
-                        class="mt-5"
-                        cols="12"
-                        v-if="currentChannel.scope === 'protected'"
-                      >
+                      <v-col class="mt-5" cols="12" v-if="currentChannel.scope === 'protected'">
                         <v-form @submit.prevent="">
-                          <v-text-field
-                            v-model="currentPassword"
-                            :rules="passwordRules"
-                            label="Current Password"
-                            type="password"
-                          >
+                          <v-text-field v-model="currentPassword" :rules="passwordRules" label="Current Password"
+                            type="password">
                           </v-text-field>
                         </v-form>
                         <v-form @submit.prevent="">
-                          <v-text-field
-                            v-model="changePassword"
-                            :rules="passwordRules"
-                            label="New Password"
-                            type="password"
-                          >
+                          <v-text-field v-model="changePassword" :rules="passwordRules" label="New Password"
+                            type="password">
                           </v-text-field>
                         </v-form>
                       </v-col>
-                      <v-col
-                        v-if="currentChannel.scope === 'private'"
-                        class="mt-5"
-                        cols="12"
-                      >
-                        <v-select
-                          :items="users"
-                          name="user"
-                          v-model="invited_user"
-                          return-object
-                          filled
-                          item-text="username"
-                          label="Select"
-                          item-value="id"
-                          hint="Send an invitation to a player"
-                          persistent-hint
-                        >
+                      <v-col v-if="currentChannel.scope === 'private'" class="mt-5" cols="12">
+                        <v-select :items="users" name="user" v-model="invited_user" return-object filled
+                          item-text="username" label="Select" item-value="id" hint="Send an invitation to a player"
+                          persistent-hint>
                         </v-select>
                       </v-col>
                     </v-row>
@@ -505,20 +374,10 @@
                 </v-card-text>
                 <v-card-actions>
                   <v-spacer></v-spacer>
-                  <v-btn
-                    color="accent"
-                    depressed
-                    dark
-                    @click="channelSettingDialog = false"
-                  >
+                  <v-btn color="accent" depressed dark @click="channelSettingDialog = false">
                     Cancel
                   </v-btn>
-                  <v-btn
-                    color="success white--text"
-                    :disabled="!valid"
-                    depressed
-                    @click="options"
-                  >
+                  <v-btn color="success white--text" :disabled="!valid" depressed @click="options">
                     SAVE
                   </v-btn>
                 </v-card-actions>
@@ -535,9 +394,7 @@
                   <td>
                     <v-list-item two-line disabled>
                       <v-list-item-content>
-                        <v-list-item-title
-                          class="font-weight-bold purple--text"
-                        >
+                        <v-list-item-title class="font-weight-bold purple--text">
                           {{ msg.user_name }}
                         </v-list-item-title>
                         <v-list-item-content>
@@ -546,16 +403,12 @@
                       </v-list-item-content>
                     </v-list-item>
                   </td>
-                  <td
-                    v-if="
-                      user.id === msg.user_id ||
-                      (currentChannel.name != undefined &&
-                        isAdmin(currentChannel))
-                    "
-                  >
-                    <v-icon x-small class="mr-1" @click="deleteMessage(msg)"
-                      >mdi-close-thick</v-icon
-                    >
+                  <td v-if="
+                    user.id === msg.user_id ||
+                    (currentChannel.name != undefined &&
+                      isAdmin(currentChannel))
+                  ">
+                    <v-icon x-small class="mr-1" @click="deleteMessage(msg)">mdi-close-thick</v-icon>
                   </td>
                 </tr>
                 <!-- <v-divider v-if="index < currentChannel.messages.length - 1" :key="index"></v-divider> -->
@@ -567,22 +420,10 @@
 
           <!-- TO ENTER THE MESSAGE -->
           <v-card-actions>
-            <v-sheet
-              color="grey"
-              height="50"
-              dark
-              width="100%"
-              class="text-center"
-            >
+            <v-sheet color="grey" height="50" dark width="100%" class="text-center">
               <v-app-bar bottom color="rgba(0,0,0,0)" flat>
-                <v-text-field
-                  class="mt-5"
-                  v-model="input"
-                  @click:append-outer="sendMessage"
-                  append-outer-icon="mdi-send"
-                  label="Message"
-                  type="text"
-                >
+                <v-text-field class="mt-5" v-model="input" @click:append-outer="sendMessage"
+                  append-outer-icon="mdi-send" label="Message" type="text">
                 </v-text-field>
               </v-app-bar>
             </v-sheet>
@@ -640,6 +481,7 @@ export default Vue.extend({
       addChannelDialog: false,
       joinChannelDialog: false,
       channelSettingDialog: false,
+      passwordDialog: false,
       valid: true,
       channelChoice: [
         { text: "public" },
@@ -655,6 +497,10 @@ export default Vue.extend({
       currentPassword: "",
       changePassword: "",
       input: "",
+      muteDialog: false,
+      muteMinutes: 10,
+      banDialog: false,
+      banMinutes: 10,
       // besoin de bien comprendre comment les regles sont gerees / en juillet
       rules: [
         (v: string) => !!v || "Required",
@@ -965,7 +811,10 @@ export default Vue.extend({
         },
         (rep: any) => {
           if (rep != null) console.log("chan joined");
-          else console.log("cannot join chan");
+          else {
+            console.log("cannot join chan");
+            this.passwordDialog = true;
+          }
         }
       );
       this.password = "";
