@@ -14,7 +14,7 @@ export class GameRoomController {
 	@Post('create')
 	create(@Body() createGameDto: CreateGameDto, @Req() req: Request): string {
 		const nameroom: string = this.gameRoomService.addRoom(createGameDto)
-		console.log(nameroom);
+		console.log("nameroom = " + nameroom);
 		return nameroom;
 	}
 
