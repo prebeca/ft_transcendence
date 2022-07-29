@@ -1,28 +1,117 @@
 import { Injectable, InternalServerErrorException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Channel, User } from 'src/typeorm';
-import { Any, Repository } from 'typeorm';
+import { Channel, User, Ban, Mute } from 'src/typeorm';
+import { Repository } from 'typeorm';
 import { CreateChannelDto } from 'src/chat/channels/dto/channels.dto';
-import { Message, MessageData } from '../entities/message.entity';
-import { channel } from 'diagnostics_channel';
+import { Message } from '../entities/message.entity';
 import { UsersService } from 'src/users/services/users.service';
-import { CreateMessageDto } from '../dto/messages.dto';
 
 @Injectable()
 export class ChannelsService {
 	constructor(
 		@InjectRepository(Channel) private readonly channelRepository: Repository<Channel>,
 		@InjectRepository(Message) private readonly messagesRepository: Repository<Message>,
+		@InjectRepository(Ban) private readonly BanRepository: Repository<Ban>,
+		@InjectRepository(Mute) private readonly MuteRepository: Repository<Mute>,
 		private readonly userService: UsersService
 	) { }
 
-	getChannels(): Promise<Channel[]> {
-		return this.channelRepository.find();
+
+	async createChannel(user: User, createChannelDto: CreateChannelDto) {
+		console.log("createChannel")
+		let channel: Channel = await this.channelRepository.findOne({ where: { name: createChannelDto.name } })
+
+		if (createChannelDto.scope != "dm" && createChannelDto.name.startsWith("dm_"))
+			return;
+		if (channel != null)
+			return "Channel already exist";
+		if (createChannelDto.scope == 'protected' && createChannelDto.password.length == 0)
+			return "Empty password for Protected Channel";
+
+		if (createChannelDto.scope != "protected")
+			createChannelDto.password = null
+
+		let channeltmp = this.channelRepository.create(createChannelDto);
+		await this.channelRepository.save(channeltmp);
+		channel = await this.channelRepository.findOne({ where: { name: createChannelDto.name }, relations: ["admins", "users", "invited"] })
+
+		if (channel.scope != "dm") {
+			channel.owner = user;
+			channel.admins.push(user);
+		}
+		channel.users.push(user);
+		if (channel.scope == "private")
+			this.addInvite(channel.id, user.id)
+		this.userService.addChannel(user.id, channel);
+		channel = await this.channelRepository.save(channel)
+		channel.password = undefined;
+		return channel;
 	}
 
-	async getMessages(channel_id: number): Promise<Message[]> {
-		return (this.messagesRepository.find({ where: { channel_id: channel_id } }));
+	async getChannels(): Promise<Channel[]> {
+		let channels = await this.channelRepository.find();
+		channels.forEach(e => { e.password = undefined });
+		return channels;
 	}
+
+	async getChannel(user: User, id: number): Promise<Channel | String> {
+		let channel = await this.channelRepository.findOne(id, { relations: ["admins", "users", "messages", "messages.user", "messages.channel"] });
+
+		if (channel.users.find(e => { return e.id == user.id }) == undefined)
+			return // user is not member of the channel
+
+		channel.password = undefined;
+
+		return channel
+	}
+
+	// async getChannelsById(ids: number[]): Promise<Channel[]> {
+	// 	let channels: Channel[] = [];
+	// 	for (let i = 0; i < ids.length; ++i) {
+	// 		let channel = await this.channelRepository.findOne(ids[i]);
+	// 		if (channel != undefined)
+	// 			channels.push(channel)
+	// 	}
+	// 	return channels;
+	// }
+
+	async getUsers(channel_id: number): Promise<User[]> {
+		let channel = await this.channelRepository.findOne(channel_id, { relations: ["users"] });
+		let userList = [];
+		for (let i = 0; i < channel.users.length; ++i) {
+			userList.push(await this.userService.findUsersById(channel.users[i].id));
+		}
+		return userList;
+	}
+
+	async getAdmins(channel_id: number): Promise<User[]> {
+		let channel = await this.channelRepository.findOne(channel_id, { relations: ["admins"] });
+		let adminList = [];
+		for (let i = 0; i < channel.admins.length; ++i) {
+			adminList.push(await this.userService.findUsersById(channel.admins[i].id));
+		}
+		return adminList;
+	}
+
+	async getOwner(channel_id: number): Promise<User> {
+		let channel = await this.channelRepository.findOne(channel_id, { relations: ["owner"] });
+		return await this.userService.findUsersById(channel.owner.id)
+	}
+
+	// async getMessages(user: User, channel_id: number): Promise<Message[]> {
+	// 	user = await this.userService.findUsersById(user.id)
+	// 	if (user.channels.find(e => { return e.id == channel_id }) == undefined)
+	// 		return;
+	// 	let messages: Message[] = [];
+	// 	messages = await this.messagesRepository.find({ where: { channel.id: channel_id } });
+	// 	let sendlist: Message[] = []
+	// 	for (let i = 0; i < messages.length; ++i) {
+	// 		let isblock = user.blocked.find(e => { return e.id == messages[i].user.id })
+	// 		if (isblock == undefined)
+	// 			sendlist.push(messages[i]);
+	// 	}
+	// 	return (sendlist);
+	// }
 
 	async deleteMessage(id: number) {
 		let message = await this.messagesRepository.findOne(id);
@@ -30,37 +119,22 @@ export class ChannelsService {
 			this.messagesRepository.remove(message);
 	}
 
-	async deleteMessages(channel_id: number) {
-		this.messagesRepository.createQueryBuilder().delete().where({ channel_id: channel_id }).execute();
-	}
-
-	async createChannel(createChannelDto: CreateChannelDto) {
-		if (await this.channelRepository.findOne({ where: { name: createChannelDto.name } }) != null)
-			return null;
-		let channel = this.channelRepository.create(createChannelDto);
-		return await this.channelRepository.save(channel);
-	}
-
 	async updateChannel(channel: Channel) {
 		if (await this.channelRepository.findOne(channel.id) == null)
 			return null;
-		console.log("update channel " + channel.name)
 		return this.channelRepository.save(channel);
 	}
 
-	async getChannelsById(ids: number[]): Promise<Channel[]> {
-		let channels: Channel[] = [];
-		for (let i = 0; i < ids.length; ++i) {
-			let channel = await this.channelRepository.findOne(ids[i]);
-			if (channel != undefined)
-				channels.push(channel)
+	async remove(id: number) {
+		let channel = await this.findOneById(id)
+		if (channel == null) return;
+		for (let i = 0; i < channel.users.length; ++i) {
+			let user = await this.userService.findUsersById(channel.users[i].id)
+			if (user == null) continue
+			let index = user.channels.findIndex(e => e.id == channel.id)
+			user.channels.splice(index, 1);
 		}
-		return channels;
-	}
-
-	async remove(id: number): Promise<Channel[]> {
-		await this.channelRepository.delete(id);
-		return this.getChannels();
+		this.channelRepository.delete(id);
 	}
 
 	async removeAll(): Promise<Channel[]> {
@@ -73,88 +147,203 @@ export class ChannelsService {
 	}
 
 	async findOneById(id: number): Promise<Channel> {
-		return this.channelRepository.findOne(id);
+		return this.channelRepository.findOne(id, { relations: ["users", "owner", "admins", "invited", "banned", "banned.user", "muted", "muted.user", "messages", "messages.user", "messages.channel"] });
 	}
 
 	async addInvite(channel_id: number, user_id: number) {
-		let channel: Channel = await this.channelRepository.findOne(channel_id);
-		let index: number = channel.invited_ids.findIndex(e => e == user_id);
+		let channel: Channel = await this.channelRepository.findOne(channel_id, { relations: ["invited"] });
+		let user: User = await this.userService.findUsersById(user_id)
+
+		if (user == null)
+			return
+
+		let index: number = channel.invited.findIndex(e => { return e.id == user.id });
 		if (index != -1)
 			return
-		channel.invited_ids.push(user_id);
+
+		channel.invited.push(user);
 		this.channelRepository.save(channel);
 	}
 
 	async removeInvite(channel_id: number, user_id: number) {
-		let channel: Channel = await this.channelRepository.findOne(channel_id);
-		let index: number = channel.invited_ids.findIndex(e => e == user_id);
+		let channel: Channel = await this.channelRepository.findOne(channel_id, { relations: ["invited"] });
+		let user: User = await this.userService.findUsersById(user_id)
+
+		if (user == null)
+			return
+		let index: number = channel.invited.findIndex(e => { return e.id == user.id });
 		if (index == -1)
 			return
-		channel.invited_ids.splice(index, 1);
+		channel.invited.splice(index, 1);
 		this.channelRepository.save(channel);
 	}
 
 	async addUser(channel_id: number, user_id: number) {
-		let channel = await this.channelRepository.findOne(channel_id);
-		if (channel == null)
+		let channel = await this.channelRepository.findOne(channel_id, { relations: ["users"] });
+		let user: User = await this.userService.findUsersById(user_id)
+
+		if (channel == null || user == null)
 			return;
-		if (channel.users_ids.find(e => e == user_id) === undefined)
-			channel.users_ids.push(user_id);
+		if (channel.users.find(e => { return e == user }) != undefined) return
+
+		channel.users.push(user);
 		await this.channelRepository.save(channel);
 	}
 
-	// async addMessageToChannel(id: number, msg: MessageData) {
-	// 	let channel = await this.channelRepository.findOne(id);
-	// 	try {
-	// 		channel.messages.push(msg);
-	// 		await this.channelRepository.save(channel);
-	// 	} catch (error) {
-	// 		console.log(error);
-	// 	}
-	// }
+	async removeUser(channel_id: number, user_id: number) {
+		let channel = await this.channelRepository.findOne(channel_id, { relations: ["users"] });
+		let user: User = await this.userService.findUsersById(user_id)
+		if (channel == null || user == null)
+			return;
+		if (channel.users.find(e => { return e.id == user.id }) === undefined) return
 
-	// async clearChat(id: number): Promise<MessageData> {
-	// 	let channel = await this.channelRepository.findOne(id);
-	// 	let nb_msg = channel.messages.length;
-	// 	channel.messages = [];
-	// 	await this.channelRepository.save(channel);
-	// 	return ({
-	// 		type: "info",
-	// 		user_id: 0,
-	// 		username: "Clear",
-	// 		channel_id: id,
-	// 		channel_name: channel.name,
-	// 		content: nb_msg + " messages cleared !",
-	// 	})
-	// }
+		let index = channel.users.findIndex(e => { return e.id == user.id });
+		channel.users.splice(index, 1);
 
-	async joinChannel(data: MessageData): Promise<Channel> {
+		if (channel.owner == user)
+			channel.owner = null;
+
+		console.log("user removed from channel")
+
+		await this.channelRepository.save(channel);
+	}
+
+	async joinChannel(user: User, data: any) {
 		const channel: Channel = await this.findOneById(data.channel_id);
 
-		if (channel.users_ids.find(e => e == data.user_id) != undefined) {
-			throw new InternalServerErrorException("Error: already in channel");
-		}
-		if (channel.scope == "protected" && channel.password != data.content) {
-			throw new InternalServerErrorException("Error: bad password");
-		}
-		if (channel.scope == "private" && channel.invited_ids.find((e: number) => e == data.user_id) == undefined) {
-			throw new InternalServerErrorException("Error: not invited");
+		if (channel.users.find(e => { return e.id == user.id }) != undefined)
+			return channel;
+		if (channel.scope == "protected" && channel.password != data.password)
+			return "Wrong Password";
+		if (channel.scope == "private" && channel.invited.find((e) => { return e.id == user.id }) == undefined)
+			return "Not Invited";
+		let i = channel.banned.findIndex(e => { return e.user.id == user.id });
+		if (i != -1) {
+			if (channel.banned[i].end > new Date())
+				return "You are still banned for " + ((channel.banned[i].end.valueOf() - (new Date()).valueOf()) / (60 * 1000)).toFixed() + " minutes"; // user is banned
+			else
+				this.BanRepository.delete(channel.banned[i].id);
 		}
 
-		await this.addUser(data.channel_id, data.user_id)					// add user to channel members
-		await this.userService.addChannel(data.user_id, data.channel_id)	// add channel to the user's channels list
-		await this.removeInvite(data.channel_id, data.user_id);
+		this.addUser(data.channel_id, user.id)		// add user to channel members
+		this.userService.addChannel(user.id, channel)	// add channel to the user's channels list
+		this.removeInvite(data.channel_id, user.id);
 		return channel;
 	}
 
-	async handleMessage(channel: Channel, user: User, messageDto: CreateMessageDto) {
-		if (messageDto.content[0] == '/')
-			console.log("handle commands")
-		else {
-			let message = this.messagesRepository.create(messageDto)
-			message.user_name = user.username;
-			message.user_id = user.id;
-			await this.messagesRepository.save(message);
-		}
+	async leaveChannel(user: User, message: Message): Promise<Channel> {
+		const channel: Channel = await this.findOneById(message.channel.id);
+
+		if (channel.users.find(e => { return e.id == user.id }) == undefined)
+			return null;
+
+		this.removeUser(message.channel.id, message.user.id)			// remove user from channel members and remove ownership
+		this.userService.removeChannel(message.user.id, channel)	// remove channel to the user's channels list
+		this.removeInvite(message.channel.id, message.user.id);
+		return channel;
+	}
+
+	async handleMessage(user: User, message: Message): Promise<Message> {
+		message.user = user;
+		let channel = await this.findOneById(message.channel.id);
+		if (channel == null)
+			throw new InternalServerErrorException("No such channel");
+		if (user == null)
+			throw new InternalServerErrorException("Request from unknown user");
+		if (channel.users.find(e => { return e.id == user.id }) == undefined)
+			throw new InternalServerErrorException("User not in channel");
+		return this.messagesRepository.save(message);
+	}
+
+	async addAdmin(channel_id: number, user_id: number): Promise<User> {
+		let channel: Channel = await this.channelRepository.findOne(channel_id, { relations: ["admins", "users"] });
+		let user: User = await this.userService.findUsersById(user_id)
+
+		if (user == null)
+			return null;
+		if (channel.users.find(e => { return e.id == user.id }) == undefined)
+			return null; // user not in channel
+		if (channel.admins.find(e => { return e.id == user.id }) != undefined)
+			return null; // already admin
+		channel.admins.push(user);
+		this.channelRepository.save(channel);
+		return user;
+	}
+
+	async addToBanList(data: any): Promise<User> {
+		let channel: Channel = await this.channelRepository.findOne(data.channel_id, { relations: ["banned", "banned.user"] });
+		let user: User = await this.userService.findUsersById(data.user_id)
+
+		if (user == null)
+			return null;
+		if (channel.banned.find(e => { return e.user.id == user.id }) != undefined)
+			return null; // already banned
+
+		let end = new Date();
+
+		end.setMinutes(end.getMinutes() + data.duration)
+
+		let ban = this.BanRepository.create({
+			channel: channel,
+			user: user,
+			end: end,
+			duration: data.duration
+		})
+
+		this.BanRepository.save(ban);
+		channel.banned.push(ban);
+		this.channelRepository.save(channel);
+		return user;
+	}
+
+	async addToMuteList(data: any): Promise<User> {
+		let channel: Channel = await this.channelRepository.findOne(data.channel_id, { relations: ["muted", "muted.user"] });
+		let user: User = await this.userService.findUsersById(data.user_id)
+
+		if (user == null)
+			return null;
+		if (channel.muted.find(e => { return e.user.id == user.id }) != undefined)
+			return null; // already muted
+
+		let end = new Date();
+
+		end.setMinutes(end.getMinutes() + data.duration)
+
+		let ban = this.MuteRepository.create({
+			channel: channel,
+			user: user,
+			end: end,
+			duration: data.duration
+		})
+
+		this.MuteRepository.save(ban);
+		channel.muted.push(ban);
+		this.channelRepository.save(channel);
+		return user;
+	}
+
+	async removeFromMuteList(mute: Mute) {
+		this.MuteRepository.delete(mute.id);
+	}
+
+	async removeFromBanList(ban: Ban) {
+		this.BanRepository.delete(ban.id);
+	}
+
+	async updatePassword(user: User, data: any): Promise<any> {
+		let channel: Channel = await this.channelRepository.findOne(data.channel_id, { relations: ["admins"] });
+
+		if (channel.admins.find(e => { return e.id == user.id }) == undefined)
+			return { color: "red", content: "ERROR: admins right required" }
+
+		if (channel.password != data.password_old)
+			return { color: "red", content: "ERROR: wrong password" }
+
+		if (data.password_new == '' || data.password_new == undefined)
+			return { color: "red", content: "ERROR: new password can not be empty" }
+
+		channel.password = data.password_new;
+		await this.channelRepository.save(channel);
+		return { color: "green", content: "Password updated succesfully" }
 	}
 }

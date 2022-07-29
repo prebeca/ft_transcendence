@@ -1,15 +1,12 @@
 import { WebSocketGateway, SubscribeMessage, MessageBody, ConnectedSocket, WebSocketServer } from '@nestjs/websockets';
-import { Channel } from 'diagnostics_channel';
 import { Socket } from 'socket.io';
 import { Server } from 'socket.io';
-import { ChannelsService } from 'src/chat/channels/services/channels.service';
 import { SocketService } from './socket.service';
-import { JwtAuthGuard } from 'src/auth/guards/jwt-auth.guard';
-import { Body, Req, UseGuards } from '@nestjs/common';
+import { Req, UseGuards } from '@nestjs/common';
 import { Request } from 'express';
 import { WsJwtAuthGuard } from 'src/auth/guards/ws-jwt-auth.guard';
-import { User } from 'src/typeorm';
-import { MessageData } from '../channels/entities/message.entity';
+import { User, Channel } from 'src/typeorm';
+import { Message } from '../channels/entities/message.entity';
 
 
 @WebSocketGateway({
@@ -25,17 +22,77 @@ export class SocketGateway {
 	server: Server;
 
 	@UseGuards(WsJwtAuthGuard)
+	@SubscribeMessage('Alert')
+	async alert(@Req() req: Request, @MessageBody() data: any) {
+		this.server.to((req.user as User).socket_id).emit("Alert", data)
+	}
+
+	@UseGuards(WsJwtAuthGuard)
 	@SubscribeMessage('JoinChan')
-	async joinChannel(@Req() req: Request, @MessageBody() data: MessageData, @ConnectedSocket() client: Socket) {
-		let user = req.user as User;
-		return await this.socketService.joinChannel(user, data, client)
+	async joinChannel(@Req() req: Request, @MessageBody() data: any, @ConnectedSocket() client: Socket) {
+		return this.socketService.joinChannel(req.user as User, data, client)
+	}
+
+
+	@UseGuards(WsJwtAuthGuard)
+	@SubscribeMessage('LeaveChan')
+	async leaveChannel(@Req() req: Request, @MessageBody() data: any, @ConnectedSocket() client: Socket): Promise<Channel> {
+		return this.socketService.leaveChannel(req.user as User, data, client)
 	}
 
 	@UseGuards(WsJwtAuthGuard)
 	@SubscribeMessage('NewMessage')
-	async newMessage(@Req() req: Request, @MessageBody() data: MessageData, @ConnectedSocket() client: Socket) {
+	async newMessage(@Req() req: Request, @MessageBody() message: Message, @ConnectedSocket() client: Socket) {
+		return this.socketService.newMessage(req.user as User, message, this.server)
+	}
+
+	@UseGuards(WsJwtAuthGuard)
+	@SubscribeMessage('Invite')
+	async invite(@Req() req: Request, @MessageBody() data: any, @ConnectedSocket() client: Socket) {
 		let user = req.user as User;
-		return await this.socketService.newMessage(user, data, client, this.server)
+		return this.socketService.invite(user, data, this.server)
+	}
+
+	@UseGuards(WsJwtAuthGuard)
+	@SubscribeMessage('SetSocket')
+	async updateSocket(@Req() req: Request, @ConnectedSocket() client: Socket) {
+		return this.socketService.setSocket(req.user as User, client)
+	}
+
+	@UseGuards(WsJwtAuthGuard)
+	@SubscribeMessage('SetAdmin')
+	async setAdmin(@Req() req: Request, @MessageBody() message: Message, @ConnectedSocket() client: Socket) {
+		return this.socketService.setAdmin(req.user as User, message, this.server)
+	}
+
+	@UseGuards(WsJwtAuthGuard)
+	@SubscribeMessage('DeleteMessage')
+	async deleteMessage(@Req() req: Request, @MessageBody() message: Message) {
+		return this.socketService.deleteMessage(req.user as User, message, this.server)
+	}
+
+	@UseGuards(WsJwtAuthGuard)
+	@SubscribeMessage('NewDMChannel')
+	async newDMChannel(@Req() req: Request, @MessageBody() id: number, @ConnectedSocket() client: Socket) {
+		return this.socketService.newDMChannel(req.user as User, id, this.server, client)
+	}
+
+	@UseGuards(WsJwtAuthGuard)
+	@SubscribeMessage('Kick')
+	async kick(@Req() req: Request, @MessageBody() data, @ConnectedSocket() client: Socket) {
+		return this.socketService.kick(req.user as User, data, this.server)
+	}
+
+	@UseGuards(WsJwtAuthGuard)
+	@SubscribeMessage('Ban')
+	async ban(@Req() req: Request, @MessageBody() data, @ConnectedSocket() client: Socket) {
+		return this.socketService.ban(req.user as User, data, this.server)
+	}
+
+	@UseGuards(WsJwtAuthGuard)
+	@SubscribeMessage('Mute')
+	async mute(@Req() req: Request, @MessageBody() data, @ConnectedSocket() client: Socket) {
+		return this.socketService.mute(req.user as User, data, this.server)
 	}
 
 }

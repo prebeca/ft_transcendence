@@ -1,6 +1,7 @@
-import { Exclude } from 'class-transformer';
+import { Message } from 'src/chat/channels/entities/message.entity';
 import { Player } from 'src/game/entities/player.entity';
-import { Column, Entity, JoinColumn, JoinTable, ManyToMany, OneToOne, PrimaryGeneratedColumn } from 'typeorm';
+import { Channel } from 'src/typeorm';
+import { OneToMany, Column, Entity, JoinColumn, JoinTable, ManyToMany, OneToOne, PrimaryGeneratedColumn } from 'typeorm';
 
 @Entity()
 export class User {
@@ -10,16 +11,13 @@ export class User {
 	})
 	id: number;
 
-	@Exclude()
-	@Column({ unique: true })
+	@Column({ select: false, unique: true })
 	login: string;
 
-	@Exclude()
 	@Column({ unique: true })
 	email: string;
 
-	@Exclude()
-	@Column({ unique: true, nullable: true })
+	@Column({ select: false, unique: true, nullable: true })
 	refresh_token: string;
 
 	@Column('text', { default: "default.png" })
@@ -28,36 +26,43 @@ export class User {
 	@Column({ unique: true, nullable: true })
 	username: string;
 
-	@Exclude()
-	@Column({ nullable: true })
+	@Column({ select: false, nullable: true })
 	password: string;
 
-	@Exclude()
-	@Column({ nullable: true })
+	@Column({ select: false, nullable: true })
 	salt: string;
 
-	@Exclude()
-	@Column({ default: false })
+	@Column({ select: false, default: false })
 	fortytwouser: boolean;
 
-	@Column({ default: false })
+	@Column({ select: false, default: false })
 	twofauser: boolean;
 
-	@Exclude()
-	@Column({ nullable: true })
+	@Column({ select: false, nullable: true })
 	twofasecret: string
 
-	@Column("bigint", { default: {}, array: true })
-	channels: number[];
+	@ManyToMany(() => Channel)
+	@JoinTable()
+	channels: Channel[]
 
 	@OneToOne(() => Player, {
 		cascade: ["insert"],
 	})
-
 	@JoinColumn()
 	player: Player;
 
 	@ManyToMany(() => User)
 	@JoinTable()
 	friends: User[]
+
+	@ManyToMany(() => User)
+	@JoinTable()
+	blocked: User[]
+
+	@OneToMany(() => Message, Message => Message.user)
+	@JoinTable()
+	message: Message[]
+
+	@Column({ nullable: true, default: null })
+	socket_id: string
 }

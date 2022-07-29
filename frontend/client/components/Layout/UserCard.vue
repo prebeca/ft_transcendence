@@ -2,13 +2,9 @@
   <v-card color="secondary">
     <v-list-item-content class="justify-center">
       <div class="mx-auto text-center">
-        <!--
-        <v-avatar size="120">
-          <v-img :src="avatar"></v-img>
-        </v-avatar>-->
-        <UserAvatarStatus :size="sizeOfAvatar" :user="user" />
+        <UserAvatarStatus :size="sizeOfAvatar" :user="user" :offset="25" />
         <v-divider class="my-3"></v-divider>
-        <v-btn to="/user/profile" depressed rounded text color="info">
+        <v-btn :to="userProfile" depressed rounded text color="info">
           Your Profile
         </v-btn>
         <v-divider class="my-3"></v-divider>
@@ -29,8 +25,9 @@ export default Vue.extend({
   name: "UserCard",
   data() {
     return {
-      sizeOfAvatar: "200px",
+      sizeOfAvatar: "120px",
       user: {
+        username: "",
         avatar: "",
       },
     };
@@ -51,6 +48,11 @@ export default Vue.extend({
     changeAvatar(filename: string) {
       this.user.avatar =
         `${process.env.API_URL}/users/profile/avatar/` + filename;
+    },
+  },
+  computed: {
+    userProfile(): string {
+      return `/profile/${this.user.username}`;
     },
   },
 });

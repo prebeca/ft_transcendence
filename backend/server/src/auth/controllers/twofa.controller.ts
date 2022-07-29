@@ -1,17 +1,17 @@
 import { Body, ClassSerializerInterceptor, Controller, Post, Req, Res, UnauthorizedException, UseGuards, UseInterceptors, ValidationPipe } from "@nestjs/common";
-import { ApiBearerAuth, ApiTags } from "@nestjs/swagger";
 import { JwtAuthGuard } from "../guards/jwt-auth.guard";
 import { User } from "src/users/entities/user.entity";
 import { TwoFactorAuthService } from "../services/twofa.service";
 import { TwoFaAuthDto } from "../dto/twofa-auth.dto";
 import { Request, Response } from "express";
+import { UsersService } from "src/users/services/users.service";
 
-@ApiTags('Two FA')
 @Controller('2fa')
 @UseInterceptors(ClassSerializerInterceptor)
 export class TwoFactorAuthController {
 	constructor(
-		private readonly twoFactorAuthService: TwoFactorAuthService
+		private readonly twoFactorAuthService: TwoFactorAuthService,
+		private readonly userService: UsersService
 	) { }
 
 	@UseGuards(JwtAuthGuard)
@@ -26,7 +26,9 @@ export class TwoFactorAuthController {
 	@UseGuards(JwtAuthGuard)
 	@Post('turn-on-qr') //verify the code entered by the user in the form after scanning the qr code
 	async activationOfTwoFa(@Req() req: Request, @Body(ValidationPipe) twoFaAuthDto: TwoFaAuthDto): Promise<boolean> {
-		const user: User = { ... (req.user as User) };
+		const userid: number = (req.user as User).id;
+		console.log(userid + " - " + twoFaAuthDto)
+		const user = await this.userService.findUserbyIdWithSensibleData(userid);
 		const isCodeValid: boolean = await this.twoFactorAuthService.verifyTwoFaCode(twoFaAuthDto.code, user);
 		if (!isCodeValid) {
 			throw new UnauthorizedException('Invalid authentication code');
@@ -39,13 +41,14 @@ export class TwoFactorAuthController {
 	@Post('authenticate')
 	@UseGuards(JwtAuthGuard)
 	async authenticate(@Res({ passthrough: true }) response: Response, @Req() req: Request, @Body(ValidationPipe) twoFaAuthDto: TwoFaAuthDto): Promise<boolean> {
-		const user: User = { ... (req.user as User) };
+		const userid: number = (req.user as User).id;
+		console.log(userid + " - " + twoFaAuthDto)
+		const user = await this.userService.findUserbyIdWithSensibleData(userid);
 		const isCodeValid: boolean = await this.twoFactorAuthService.verifyTwoFaCode(twoFaAuthDto.code, user);
 		if (!isCodeValid) {
 			throw new UnauthorizedException('Invalid authentication code');
 		}
-		console.log("code valid");
-		await this.twoFactorAuthService.signIn(user, true, response);
+		await this.twoFactorAuthService.signIn(user, response);
 		return isCodeValid;
 	}
 }

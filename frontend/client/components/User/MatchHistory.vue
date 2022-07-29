@@ -35,21 +35,12 @@
             <template v-slot:default>
               <v-row class="my-10 mx-2">
                 <v-col
-                  v-for="friend in user.friends"
-                  :key="friend.username"
+                  v-for="(friend, index) in friends"
+                  :key="index"
                   class="d-flex align-content-space-around justify-space-around"
                   cols="4"
                 >
-                  <router-link to="/home" class="text-decoration-none">
-                    <div class="d-flex flex-column align-center">
-                      <v-avatar size="80">
-                        <img alt="friend-avatar" :src="friend.avatar" />
-                      </v-avatar>
-                      <h3 class="mt-2 info--text">
-                        {{ friend.username }}
-                      </h3>
-                    </div>
-                  </router-link>
+                  <UserFriendCard :friend="friend" />
                 </v-col>
               </v-row>
             </template>
@@ -65,18 +56,18 @@ import Vue from "vue";
 
 export default Vue.extend({
   name: "MatchHistoryCard",
+  props: {
+    user: {
+      type: Object,
+      required: true,
+    },
+    friends: {
+      type: Array,
+      required: true,
+    },
+  },
   data() {
     return {
-      user: {
-        avatar: "",
-        username: "",
-        friends: [
-          {
-            username: "",
-            avatar: "",
-          },
-        ],
-      },
       tabs: null,
       tab: ["Match History", "Friends List"],
       matches: [
@@ -86,77 +77,8 @@ export default Vue.extend({
           player1Score: 12,
           player2Score: 3,
         },
-        {
-          player1: "player1",
-          player2: "player2",
-          player1Score: 3,
-          player2Score: 12,
-        },
-        {
-          player1: "player1",
-          player2: "player2",
-          player1Score: 12,
-          player2Score: 12,
-        },
-        {
-          player1: "player1",
-          player2: "player2",
-          player1Score: 12,
-          player2Score: 12,
-        },
-        {
-          player1: "player1",
-          player2: "player2",
-          player1Score: 12,
-          player2Score: 12,
-        },
-        {
-          player1: "player1",
-          player2: "player2",
-          player1Score: 12,
-          player2Score: 12,
-        },
-        {
-          player1: "player1",
-          player2: "player2",
-          player1Score: 12,
-          player2Score: 12,
-        },
       ],
     };
-  },
-  created: function () {
-    this.$axios
-      .get("/users/profile")
-      .then((res) => {
-        console.log(res.data);
-        this.user = res.data;
-        this.changeAvatar(res.data.avatar);
-      })
-      .catch((error) => {
-        console.error(error);
-      });
-    this.$axios
-      .get("/friends")
-      .then((res) => {
-        console.log(res.data);
-        this.user.friends = res.data;
-        for (let i = 0; i < this.user.friends.length; i++)
-          this.changeFriendAvatar(res.data[i].avatar, i);
-      })
-      .catch((error) => {
-        console.error(error);
-      });
-  },
-  methods: {
-    changeAvatar(filename: string) {
-      this.user.avatar =
-        `${process.env.API_URL}/users/profile/avatar/` + filename;
-    },
-    changeFriendAvatar(filename: string, i: number) {
-      this.user.friends[i].avatar =
-        `${process.env.API_URL}/users/profile/avatar/` + filename;
-    },
   },
 });
 </script>

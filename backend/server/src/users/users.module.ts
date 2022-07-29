@@ -8,6 +8,9 @@ import { MulterModule } from '@nestjs/platform-express';
 import { ChannelsModule } from 'src/chat/channels/channels.module';
 import { Player } from 'src/game/entities/player.entity';
 import { AvatarStatusGateway } from './gateways/avatarstatus.gateway';
+import { FriendsController } from 'src/friends/controllers/friends.controller';
+import { FriendsService } from 'src/friends/services/friends.service';
+import { FriendsModule } from 'src/friends/friends.module';
 
 @Module({
 	imports: [
@@ -15,10 +18,11 @@ import { AvatarStatusGateway } from './gateways/avatarstatus.gateway';
 		MulterModule.register({
 			dest: './avatar',
 		}),
-		ChannelsModule
+		ChannelsModule,
+		FriendsModule
 	],
-	controllers: [UsersController],
-	providers: [UsersService, UserDto, AvatarStatusGateway],
-	exports: [UsersService, UserDto]
+	controllers: [UsersController, FriendsController],
+	providers: [UsersService, UserDto, AvatarStatusGateway, FriendsService],
+	exports: [UsersService, UserDto, AvatarStatusGateway]
 })
 export class UsersModule { }

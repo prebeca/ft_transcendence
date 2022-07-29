@@ -9,23 +9,24 @@ import { User } from 'src/users/entities/user.entity';
 
 const cookieExtractor = function (req: Request): String {
 	if (req?.cookies) {
-		return req.cookies['access_token'];
+		return req.cookies['refresh_token'];
 	}
 	return null;
 };
 
 @Injectable()
-export class JwtStrategy extends PassportStrategy(Strategy) {
+export class JwtRtStrategy extends PassportStrategy(Strategy, 'jwt-rt') {
 	constructor(
 		private readonly userService: UsersService) {
 		super({
 			jwtFromRequest: cookieExtractor,
 			ignoreExpiration: false,
-			secretOrKey: jwtConstants.secret,
+			secretOrKey: jwtConstants.rtSecret,
 		});
 	}
 
 	async validate(payload: JwtPayload): Promise<User> {
+		console.log("rt strat");
 		if (!payload)
 			throw new UnauthorizedException("No credentials cookie found");
 		const user: User = await this.userService.findUsersByIdWithRelations(payload.id);

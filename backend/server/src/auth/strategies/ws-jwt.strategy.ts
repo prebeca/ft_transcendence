@@ -9,11 +9,11 @@ import { User } from 'src/users/entities/user.entity';
 
 const name_cookie: string = "access_token";
 
-const cookieExtractorWs = function (client: Socket): String {
+const cookieExtractorWs = function (client: Socket): String | null {
 	if (client.handshake.headers?.cookie) {
 		const array_cookie: string[] = client.handshake.headers.cookie.split(";");
 		const array_length: number = array_cookie.length;
-		for (var i = 0; i < array_cookie.length; i++) {
+		for (var i = 0; i < array_length; i++) {
 			let index: number = array_cookie[i].search(name_cookie);
 			if (index > -1) {
 				return array_cookie[i].substring(index + name_cookie.length + 1);
@@ -30,17 +30,27 @@ export class WsJwtStrategy extends PassportStrategy(Strategy, "ws-jwt") {
 		private readonly userService: UsersService) {
 		super({
 			jwtFromRequest: cookieExtractorWs,
-			ignoreExpiration: false,
+			ignoreExpiration: true,
 			secretOrKey: jwtConstants.secret,
 		});
 	}
+
+	public cookieExtractorAccessor = cookieExtractorWs;
 
 	async validate(payload: JwtPayload): Promise<User> {
 		if (!payload)
 			throw new UnauthorizedException("No credentials cookie found");
 		const user: User = await this.userService.findUsersByIdWithRelations(payload.id);
-		if (!user)
-			throw new UnauthorizedException("No match for current session");
-		return user;
+
+		if (!user) {
+			throw new UnauthorizedException("user not found")
+		}
+
+		if (!user.twofauser) {
+			return user;
+		}
+		if (payload.isTwoFaAuthenticated) {
+			return user;
+		}
 	}
 }

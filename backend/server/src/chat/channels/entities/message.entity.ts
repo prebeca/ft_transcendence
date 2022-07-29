@@ -1,14 +1,5 @@
-import { Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
-
-
-export class MessageData {
-	type: string;
-	user_id: number;
-	username: string;
-	channel_id: number;
-	channel_name: string;
-	content: string;
-}
+import { Channel, User } from 'src/typeorm';
+import { JoinTable, Column, Entity, ManyToOne, PrimaryGeneratedColumn, ManyToMany } from 'typeorm';
 
 @Entity()
 export class Message {
@@ -18,14 +9,13 @@ export class Message {
 	})
 	id: number;
 
-	@Column()
-	user_id: number;
+	@ManyToOne(() => Channel)
+	@JoinTable()
+	channel: Channel
 
-	@Column()
-	user_name: string;
-
-	@Column()
-	channel_id: number;
+	@ManyToOne(() => User)
+	@JoinTable()
+	user: User
 
 	@Column()
 	content: string;

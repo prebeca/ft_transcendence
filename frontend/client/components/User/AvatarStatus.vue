@@ -1,14 +1,14 @@
 <template>
   <div>
-    <v-avatar :size="size">
-      <img :src="user.avatar" alt="avatar" />
-    </v-avatar>
-    <p>{{ this.status }}</p>
+    <v-badge :color="status_color" bottom :offset-x="offset" :offset-y="offset">
+      <v-avatar :size="size">
+        <img :src="user.avatar" alt="avatar" />
+      </v-avatar>
+    </v-badge>
   </div>
 </template>
 
 <script lang="ts">
-import type { NuxtSocket } from "nuxt-socket-io";
 import Vue from "vue";
 /*
  ** The idea is to use this component everywhere we see the avatars
@@ -22,8 +22,13 @@ import Vue from "vue";
 export default Vue.extend({
   data() {
     return {
-      socket: {} as NuxtSocket,
-      status: "connected",
+      statusSocket: this.$nuxtSocket({
+        name: "socketstatus",
+        withCredentials: true,
+        persist: "myAvatarStatusSocket",
+      }),
+      status: "",
+      status_color: "gray",
     };
   },
   props: {
@@ -34,28 +39,26 @@ export default Vue.extend({
       type: Object,
       required: true,
     },
+    offset: {
+      required: true,
+    },
   },
   created() {
-    console.log("created avatar Status component");
-    this.socket = this.$nuxtSocket({
-      name: "avatarstatus",
-      withCredentials: true,
-      persist: "myAvatarStatusSocket",
+    this.statusSocket.on("changeAvatar" + this.user.id, (data) => {
+      this.user.avatar = `${process.env.API_URL}/users/profile/avatar/` + data;
     });
-  },
-  beforeMount() {
-    console.log("beforeMount");
-    this.socket.on("handshake", (data) => {
-      console.log(data);
+    this.statusSocket.on("changeStatus" + this.user.id, (data) => {
+      this.status = data;
+      if (this.status === "connected") this.status_color = "green";
+      else if (this.status === "disconnected") this.status_color = "grey";
+      else if (this.status === "inGame") this.status_color = "yellow";
+      else this.status_color = "blue";
     });
+    this.statusSocket.on("handshake", (data) => {});
   },
   mounted() {
-    console.log("mouted avatar Status component");
-    console.log(this.user);
+    this.statusSocket.emit("information", this.user.id);
   },
-  beforeDestroy() {
-    console.log("BeforeDestruction: leaving avatar Status component");
-    // this.socket.emit("leaveRoom", this.roomid);
-  },
+  beforeDestroy() {},
 });
 </script>

@@ -13,6 +13,7 @@ import { JwtTwoFaStrategy } from './strategies/jwt-twofa.strategy';
 import { TwoFactorAuthService } from './services/twofa.service';
 import { TwoFactorAuthController } from './controllers/twofa.controller';
 import { WsJwtStrategy } from './strategies/ws-jwt.strategy';
+import { JwtRtStrategy } from './strategies/jwt-rt.strategy';
 
 @Module({
 	imports: [
@@ -22,12 +23,12 @@ import { WsJwtStrategy } from './strategies/ws-jwt.strategy';
 		HttpModule,
 		JwtModule.register({
 			secret: jwtConstants.secret,
-			signOptions: { expiresIn: '1d' },
+			signOptions: { expiresIn: '7d' },
 		}),
 	],
 	controllers: [AuthController, TwoFactorAuthController],
-	providers: [AuthService, TwoFactorAuthService, JwtStrategy, JwtTwoFaStrategy, LocalStrategy, WsJwtStrategy],
-	exports: [AuthService, JwtStrategy, JwtTwoFaStrategy, WsJwtStrategy],
+	providers: [AuthService, TwoFactorAuthService, JwtStrategy, JwtTwoFaStrategy, LocalStrategy, WsJwtStrategy, JwtRtStrategy],
+	exports: [AuthService, JwtStrategy, JwtTwoFaStrategy, WsJwtStrategy, JwtRtStrategy],
 })
 
 export class AuthModule { }

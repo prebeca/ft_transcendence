@@ -1,15 +1,6 @@
-import { Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
-import { MessageData } from './message.entity';
-
-
-// export class Message {
-// 	type: string;
-// 	user_id: number;
-// 	username: string;
-// 	channel_id: number;
-// 	channel_name: string;
-// 	content: string;
-// }
+import { User, Ban, Mute } from 'src/typeorm';
+import { Column, Entity, JoinTable, ManyToMany, ManyToOne, OneToMany, PrimaryGeneratedColumn } from 'typeorm';
+import { Message } from './message.entity';
 
 @Entity()
 export class Channel {
@@ -24,7 +15,7 @@ export class Channel {
 
 	@Column({
 		type: "enum",
-		enum: ["public", "private", "protected"],
+		enum: ["public", "private", "protected", "dm"],
 		default: "public",
 	})
 	scope: string;
@@ -35,15 +26,31 @@ export class Channel {
 	@Column({ nullable: true })
 	image_url: string;
 
-	@Column({ nullable: true })
-	owner: number;
+	@ManyToOne(() => User)
+	@JoinTable()
+	owner: User
 
-	@Column("bigint", { default: [], array: true })
-	admin_ids: number[];
+	@ManyToMany(() => User)
+	@JoinTable()
+	admins: User[]
 
-	@Column("bigint", { default: [], array: true })
-	invited_ids: number[];
+	@ManyToMany(() => User)
+	@JoinTable()
+	invited: User[]
 
-	@Column("bigint", { default: [], array: true })
-	users_ids: number[];
+	@OneToMany(() => Ban, Ban => Ban.channel)
+	@JoinTable()
+	banned: Ban[]
+
+	@OneToMany(() => Mute, Mute => Mute.channel)
+	@JoinTable()
+	muted: Ban[]
+
+	@OneToMany(() => Message, Message => Message.channel)
+	@JoinTable()
+	messages: Message[]
+
+	@ManyToMany(() => User)
+	@JoinTable()
+	users: User[]
 }

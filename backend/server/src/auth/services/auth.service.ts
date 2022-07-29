@@ -1,4 +1,4 @@
-import { Injectable, Inject, InternalServerErrorException, UnauthorizedException } from '@nestjs/common';
+import { Injectable, Inject, HttpException, UnauthorizedException, HttpStatus } from '@nestjs/common';
 import { UsersService } from 'src/users/services/users.service';
 import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
@@ -11,7 +11,8 @@ import { Response } from 'express';
 import { LoginInterface } from '../interfaces/login.interface';
 import { RegisterInterface } from '../interfaces/register.interface';
 import { JwtPayload } from '../interfaces/JwtPayload.interface';
-import { Player } from 'src/game/entities/player.entity';
+import jwtUser from '../interfaces/jwtUser.interface';
+import cookiePayload from '../interfaces/cookiePayload.interface';
 
 @Injectable()
 export class AuthService {
@@ -29,37 +30,89 @@ export class AuthService {
 		};
 	}
 
-	async createCookie(response: Response, is42: boolean, code: string, user?: User): Promise<{ response: Response, created: boolean, istwofa: boolean }> {
+	async rtGenerate(userid: number): Promise<{ refresh_token: string }> {
+		return {
+			refresh_token: this.jwtService.sign({ userid: userid }, {
+				secret: this.config.get<string>('JWT_RT_SECRET'),
+				expiresIn: `${this.config.get<string>('JWT_RT_EXPIRATION_TIME')}d`
+			}),
+		};
+	}
+
+	async createRTCookie(userid: number) {
+		const rt_token: string = (await this.rtGenerate(userid)).refresh_token;
+		return rt_token;
+	}
+
+	//compare refresh_token already in DB before accessing here
+	async refreshTokens(response: Response, user: User): Promise<Response> {
+		const token_client: string = (await this.jwtGenerate({ email: user.email, id: user.id, isTwoFactorEnable: user.twofauser })).access_token;
+		response.cookie('access_token', token_client, {
+			httpOnly: true,
+			path: '/',
+			maxAge: 1000 * 60 * 60 * 20,
+			sameSite: "strict",
+			/* secure: true, -> only for localhost AND https */
+		});
+		const rt_token: string = await this.createRTCookie(user.id);
+		const hash_token: string = await bcrypt.hash(rt_token, 5);
+		this.usersService.updateUsersById(user, { refresh_token: hash_token });
+		response.cookie('refresh_token', rt_token, {
+			httpOnly: true,
+			path: '/',
+			maxAge: 1000 * 60 * 60 * 24 * 15,
+			sameSite: "strict",
+		});
+		return response;
+	}
+
+	async createCookie(response: Response, is42: boolean, code: string, user?: User): Promise<cookiePayload> {
 		var token_client: string;
 		var userCookie: User = user;
+		var userid: number;
 		if (is42) {
 			const result: { jwt: { access_token: string }, user: User } = (await this.get42APIToken(code));
+			userid = result.user.id;
 			token_client = result.jwt.access_token;
 			var userCookie: User = { ...result.user as User };
 		}
 		else {
+			userid = user.id;
 			token_client = (await this.jwtGenerate({ email: user.email, id: user.id, isTwoFactorEnable: user.twofauser })).access_token;
 		}
-
+		console.log("userid = " + userid);
 		if (!token_client)
 			return null;
 
 		response.cookie('access_token', token_client, {
 			httpOnly: true,
 			path: '/',
-			maxAge: 1000 * 60 * 200,
+			maxAge: 1000 * 60 * 60 * 20,
 			sameSite: "strict",
 			/* secure: true, -> only for localhost AND https */
 		});
+
+		const rt_token: string = await this.createRTCookie(userid);
+		const hash_token: string = await bcrypt.hash(rt_token, 5);
+		this.usersService.updateUsersById(userCookie, { refresh_token: hash_token });
+
+		response.cookie('refresh_token', rt_token, {
+			httpOnly: true,
+			path: '/',
+			maxAge: 1000 * 60 * 60 * 1000,
+			sameSite: "strict",
+		});
+
 		let created: boolean = (userCookie.username) ? false : true;
 		return {
+			userid: userid,
 			response: response,
 			created: created,
 			istwofa: userCookie.twofauser
 		}
 	}
 
-	async getUser42Infos(access_token: string, createUserDto: UserDto): Promise<{ jwt: { access_token: string }, user: User }> {
+	async getUser42Infos(access_token: string, createUserDto: UserDto): Promise<jwtUser> {
 		const config: AxiosRequestConfig = {
 			method: 'get',
 			url: 'https://api.intra.42.fr/v2/me',
@@ -77,11 +130,12 @@ export class AuthService {
 			});
 
 		if (!res2)
-			throw new InternalServerErrorException("Call to 42API failed");
+			throw new HttpException("Call to 42API failed", HttpStatus.INTERNAL_SERVER_ERROR);
 
 		createUserDto = {
 			...createUserDto,
 			login: res2.data.login,
+			username: res2.data.login,
 			email: res2.data.email,
 		};
 
@@ -99,7 +153,7 @@ export class AuthService {
 	}
 
 
-	async get42APIToken(code_api: string): Promise<{ jwt: { access_token: string }, user: User }> {
+	async get42APIToken(code_api: string): Promise<jwtUser> {
 		const formData = new FormData();
 		let access_token: string;
 		var res: AxiosResponse;
@@ -149,7 +203,6 @@ export class AuthService {
 		const user: User = await this.usersService.findOneByEmail(loginPayload.email);
 		if (user) {
 			const passIsCorrect = await this.validatePassword(user, loginPayload.password);
-			console.log("The password is " + (passIsCorrect ? "correct" : "false"));
 			if (passIsCorrect) {
 				const { password, salt, ...result } = user;
 				return (result as User);
@@ -161,6 +214,15 @@ export class AuthService {
 	}
 
 	async registerUser(registerUser: RegisterInterface): Promise<User> {
+		var user: User = await this.usersService.findOneByEmail(registerUser.email);
+		if (!user) {
+			user = await this.usersService.findOneByUsername(registerUser.username);
+			if (user)
+				throw new HttpException("Username already used", HttpStatus.INTERNAL_SERVER_ERROR);
+		}
+		else {
+			throw new HttpException("Email already used", HttpStatus.INTERNAL_SERVER_ERROR);
+		}
 		try {
 			const salt_pass = await bcrypt.genSalt();
 			const hash_pass = await bcrypt.hash(registerUser.password, salt_pass);
@@ -173,7 +235,7 @@ export class AuthService {
 			}
 			return this.usersService.createUser(createUserDto);
 		} catch (error) {
-			throw new InternalServerErrorException("Password hashing failed");
+			throw new HttpException("Register failed", HttpStatus.INTERNAL_SERVER_ERROR);
 		}
 	}
 }

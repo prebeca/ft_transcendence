@@ -1,8 +1,6 @@
 import {
-	Body, Controller, Get, Req, Param, Post, UsePipes, ValidationPipe,
-	UploadedFile, UseInterceptors, StreamableFile, Res
+	Controller, Get, Req, Param, Post, UploadedFile, UseInterceptors, StreamableFile, Res
 } from '@nestjs/common';
-import { UserDto } from '../dto/users.dto';
 import { UsersService } from 'src/users/services/users.service';
 import { UseGuards } from '@nestjs/common';
 import { JwtAuthGuard } from 'src/auth/guards/jwt-auth.guard';
@@ -27,7 +25,7 @@ export class UsersController {
 		return await this.userService.getUsers();
 	}
 
-	@UseGuards(JwtAuthGuard)
+	@UseGuards(JwtTwoFactorAuthGuard)
 	@Get('profile')
 	getProfile(@Req() req: Request): User {
 		const user: User = { ... (req.user as User) };
@@ -84,18 +82,23 @@ export class UsersController {
 	@UseGuards(JwtAuthGuard)
 	@Get('channels')
 	async getChannels(@Req() req: Request): Promise<Channel[]> {
-		const channels: number[] = (await this.userService.findUsersById(req.user["id"])).channels;
-		return await this.channelService.getChannelsById(channels);
-	}
-
-	@Post('create')
-	@UsePipes(ValidationPipe)
-	createUsers(@Body() userDto: UserDto): Promise<User> {
-		return this.userService.createUser(userDto);
+		return (await this.userService.findUsersByIdWithChannels(req.user["id"])).channels;
 	}
 
 	@Get('deleteall')
 	async deleteUsers(): Promise<User[]> {
 		return await this.userService.removeAll();
+	}
+
+	@UseGuards(JwtAuthGuard)
+	@Post('block/:id')
+	async addToBlocked(@Req() req: Request, @Param('id') id: number) {
+		return this.userService.addToBlocked(req.user as User, id);
+	}
+
+	@UseGuards(JwtAuthGuard)
+	@Post('unblock/:id')
+	async removeFromBlocked(@Req() req: Request, @Param('id') id: number) {
+		return this.userService.removeFromBlocked(req.user as User, id);
 	}
 }

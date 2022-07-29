@@ -9,10 +9,12 @@
       <v-menu bottom min-width="200px" rounded offset-y>
         <template v-slot:activator="{ on }">
           <v-btn icon x-large v-on="on">
-            <!-- <v-avatar>
-              <v-img :src="avatar"></v-img>
-            </v-avatar> -->
-            <UserAvatarStatus :size="sizeOfAvatar" :user="user" />
+            <UserAvatarStatus
+              v-if="user.id !== undefined"
+              :size="sizeOfAvatar"
+              :user="user"
+              :offset="20"
+            />
           </v-btn>
         </template>
         <LayoutUserCard />
@@ -32,26 +34,68 @@
 
     <v-main>
       <v-container>
-        <Nuxt />
+        <NuxtChild :user="user" :socket="socket" />
       </v-container>
     </v-main>
+    <v-snackbar :color="snackcolor" right v-model="snackbar" :timeout="timeout">
+      {{ notif_text }}
 
+      <template v-slot:action="{ attrs }">
+        <v-btn color="blue" text v-bind="attrs" @click="snackbar = false">
+          Close
+        </v-btn>
+      </template>
+    </v-snackbar>
     <LayoutFooter />
   </v-app>
 </template>
 
 <script lang="ts">
+import { NuxtSocket } from "nuxt-socket-io";
 import Vue from "vue";
+
+interface Message {
+  id: number;
+  channel: Channel;
+  user: User;
+  content: string;
+}
+
+interface Channel {
+  id: number;
+  scope: string;
+  name: string; // for classic channels
+  username: string; // for DM channel
+  users: User[];
+  messages: Message[];
+}
+
+interface User {
+  id: number;
+  username: string;
+  friends: Channel[];
+  avatar: string;
+}
+
+interface Alert {
+  type: string;
+  content: string;
+  color: string;
+}
 
 export default Vue.extend({
   name: "DefaultLayout",
+
   data() {
     return {
+      snackbar: false,
+      snackcolor: "white",
+      timeout: 5000,
+      notif_text: "",
+      user: {} as User,
+      socket: {} as NuxtSocket,
       title: "PONG GAME",
-      sizeOfAvatar: "48px",
-      user: {
-        avatar: "",
-      },
+      sizeOfAvatar: "50px",
       drawer: false,
       avatar: "",
       cacheKey: +new Date(),
@@ -79,16 +123,63 @@ export default Vue.extend({
       ],
     };
   },
-  created: function () {
-    this.$axios
+  created: async function () {
+    await this.$axios
       .get("/users/profile")
       .then((res) => {
-        console.log(res.data);
+        this.user = res.data;
         this.changeAvatar(res.data.avatar);
+        this.user.friends.forEach((e) => {
+          e.messages = [];
+        });
       })
       .catch((error) => {
         console.error(error);
       });
+
+    this.socket = this.$nuxtSocket({ name: "chat", withCredentials: true });
+
+    await this.$axios
+      .get("/users/channels")
+      .then(async (res) => {
+        let channels = res.data;
+        channels = channels.filter((e: Channel) => {
+          return e.scope == "dm";
+        });
+        channels.forEach((e: Channel) => {
+          this.socket.emit("JoinChan", {
+            channel_id: e.id,
+            password: "",
+          });
+        });
+      })
+      .catch((error) => {
+        console.error(error);
+      });
+
+    this.socket.on("connect", async () => {
+      console.log("Connection !");
+      this.socket.emit("SetSocket");
+    });
+    this.socket.on("disconnect", async () => {
+      console.log("Disconnection !");
+    });
+
+    this.socket.on("Alert", async (alert: Alert, cb) => {
+      console.log("new Alert");
+      this.notif_text = alert.content;
+      this.snackcolor = alert.color;
+      this.snackbar = true;
+    });
+
+    this.socket.on("NewMessage", async (msg: Message) => {
+      if (msg.channel.scope == "dm" && msg.user.id != this.user.id) {
+        this.socket.emit("Alert", {
+          color: "blue",
+          content: "New message from " + msg.user.username,
+        });
+      }
+    });
   },
   methods: {
     changeAvatar(filename: string) {

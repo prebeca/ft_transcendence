@@ -9,8 +9,8 @@ export default {
     API_URL: process.env.API_URL,
     NUXT_PORT: process.env.NUXT_PORT,
     NUXT_HOST: process.env.NUXT_HOST,
-    API_SOCKET_GAME: process.env.API_SOCKET_GAME,
-    API_SOCKET_GAMEROOM: process.env.API_SOCKET_GAMEROOM
+    API_SOCKET_GAMEROOM: process.env.API_SOCKET_GAMEROOM,
+    API_SOCKET_STATUS: process.env.API_SOCKET_STATUS
   },
   // Global page headers: https://go.nuxtjs.dev/config-head
   head: {
@@ -58,7 +58,7 @@ export default {
     sockets: [
       { name: 'chat', url: process.env.API_URL },
       { name: 'gameroom', url: process.env.API_SOCKET_GAMEROOM },
-      { name: 'avatarstatus', url: process.env.API_URL }
+      { name: 'socketstatus', url: process.env.API_SOCKET_STATUS, withCredentials: true }
     ],
   },
 
