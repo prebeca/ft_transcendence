@@ -1,5 +1,5 @@
 import { Channel, User } from 'src/typeorm';
-import { JoinTable, Column, Entity, ManyToOne, PrimaryGeneratedColumn, ManyToMany } from 'typeorm';
+import { JoinTable, JoinColumn, Column, Entity, ManyToOne, PrimaryGeneratedColumn, ManyToMany } from 'typeorm';
 
 @Entity()
 export class Message {
@@ -9,8 +9,8 @@ export class Message {
 	})
 	id: number;
 
-	@ManyToOne(() => Channel)
-	@JoinTable()
+	@ManyToOne(() => Channel, Channel => Channel.messages, { onDelete: 'CASCADE' })
+	@JoinColumn()
 	channel: Channel
 
 	@ManyToOne(() => User)

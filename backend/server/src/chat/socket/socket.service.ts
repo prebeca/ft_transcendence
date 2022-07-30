@@ -27,21 +27,30 @@ export class SocketService {
 		return channel
 	}
 
-	async leaveChannel(user: User, data: any, client: Socket): Promise<Channel> {
+	async leaveChannel(user: User, data: any, client: Socket) {
 		let channel = await this.channelService.findOneById(data.channel_id);
-		if (channel != null)
-			client.leave(channel.id.toString())							// leave socket room
+		if (channel == null)
+			return undefined;
+
+		client.leave(channel.id.toString())
+		this.channelService.leaveChannel(user, data);
+		client.emit("LeaveChan", { channel_id: channel.id })
+		client.to(channel.id.toString()).emit("UserLeft", { channel_id: channel.id, user_id: user.id })
 		return channel
 	}
 
-	async newMessage(user: User, message: Message, server: Server) {
+	async deleteChannel(user: User, data: any, server: Server) {
+		let channel = await this.channelService.findOneById(data.channel_id);
 
-		try {
-			message = await this.channelService.handleMessage(user, message)
-		} catch (error) {
-			console.log(error);
-			return
-		}
+		if (channel.owner.id != user.id)
+			return;
+
+		server.to(channel.id.toString()).emit("ChannelDeleted", channel.id)
+		this.channelService.deleteChannel(channel.id);
+
+	}
+
+	async newMessage(user: User, message: Message, server: Server) {
 
 		const channel = await this.channelService.findOneById(message.channel.id);
 		let muted = channel.muted.find(e => { return e.user.id == user.id });
@@ -56,6 +65,13 @@ export class SocketService {
 			}
 			else
 				this.channelService.removeFromMuteList(muted)
+		}
+
+		try {
+			message = await this.channelService.handleMessage(user, message)
+		} catch (error) {
+			console.log(error);
+			return
 		}
 
 		// manage block users
@@ -75,6 +91,7 @@ export class SocketService {
 		let channel = await this.channelService.findOneById(data.channel_id)
 
 		if (target == null || channel == null) return
+
 		if (channel.admins.find(e => { return e.id == user.id }) == undefined) {
 			server.to(user.socket_id).emit("Alert", { content: "Invite require admin rights", color: "red" })
 			return;
@@ -151,18 +168,30 @@ export class SocketService {
 		if (channel == null || target == null)
 			return;
 
-		if (channel.admins.find(e => { return e.id == user.id }) == undefined)
+		let userIsAdmin: boolean = (channel.admins.find(e => { return e.id == user.id }) != undefined ? true : false)
+		let userIsOwner: boolean = (user.id == channel.owner.id ? true : false)
+
+		let targetIsAdmin: boolean = (channel.admins.find(e => { return e.id == target.id }) != undefined ? true : false)
+		let targetIOwner: boolean = (target.id == channel.owner.id ? true : false)
+
+		if (userIsAdmin == false)
 			return; // return if user is not admin
 
-		server.to(data.channel_id).emit('NewMessage', {
+		if (targetIOwner == true)
+			return; // return if target is owner
+
+		if (targetIsAdmin && !userIsOwner)
+			return; // admin cant kick admin but owner can
+
+		server.to(channel.id.toString()).emit('NewMessage', {
 			id: -1,
 			channel: channel,
 			user: { username: "Info" },
 			content: target.username + " has been kicked ! So sad !",
 		});
 
-		await this.userService.removeChannel(data.user_id, channel);
-		await this.channelService.removeUser(data.channel_id, data.user_id);
+		await this.userService.removeChannel(target.id, channel);
+		await this.channelService.removeUser(channel.id, target.id);
 
 		server.in(target.socket_id).socketsLeave(channel.id.toString());
 
@@ -178,8 +207,23 @@ export class SocketService {
 		if (channel == null || target == null)
 			return;
 
-		if (channel.admins.find(e => { return e.id == user.id }) == undefined)
+		let userIsAdmin: boolean = (channel.admins.find(e => { return e.id == user.id }) != undefined ? true : false)
+		let userIsOwner: boolean = (user.id == channel.owner.id ? true : false)
+
+		let targetIsAdmin: boolean = (channel.admins.find(e => { return e.id == target.id }) != undefined ? true : false)
+		let targetIOwner: boolean = (target.id == channel.owner.id ? true : false)
+
+		if (userIsAdmin == false)
 			return; // return if user is not admin
+
+		if (targetIOwner == true)
+			return; // return if target is owner
+
+		if (targetIsAdmin && !userIsOwner)
+			return; // admin cant kick admin but owner can
+
+		if (await this.channelService.addToBanList(data) == null)
+			return; // target already ban
 
 		server.to(data.channel_id).emit('NewMessage', {
 			id: -1,
@@ -188,7 +232,6 @@ export class SocketService {
 			content: target.username + " has been Banned for " + data.duration + " minutes ! See you never !",
 		});
 
-		await this.channelService.addToBanList(data);
 
 		await this.userService.removeChannel(data.user_id, channel);
 		await this.channelService.removeUser(data.channel_id, data.user_id);
@@ -206,18 +249,31 @@ export class SocketService {
 		if (channel == null || target == null)
 			return;
 
-		if (channel.admins.find(e => { return e.id == user.id }) == undefined)
+		let userIsAdmin: boolean = (channel.admins.find(e => { return e.id == user.id }) != undefined ? true : false)
+		let userIsOwner: boolean = (user.id == channel.owner.id ? true : false)
+
+		let targetIsAdmin: boolean = (channel.admins.find(e => { return e.id == target.id }) != undefined ? true : false)
+		let targetIOwner: boolean = (target.id == channel.owner.id ? true : false)
+
+		if (userIsAdmin == false)
 			return; // return if user is not admin
+
+		if (targetIOwner == true)
+			return; // return if target is owner
+
+		if (targetIsAdmin && !userIsOwner)
+			return; // admin cant kick admin but owner can
+
+		if (this.channelService.addToMuteList(data) == null)
+			return; // already muted
 
 		server.to(data.channel_id).emit('NewMessage', {
 			id: -1,
-			target_id: channel.id,
-			user_id: -1,
-			user_name: "Info",
+			channel: channel,
+			user: { username: "Info" },
 			content: target.username + " has been muted for " + data.duration + " minutes ! Finally some silence !",
 		});
 
-		await this.channelService.addToMuteList(data);
 	}
 
 	async deleteMessage(user: User, message: Message, server: Server) {
