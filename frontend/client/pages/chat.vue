@@ -195,7 +195,7 @@
                         </template>
                         <v-card color="secondary">
                           <v-card-text class="text-h6 pt-5"
-                            >Wrong password. Try again !</v-card-text
+                            >Please select a channel</v-card-text
                           >
                           <v-card-actions>
                             <v-spacer></v-spacer>
@@ -635,8 +635,98 @@
                 {{ getDMUserName(currentChannel) }}
               </v-toolbar-title>
             </div>
-
             <v-spacer></v-spacer>
+
+            <!-- TO LEAVE CHANNEL -->
+            <v-dialog v-model="channelLeaveDialog" persistent max-width="600px">
+              <template v-slot:activator="{ on }">
+                <v-icon @click="channelLeaveDialog = true" v-on="on">
+                  mdi-exit-run</v-icon
+                >
+              </template>
+
+              <v-card>
+                <v-card-title class="d-flex justify-center secondary">
+                  <h3 class="font-weight-black info--text">LEAVE CHANNEL</h3>
+                </v-card-title>
+                <v-card-text>
+                  <h3>
+                    Do you really want to leave this channel ? You will lose all
+                    previlege asociated !
+                  </h3>
+                </v-card-text>
+                <v-card-actions>
+                  <v-spacer></v-spacer>
+                  <v-btn
+                    color="accent"
+                    depressed
+                    dark
+                    @click="channelLeaveDialog = false"
+                  >
+                    NO
+                  </v-btn>
+                  <v-btn
+                    color="success white--text"
+                    :disabled="!valid"
+                    depressed
+                    @click="
+                      leaveChannel(currentChannel);
+                      channelLeaveDialog = false;
+                    "
+                  >
+                    YES
+                  </v-btn>
+                </v-card-actions>
+              </v-card>
+            </v-dialog>
+            <!-- TO DELETE CHANNEL -->
+            <div v-if="isOwner(currentChannel)">
+              <v-dialog
+                v-model="channelDeleteDialog"
+                persistent
+                max-width="600px"
+              >
+                <template v-slot:activator="{ on }">
+                  <v-icon @click="channelDeleteDialog = true" v-on="on">
+                    mdi-chat-remove</v-icon
+                  >
+                </template>
+
+                <v-card>
+                  <v-card-title class="d-flex justify-center secondary">
+                    <h3 class="font-weight-black info--text">DELETE CHANNEL</h3>
+                  </v-card-title>
+                  <v-card-text>
+                    <h3>
+                      Do you really want to delete this channel ? Everythings
+                      will be lost forever!
+                    </h3>
+                  </v-card-text>
+                  <v-card-actions>
+                    <v-spacer></v-spacer>
+                    <v-btn
+                      color="accent"
+                      depressed
+                      dark
+                      @click="channelDeleteDialog = false"
+                    >
+                      NO
+                    </v-btn>
+                    <v-btn
+                      color="success white--text"
+                      :disabled="!valid"
+                      depressed
+                      @click="
+                        deleteChannel(currentChannel);
+                        channelDeleteDialog = false;
+                      "
+                    >
+                      YES
+                    </v-btn>
+                  </v-card-actions>
+                </v-card>
+              </v-dialog>
+            </div>
             <!-- TO CHANGE CHANNEL SETTING -->
             <v-dialog
               v-model="channelSettingDialog"
@@ -798,6 +888,7 @@
 </template>
 
 <script lang="ts">
+import { channel } from "diagnostics_channel";
 import { NuxtSocket } from "nuxt-socket-io";
 import Vue from "vue";
 import AvatarStatusVue from "~/components/User/AvatarStatus.vue";
@@ -843,6 +934,8 @@ export default Vue.extend({
       addDMDialog: false,
       joinChannelDialog: false,
       channelSettingDialog: false,
+      channelLeaveDialog: false,
+      channelDeleteDialog: false,
       passwordDialog: false,
       valid: true,
       channelChoice: [
@@ -860,9 +953,9 @@ export default Vue.extend({
       changePassword: "",
       input: "",
       muteDialog: false,
-      muteMinutes: 10,
+      muteMinutes: 10 as number,
       banDialog: false,
-      banMinutes: 10,
+      banMinutes: 10 as number,
       // besoin de bien comprendre comment les regles sont gerees / en juillet
       rules: [
         (v: string) => !!v || "Required",
@@ -944,18 +1037,17 @@ export default Vue.extend({
       }
     });
 
-    this.socket.on("Kick", async (msg: any) => {
+    this.socket.on("Kick", async (data: any) => {
       console.log("A user has been kick from a channel");
       let chan = this.channels.find((e) => {
-        return e.id == msg.channel_id;
+        return e.id == data.channel_id;
       });
       if (chan == undefined) return;
       let i = chan.users.findIndex((e) => {
-        return (e.id = msg.user_id);
-      }) as number;
+        return e.id == data.user_id;
+      });
       if (i == -1) return;
       chan.users.splice(i, 1);
-      console.log(chan.users);
     });
 
     this.socket.on("JoinChan", async (channel: Channel) => {
@@ -978,6 +1070,19 @@ export default Vue.extend({
       ) {
         console.log("channel added");
         this.channels.push(channel);
+      }
+    });
+
+    this.socket.on("ChannelDeleted", (channel_id: number) => {
+      console.log("Channel deleted");
+      let i = this.channels.findIndex((e) => {
+        return e.id == channel_id;
+      });
+      if (i == -1) return;
+      this.channels.splice(i, 1);
+      if (this.currentChannel.id == channel_id) {
+        this.currentChannel = {} as Channel;
+        this.messages = [];
       }
     });
 
@@ -1038,6 +1143,37 @@ export default Vue.extend({
       }
     });
 
+    this.socket.on("UserLeft", async (data: any) => {
+      console.log("a user left the chat");
+      if (data != null) {
+        let chan = this.channels.find((e) => {
+          return e.id == data.channel_id;
+        });
+        let index: number;
+        if (
+          chan &&
+          (index = chan.users.findIndex((e) => {
+            return e.id == data.user_id;
+          })) != -1
+        )
+          chan.users.splice(index, 1);
+      }
+    });
+
+    this.socket.on("LeaveChan", async (data: any) => {
+      if (data == null) return;
+      let index = this.channels.findIndex((e) => {
+        return e.id == data.channel_id;
+      });
+      if (index != -1) {
+        this.channels.splice(index, 1);
+      }
+      if (this.currentChannel.id == data.channel_id) {
+        this.currentChannel = {} as Channel;
+        this.messages = [];
+      }
+    });
+
     this.socket.on("DeleteMessage", async (msg: Message) => {
       console.log("Message deleted !");
       if (msg != null) {
@@ -1083,6 +1219,8 @@ export default Vue.extend({
 
     async createChannel() {
       console.log("this.createChannel");
+      if (this.name == "") return;
+      if (this.choice == "") return;
       await this.$axios
         .post("/channels/create", {
           name: this.name,
@@ -1131,6 +1269,7 @@ export default Vue.extend({
     },
 
     async joinChannel() {
+      if (this.choice == "") return;
       this.socket.emit(
         "JoinChan",
         {
@@ -1147,6 +1286,22 @@ export default Vue.extend({
       );
       this.password = "";
       this.joinChannelDialog = false;
+    },
+
+    async leaveChannel(channel: Channel) {
+      if (channel.scope == "dm") return;
+      if (channel.id == undefined) return;
+      this.socket.emit("LeaveChan", {
+        channel_id: channel.id,
+      });
+    },
+
+    async deleteChannel(channel: Channel) {
+      if (channel.scope == "dm") return;
+      if (channel.id == undefined) return;
+      this.socket.emit("DeleteChan", {
+        channel_id: channel.id,
+      });
     },
 
     async createDMChannel() {
@@ -1166,7 +1321,7 @@ export default Vue.extend({
       this.socket.emit("Ban", {
         user_id: user.id,
         channel_id: channel.id,
-        duration: this.muteMinutes,
+        duration: this.banMinutes,
       });
     },
 
@@ -1174,7 +1329,7 @@ export default Vue.extend({
       this.socket.emit("Mute", {
         user_id: user.id,
         channel_id: channel.id,
-        duration: this.banMinutes,
+        duration: this.muteMinutes,
       });
     },
 
@@ -1183,7 +1338,6 @@ export default Vue.extend({
         channel_id: channel.id,
         user_id: user.id,
       });
-      //   this.joinChannelDialog = false;
     },
 
     async deleteMessage(msg: Message) {
@@ -1195,7 +1349,7 @@ export default Vue.extend({
     async sendMessage() {
       if (this.input.length == 0) return;
       if (this.channels.length == 0) return;
-      if (this.currentChannel == undefined) return;
+      if (this.currentChannel.id == undefined) return;
 
       await this.socket.emit("NewMessage", {
         channel: this.currentChannel,
@@ -1211,6 +1365,7 @@ export default Vue.extend({
     },
 
     isAdmin(channel: Channel) {
+      if (channel.id == undefined) return false;
       for (let i = 0; i < channel.admins.length; ++i) {
         if (this.user.id === channel.admins[i].id) return true;
       }
@@ -1218,6 +1373,12 @@ export default Vue.extend({
     },
 
     isOwner(channel: Channel) {
+      if (
+        channel.id == undefined ||
+        channel.owner == undefined ||
+        channel.owner == null
+      )
+        return false;
       if (this.user.id === channel.owner.id) return true;
       return false;
     },

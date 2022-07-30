@@ -1,5 +1,5 @@
 import { User, Ban, Mute } from 'src/typeorm';
-import { Column, Entity, JoinTable, ManyToMany, ManyToOne, OneToMany, PrimaryGeneratedColumn } from 'typeorm';
+import { Column, Entity, JoinTable, JoinColumn, ManyToMany, ManyToOne, OneToMany, PrimaryGeneratedColumn } from 'typeorm';
 import { Message } from './message.entity';
 
 @Entity()
@@ -47,7 +47,7 @@ export class Channel {
 	muted: Ban[]
 
 	@OneToMany(() => Message, Message => Message.channel)
-	@JoinTable()
+	@JoinColumn()
 	messages: Message[]
 
 	@ManyToMany(() => User)

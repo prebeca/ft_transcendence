@@ -282,16 +282,13 @@ export class UsersService {
 
 	async removeChannel(user_id: number, chan: Channel): Promise<void> {
 		let user = await this.userRepository.findOne(user_id, { relations: ["channels"] });
-		console.log("channel removed from user 0")
 		if (user == null)
 			return
-		console.log("channel removed from user A")
 		if (user.channels.find((e) => { return e.id == chan.id }) == undefined)
 			return
 		let index = user.channels.findIndex(e => { return e.id == chan.id });
 		user.channels.splice(index, 1);
 		await this.userRepository.save(user);
-		console.log("channel removed from user B")
 	}
 
 	async updateSocket(user: User, socket_id: string) {

@@ -41,6 +41,12 @@ export class SocketGateway {
 	}
 
 	@UseGuards(WsJwtAuthGuard)
+	@SubscribeMessage('DeleteChan')
+	async deleteChannel(@Req() req: Request, @MessageBody() data: any, @ConnectedSocket() client: Socket) {
+		this.socketService.deleteChannel(req.user as User, data, this.server)
+	}
+
+	@UseGuards(WsJwtAuthGuard)
 	@SubscribeMessage('NewMessage')
 	async newMessage(@Req() req: Request, @MessageBody() message: Message, @ConnectedSocket() client: Socket) {
 		return this.socketService.newMessage(req.user as User, message, this.server)

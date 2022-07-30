@@ -14,7 +14,7 @@ export class Ban {
 	@JoinTable()
 	user: User;
 
-	@ManyToOne(() => Channel)
+	@ManyToOne(() => Channel, { onDelete: 'CASCADE' })
 	@JoinTable()
 	channel: Channel;
 
