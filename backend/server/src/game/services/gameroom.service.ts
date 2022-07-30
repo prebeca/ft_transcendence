@@ -95,6 +95,7 @@ export class GameRoomService {
 		this.rooms = [];
 		this.gameRooms.clear();
 	}
+
 	deleteRoom(roomid: string): void {
 		this.rooms = this.rooms.splice(this.rooms.indexOf(roomid), 1);
 		this.gameRooms.get(roomid).clearPlayers();

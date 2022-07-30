@@ -19,4 +19,8 @@ export class Player {
 
 	@Column({ default: 0 })
 	mmr: number;
+
+	/* 
+		INSERT HERE TO ADD PERSONAL ACHIEVEMENTS like badge obtained etc
+	*/
 }

@@ -12,5 +12,6 @@ export class PlayerClass {
 	public wins: number = 0;
 	public mmr: number = 0;
 	public level: number = 0;
+	public score: number = 0;
 
 }
