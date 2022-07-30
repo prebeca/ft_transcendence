@@ -32,20 +32,17 @@ export class JwtRtStrategy extends PassportStrategy(Strategy, 'jwt-rt') {
 
 	async validate(req: Request, payload: JwtPayload): Promise<User> {
 		console.log("rt strat");
-		console.log("----------------------------------");
 		if (!payload)
 			throw new UnauthorizedException("No credentials cookie found");
 		const user: User = await this.userService.findUsersByIdWithRelations(payload.id);
 		if (!user)
 			throw new UnauthorizedException("No match for current session");
 		const ancient_refresh_token: string = (await this.userService.findUserbyIdWithSensibleData(user.id)).refresh_token;
-		console.log(ancient_refresh_token);
 		const matching: boolean = await bcrypt.compare(req.cookies['refresh_token'], ancient_refresh_token);
 		if (!matching) {
 			throw new UnauthorizedException("The refresh token does not match");
 		}
 		var response_to_modify: Response = req.res;
-		console.log(payload);
 		req.res = await this.authService.refreshTokens(response_to_modify, user);
 		return { ...user, email: undefined };
 	}

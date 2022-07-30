@@ -7,6 +7,7 @@ import { PlayerClass } from "../classes/player.class";
 import GameI from "../interfaces/gameI.interface";
 import PadI from "../interfaces/padI.interface";
 import { PlayerInfo } from "../interfaces/playerinfo.interface";
+import { GameService } from "../services/game.service";
 import { GameRoomService } from "../services/gameroom.service";
 
 export enum GameStatus {
@@ -27,7 +28,7 @@ const padHeight = 100;
 const ballRadius = 7;
 const ballSpeed = 1;
 const padSpeed = 20;
-const pointToWin = 10;
+const pointToWin = 2;
 
 function random_x_start(side: string) {
 	let x = Math.random() * 0.5 + 0.5;
@@ -169,6 +170,9 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
 	@Inject(AvatarStatusGateway)
 	private gatewayStatus: AvatarStatusGateway;
 
+	@Inject()
+	private readonly gameService: GameService;
+
 	afterInit(server: Server) {
 		this.gameRoomService.clear();
 		this.logger.log("game socket init !");
@@ -234,6 +238,9 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
 				game.status = checkCollision(game);
 			if (game.status != GameStatus.INPROGRESS)
 				clearInterval(moveInterval);
+			if (game.status === GameStatus.PLAYER2WON || game.status === GameStatus.PLAYER1WON) {
+				this.gameService.gameFinished(this.gameRoomService.getRoomById(id), game);
+			}
 			this.server.to(id).emit("updateGame", game);
 		}, 1000 / 30);
 	}
