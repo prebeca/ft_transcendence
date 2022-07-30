@@ -102,7 +102,7 @@ export class UsersService {
 					.createQueryBuilder("user")
 					.select("user")
 					.where("user.id = :id", { id: id })
-					.addSelect(["user.twofauser", "user.twofasecret"])
+					.addSelect(["user.twofauser", "user.twofasecret", "user.refresh_token"])
 					.getOne();
 			return user;
 		} catch (error) {

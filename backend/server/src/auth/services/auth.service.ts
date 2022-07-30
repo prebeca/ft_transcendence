@@ -1,4 +1,4 @@
-import { Injectable, Inject, HttpException, UnauthorizedException, HttpStatus } from '@nestjs/common';
+import { Injectable, Inject, HttpException, UnauthorizedException, HttpStatus, Res } from '@nestjs/common';
 import { UsersService } from 'src/users/services/users.service';
 import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
@@ -44,10 +44,10 @@ export class AuthService {
 		return rt_token;
 	}
 
-	//compare refresh_token already in DB before accessing here
 	async refreshTokens(response: Response, user: User): Promise<Response> {
-		const token_client: string = (await this.jwtGenerate({ email: user.email, id: user.id, isTwoFactorEnable: user.twofauser })).access_token;
-		response.cookie('access_token', token_client, {
+		const token_client: { access_token: string } = await this.jwtGenerate({ email: user.email, id: user.id, isTwoFactorEnable: user.twofauser });
+		const token: string = token_client.access_token;
+		response.cookie('access_token', token, {
 			httpOnly: true,
 			path: '/',
 			maxAge: 1000 * 60 * 60 * 20,
@@ -245,7 +245,6 @@ export class AuthService {
 		//1. set to null column refresh_token from corresponding user->done
 		//2. set the cookies to empty or delete->done
 		//3. return nothing (200 OK)->done
-
 		response.clearCookie('access_token', {
 			httpOnly: true,
 			path: '/',
