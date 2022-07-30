@@ -195,7 +195,7 @@
                         </template>
                         <v-card color="secondary">
                           <v-card-text class="text-h6 pt-5"
-                            >Wrong password. Try again !</v-card-text
+                            >Please select a channel</v-card-text
                           >
                           <v-card-actions>
                             <v-spacer></v-spacer>
@@ -1219,6 +1219,8 @@ export default Vue.extend({
 
     async createChannel() {
       console.log("this.createChannel");
+      if (this.name == "") return;
+      if (this.choice == "") return;
       await this.$axios
         .post("/channels/create", {
           name: this.name,
@@ -1267,6 +1269,7 @@ export default Vue.extend({
     },
 
     async joinChannel() {
+      if (this.choice == "") return;
       this.socket.emit(
         "JoinChan",
         {
