@@ -1,5 +1,6 @@
 import { User, Ban, Mute } from 'src/typeorm';
 import { Column, Entity, JoinTable, ManyToMany, ManyToOne, OneToMany, PrimaryGeneratedColumn } from 'typeorm';
+import { Message } from './message.entity';
 
 @Entity()
 export class Channel {
@@ -14,7 +15,7 @@ export class Channel {
 
 	@Column({
 		type: "enum",
-		enum: ["public", "private", "protected"],
+		enum: ["public", "private", "protected", "dm"],
 		default: "public",
 	})
 	scope: string;
@@ -44,6 +45,10 @@ export class Channel {
 	@OneToMany(() => Mute, Mute => Mute.channel)
 	@JoinTable()
 	muted: Ban[]
+
+	@OneToMany(() => Message, Message => Message.channel)
+	@JoinTable()
+	messages: Message[]
 
 	@ManyToMany(() => User)
 	@JoinTable()

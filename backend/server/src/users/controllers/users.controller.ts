@@ -84,7 +84,7 @@ export class UsersController {
 	@UseGuards(JwtAuthGuard)
 	@Get('channels')
 	async getChannels(@Req() req: Request): Promise<Channel[]> {
-		return (await this.userService.findUsersById(req.user["id"])).channels;
+		return (await this.userService.findUsersByIdWithChannels(req.user["id"])).channels;
 	}
 
 	@Get('deleteall')

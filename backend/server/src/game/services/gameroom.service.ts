@@ -112,8 +112,7 @@ export class GameRoomService {
 		if (rooms.length === 0) {
 			return this.addRoom({ difficulty: 2 });
 		}
-		else if (rooms.length === 1) //join the only one created
-		{
+		else if (rooms.length === 1) { //join the only one created
 			return rooms[0];
 		} else {
 			const players_mmr: number[] = [];
@@ -124,19 +123,18 @@ export class GameRoomService {
 				players_mmr.push(gameRoom.getPlayerById(players_id[i]).mmr);
 			}
 			const current_mmr: number = user.player.mmr;
-			var x: number = current_mmr;
+			var x: number = Number.MAX_SAFE_INTEGER;
 			var index_closest: number = -1;
 			for (var i: number = 0; i < players_mmr.length; i++) {
 				let diff: number = players_mmr[i] - current_mmr;
 				diff = (diff < 0) ? diff * -1 : diff;
 				if (diff <= x) {
-					x = players_mmr[i];
+					x = diff;
 					index_closest = i;
 				}
 			}
-			console.log(index_closest);
+			console.log("index = " + index_closest);
 			return (this.getRoomNameByPlayerId(players_id[index_closest]));
 		}
 	}
 }
-

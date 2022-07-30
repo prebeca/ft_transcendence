@@ -7,7 +7,6 @@ import { Request } from 'express';
 import { WsJwtAuthGuard } from 'src/auth/guards/ws-jwt-auth.guard';
 import { User, Channel } from 'src/typeorm';
 import { Message } from '../channels/entities/message.entity';
-import { CreateMessageDto } from '../channels/dto/messages.dto';
 
 
 @WebSocketGateway({
@@ -24,27 +23,27 @@ export class SocketGateway {
 
 	@UseGuards(WsJwtAuthGuard)
 	@SubscribeMessage('Alert')
-	async alert(@Req() req: Request, @MessageBody() data: CreateMessageDto) {
+	async alert(@Req() req: Request, @MessageBody() data: any) {
 		this.server.to((req.user as User).socket_id).emit("Alert", data)
 	}
 
 	@UseGuards(WsJwtAuthGuard)
 	@SubscribeMessage('JoinChan')
-	async joinChannel(@Req() req: Request, @MessageBody() data: CreateMessageDto, @ConnectedSocket() client: Socket) {
+	async joinChannel(@Req() req: Request, @MessageBody() data: any, @ConnectedSocket() client: Socket) {
 		return this.socketService.joinChannel(req.user as User, data, client)
 	}
 
 
 	@UseGuards(WsJwtAuthGuard)
 	@SubscribeMessage('LeaveChan')
-	async leaveChannel(@Req() req: Request, @MessageBody() data: CreateMessageDto, @ConnectedSocket() client: Socket): Promise<Channel> {
+	async leaveChannel(@Req() req: Request, @MessageBody() data: any, @ConnectedSocket() client: Socket): Promise<Channel> {
 		return this.socketService.leaveChannel(req.user as User, data, client)
 	}
 
 	@UseGuards(WsJwtAuthGuard)
 	@SubscribeMessage('NewMessage')
-	async newMessage(@Req() req: Request, @MessageBody() messageDto: CreateMessageDto, @ConnectedSocket() client: Socket) {
-		return this.socketService.newMessage(req.user as User, messageDto, this.server)
+	async newMessage(@Req() req: Request, @MessageBody() message: Message, @ConnectedSocket() client: Socket) {
+		return this.socketService.newMessage(req.user as User, message, this.server)
 	}
 
 	@UseGuards(WsJwtAuthGuard)
@@ -73,9 +72,9 @@ export class SocketGateway {
 	}
 
 	@UseGuards(WsJwtAuthGuard)
-	@SubscribeMessage('PrivateMessage')
-	async privateMessage(@Req() req: Request, @MessageBody() messageDto: CreateMessageDto, @ConnectedSocket() client: Socket) {
-		return this.socketService.privateMessage(req.user as User, messageDto, this.server)
+	@SubscribeMessage('NewDMChannel')
+	async newDMChannel(@Req() req: Request, @MessageBody() id: number, @ConnectedSocket() client: Socket) {
+		return this.socketService.newDMChannel(req.user as User, id, this.server, client)
 	}
 
 	@UseGuards(WsJwtAuthGuard)

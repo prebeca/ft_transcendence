@@ -56,14 +56,14 @@ import Vue from "vue";
 
 interface Message {
   id: number;
-  target_id: number;
-  user_id: number;
-  user_name: string;
+  channel: Channel;
+  user: User;
   content: string;
 }
 
 interface Channel {
   id: number;
+  scope: string;
   name: string; // for classic channels
   username: string; // for DM channel
   users: User[];
@@ -139,24 +139,46 @@ export default Vue.extend({
 
     this.socket = this.$nuxtSocket({ name: "chat", withCredentials: true });
 
-    this.socket.emit("SetSocket");
+    await this.$axios
+      .get("/users/channels")
+      .then(async (res) => {
+        let channels = res.data;
+        channels = channels.filter((e: Channel) => {
+          return e.scope == "dm";
+        });
+        channels.forEach((e: Channel) => {
+          this.socket.emit("JoinChan", {
+            channel_id: e.id,
+            password: "",
+          });
+        });
+      })
+      .catch((error) => {
+        console.error(error);
+      });
 
-    this.socket.on("PrivateMessage", async (msg, cb) => {
-      console.log(msg.user_name + ": " + msg.content);
-      let id = this.user.id == msg.target_id ? msg.user_id : msg.target_id;
-      if (msg != null) {
-        this.user.friends
-          .find((e) => {
-            return e.id == id;
-          })
-          ?.messages.push(msg);
-      }
+    this.socket.on("connect", async () => {
+      console.log("Connection !");
+      this.socket.emit("SetSocket");
     });
+    this.socket.on("disconnect", async () => {
+      console.log("Disconnection !");
+    });
+
     this.socket.on("Alert", async (alert: Alert, cb) => {
       console.log("new Alert");
       this.notif_text = alert.content;
       this.snackcolor = alert.color;
       this.snackbar = true;
+    });
+
+    this.socket.on("NewMessage", async (msg: Message) => {
+      if (msg.channel.scope == "dm" && msg.user.id != this.user.id) {
+        this.socket.emit("Alert", {
+          color: "blue",
+          content: "New message from " + msg.user.username,
+        });
+      }
     });
   },
   methods: {
