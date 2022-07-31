@@ -48,6 +48,10 @@ export class ChannelsService {
 		return channel;
 	}
 
+	deleteChannel(channel_id: number) {
+		this.channelRepository.delete(channel_id);
+	}
+
 	async getChannels(): Promise<Channel[]> {
 		let channels = await this.channelRepository.find();
 		channels.forEach(e => { e.password = undefined });
@@ -191,19 +195,20 @@ export class ChannelsService {
 	}
 
 	async removeUser(channel_id: number, user_id: number) {
-		let channel = await this.channelRepository.findOne(channel_id, { relations: ["users"] });
+		let channel = await this.channelRepository.findOne(channel_id, { relations: ["users", "owner", "admins"] });
 		let user: User = await this.userService.findUsersById(user_id)
 		if (channel == null || user == null)
 			return;
-		if (channel.users.find(e => { return e.id == user.id }) === undefined) return
+		if (channel.users.find(e => { return e.id == user.id }) == undefined) return
 
-		let index = channel.users.findIndex(e => { return e.id == user.id });
-		channel.users.splice(index, 1);
+		let index: number;
+		if ((index = channel.users.findIndex(e => { return e.id == user.id })) != -1)
+			channel.users.splice(index, 1);
+		if ((index = channel.admins.findIndex(e => { return e.id == user.id })) != -1)
+			channel.admins.splice(index, 1);
 
-		if (channel.owner == user)
+		if (channel.owner && channel.owner.id == user.id)
 			channel.owner = null;
-
-		console.log("user removed from channel")
 
 		await this.channelRepository.save(channel);
 	}
@@ -231,16 +236,15 @@ export class ChannelsService {
 		return channel;
 	}
 
-	async leaveChannel(user: User, message: Message): Promise<Channel> {
-		const channel: Channel = await this.findOneById(message.channel.id);
+	async leaveChannel(user: User, data: any) {
+		const channel: Channel = await this.findOneById(data.channel_id);
 
 		if (channel.users.find(e => { return e.id == user.id }) == undefined)
 			return null;
 
-		this.removeUser(message.channel.id, message.user.id)			// remove user from channel members and remove ownership
-		this.userService.removeChannel(message.user.id, channel)	// remove channel to the user's channels list
-		this.removeInvite(message.channel.id, message.user.id);
-		return channel;
+		this.removeUser(data.channel_id, user.id)			// remove user from channel members and remove privilege
+		this.userService.removeChannel(user.id, channel)	// remove channel from the user's channels list
+		this.removeInvite(data.channel_id, user.id);
 	}
 
 	async handleMessage(user: User, message: Message): Promise<Message> {

@@ -146,7 +146,13 @@ export default Vue.extend({
         console.error(error);
       });
 
-    this.socket = this.$nuxtSocket({ name: "chat", withCredentials: true });
+    this.socket = this.$nuxtSocket({
+      name: "chat",
+      withCredentials: true,
+      reconnection: true,
+      reconnectionAttempts: Infinity,
+      reconnectionDelay: 500,
+    });
 
     await this.$axios
       .get("/users/channels")
