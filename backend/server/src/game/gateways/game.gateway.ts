@@ -162,6 +162,7 @@ function initGame(game: GameI) {
 export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
 	constructor(
 		private gameRoomService: GameRoomService,
+		private gameService: GameService
 	) { }
 
 	@WebSocketServer() server: Server;
@@ -169,9 +170,6 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
 
 	@Inject(AvatarStatusGateway)
 	private gatewayStatus: AvatarStatusGateway;
-
-	@Inject()
-	private readonly gameService: GameService;
 
 	afterInit(server: Server) {
 		this.gameRoomService.clear();

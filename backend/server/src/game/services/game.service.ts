@@ -5,16 +5,26 @@ import GameI from '../interfaces/gameI.interface';
 import { Repository } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Game } from '../entities/game.entity';
-import { GameStatus } from '../gateways/game.gateway';
+
+export enum GameStatus {
+  WAITING = "waiting",
+  INCOMPLETE = "incomplete",
+  INPROGRESS = "in progress",
+  PLAYER1WON = "player 1 won",
+  PLAYER2WON = "player 2 won",
+  PLAYER1LEAVE = "player 2 won by forfeit",
+  PLAYER2LEAVE = "player 1 won by forfeit",
+  ENDED = "ended",
+}
 
 @Injectable()
 export class GameService {
-  constructor(
-    @InjectRepository(Player)
-    private readonly playerRepository: Repository<Player>,
-    @InjectRepository(Game)
-    private readonly gameRepository: Repository<Game>
-  ) { }
+  constructor() { }
+
+  @InjectRepository(Player)
+  private readonly playerRepository: Repository<Player>
+  @InjectRepository(Game)
+  private readonly gameRepository: Repository<Game>
 
   async gameFinished(gameRoom: GameRoomClass, game: GameI) {
 
