@@ -80,7 +80,7 @@ export class SocketGateway {
 	@UseGuards(WsJwtAuthGuard)
 	@SubscribeMessage('NewDMChannel')
 	async newDMChannel(@Req() req: Request, @MessageBody() id: number, @ConnectedSocket() client: Socket) {
-		return this.socketService.newDMChannel(req.user as User, id, this.server, client)
+		return await this.socketService.newDMChannel(req.user as User, id, this.server, client)
 	}
 
 	@UseGuards(WsJwtAuthGuard)

@@ -1348,7 +1348,6 @@ export default Vue.extend({
 
     async sendMessage() {
       if (this.input.length == 0) return;
-      if (this.channels.length == 0) return;
       if (this.currentChannel.id == undefined) return;
 
       await this.socket.emit("NewMessage", {
