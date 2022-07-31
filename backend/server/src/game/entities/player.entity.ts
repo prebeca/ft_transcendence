@@ -1,4 +1,4 @@
-import { Column, Entity, OneToOne, PrimaryGeneratedColumn } from 'typeorm';
+import { Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
 
 @Entity()
 export class Player {
@@ -17,6 +17,10 @@ export class Player {
 	@Column({ default: 0 })
 	winnings: number;
 
-	@Column({ default: 0 })
+	@Column({ default: 1 })
 	mmr: number;
+
+	/* 
+		INSERT HERE TO ADD PERSONAL ACHIEVEMENTS like badge obtained etc
+	*/
 }

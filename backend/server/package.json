@@ -30,7 +30,6 @@
     "@nestjs/passport": "^8.2.1",
     "@nestjs/platform-express": "^8.0.0",
     "@nestjs/platform-socket.io": "^8.4.5",
-    "@nestjs/swagger": "^5.2.1",
     "@nestjs/typeorm": "^8.0.3",
     "@nestjs/websockets": "^8.4.5",
     "axios": "^0.27.2",
@@ -53,7 +52,6 @@
     "rimraf": "^3.0.2",
     "rxjs": "^7.2.0",
     "sequelize-cli": "^6.4.1",
-    "swagger-ui-express": "^4.4.0",
     "typeorm": "^0.2.45"
   },
   "devDependencies": {

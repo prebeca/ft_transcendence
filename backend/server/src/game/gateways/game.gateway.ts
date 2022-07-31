@@ -1,15 +1,13 @@
 import { Inject, Logger } from "@nestjs/common";
 import { ConnectedSocket, MessageBody, OnGatewayConnection, OnGatewayDisconnect, SubscribeMessage, WebSocketGateway, WebSocketServer } from "@nestjs/websockets";
-import { time, timeLog } from "console";
 import { Server, Socket } from "socket.io";
 import { AvatarStatusGateway } from "src/users/gateways/avatarstatus.gateway";
 import { GameRoomClass } from "../classes/gameroom.class";
 import { PlayerClass } from "../classes/player.class";
-import { Game } from "../entities/game.entity";
-import BallI from "../interfaces/ballI.interface";
 import GameI from "../interfaces/gameI.interface";
 import PadI from "../interfaces/padI.interface";
 import { PlayerInfo } from "../interfaces/playerinfo.interface";
+import { GameService } from "../services/game.service";
 import { GameRoomService } from "../services/gameroom.service";
 
 export enum GameStatus {
@@ -30,7 +28,7 @@ const padHeight = 100;
 const ballRadius = 7;
 const ballSpeed = 1;
 const padSpeed = 20;
-const pointToWin = 10;
+const pointToWin = 2;
 
 function random_x_start(side: string) {
 	let x = Math.random() * 0.5 + 0.5;
@@ -71,15 +69,18 @@ function resetAfterPoint(game: GameI, side: string) {
 function checkCollision(game: GameI) {
 	if (game.ball.x - game.ball.r <= 0) {
 		game.score2++;
-		if (game.score2 === pointToWin)
+		if (game.score2 === pointToWin) {
 			return GameStatus.PLAYER2WON;
+		}
 		game.looserPoint = game.pad1.id;
 		return resetAfterPoint(game, "left");
 	}
 	else if (game.ball.x + game.ball.r >= game.gameWidth) {
 		game.score1++;
-		if (game.score1 === pointToWin)
+		if (game.score1 === pointToWin) {
+
 			return GameStatus.PLAYER1WON;
+		}
 		game.looserPoint = game.pad2.id;
 		return resetAfterPoint(game, "right");
 	}
@@ -161,6 +162,7 @@ function initGame(game: GameI) {
 export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
 	constructor(
 		private gameRoomService: GameRoomService,
+		private gameService: GameService
 	) { }
 
 	@WebSocketServer() server: Server;
@@ -197,7 +199,6 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
 			game.status = GameStatus.PLAYER2LEAVE;
 			this.server.to(id).emit('updateStatus', game.status);
 		}
-		//client.disconnect(true);
 	}
 
 	handleConnection(client: Socket, ...args: any[]) {
@@ -235,9 +236,9 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
 				game.status = checkCollision(game);
 			if (game.status != GameStatus.INPROGRESS)
 				clearInterval(moveInterval);
-			// if (this.game.status === GameStatus.PLAYER1WON || this.game.status === GameStatus.PLAYER2WON)
-			// 	this.server.emit("end", this.game);
-			// else
+			if (game.status === GameStatus.PLAYER2WON || game.status === GameStatus.PLAYER1WON) {
+				this.gameService.gameFinished(this.gameRoomService.getRoomById(id), game);
+			}
 			this.server.to(id).emit("updateGame", game);
 		}, 1000 / 30);
 	}

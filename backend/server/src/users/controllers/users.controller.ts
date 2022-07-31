@@ -27,11 +27,13 @@ export class UsersController {
 
 	@UseGuards(JwtTwoFactorAuthGuard)
 	@Get('profile')
-	getProfile(@Req() req: Request): User {
+	async getProfile(@Req() req: Request): Promise<User> {
 		const user: User = { ... (req.user as User) };
 		if (!user)
 			return null;
-		return user;
+		//NOPE -> used for friends info.
+		const is2fa: boolean = (await this.userService.findUserbyIdWithSensibleData(user.id)).twofauser;
+		return { ...user, twofauser: is2fa };
 	}
 
 	@UseGuards(JwtTwoFactorAuthGuard)
