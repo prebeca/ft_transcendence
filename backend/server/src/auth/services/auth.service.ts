@@ -1,4 +1,4 @@
-import { Injectable, Inject, HttpException, UnauthorizedException, HttpStatus } from '@nestjs/common';
+import { Injectable, Inject, HttpException, UnauthorizedException, HttpStatus, Res } from '@nestjs/common';
 import { UsersService } from 'src/users/services/users.service';
 import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
@@ -32,7 +32,7 @@ export class AuthService {
 
 	async rtGenerate(userid: number): Promise<{ refresh_token: string }> {
 		return {
-			refresh_token: this.jwtService.sign({ userid: userid }, {
+			refresh_token: this.jwtService.sign({ id: userid }, {
 				secret: this.config.get<string>('JWT_RT_SECRET'),
 				expiresIn: `${this.config.get<string>('JWT_RT_EXPIRATION_TIME')}d`
 			}),
@@ -44,10 +44,10 @@ export class AuthService {
 		return rt_token;
 	}
 
-	//compare refresh_token already in DB before accessing here
 	async refreshTokens(response: Response, user: User): Promise<Response> {
-		const token_client: string = (await this.jwtGenerate({ email: user.email, id: user.id, isTwoFactorEnable: user.twofauser })).access_token;
-		response.cookie('access_token', token_client, {
+		const token_client: { access_token: string } = await this.jwtGenerate({ email: user.email, id: user.id, isTwoFactorEnable: user.twofauser });
+		const token: string = token_client.access_token;
+		response.cookie('access_token', token, {
 			httpOnly: true,
 			path: '/',
 			maxAge: 1000 * 60 * 60 * 20,
@@ -70,16 +70,18 @@ export class AuthService {
 		var token_client: string;
 		var userCookie: User = user;
 		var userid: number;
+
 		if (is42) {
 			const result: { jwt: { access_token: string }, user: User } = (await this.get42APIToken(code));
 			userid = result.user.id;
 			token_client = result.jwt.access_token;
-			var userCookie: User = { ...result.user as User };
+			var userCookie: User = await this.usersService.findUserbyIdWithSensibleData(result.user.id);
 		}
 		else {
 			userid = user.id;
 			token_client = (await this.jwtGenerate({ email: user.email, id: user.id, isTwoFactorEnable: user.twofauser })).access_token;
 		}
+
 		console.log("userid = " + userid);
 		if (!token_client)
 			return null;
@@ -237,5 +239,24 @@ export class AuthService {
 		} catch (error) {
 			throw new HttpException("Register failed", HttpStatus.INTERNAL_SERVER_ERROR);
 		}
+	}
+
+	async logout(response: Response, user: User) {
+		//1. set to null column refresh_token from corresponding user->done
+		//2. set the cookies to empty or delete->done
+		//3. return nothing (200 OK)->done
+		response.clearCookie('access_token', {
+			httpOnly: true,
+			path: '/',
+			maxAge: 1000 * 60 * 60 * 20,
+			sameSite: "strict",
+		});
+		response.clearCookie('refresh_token', {
+			httpOnly: true,
+			path: '/',
+			maxAge: 1000 * 60 * 60 * 1000,
+			sameSite: "strict",
+		});
+		this.usersService.updateUsersById(user, { refresh_token: null });
 	}
 }

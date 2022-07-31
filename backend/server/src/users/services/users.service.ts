@@ -102,7 +102,7 @@ export class UsersService {
 					.createQueryBuilder("user")
 					.select("user")
 					.where("user.id = :id", { id: id })
-					.addSelect(["user.twofauser", "user.twofasecret"])
+					.addSelect(["user.twofauser", "user.twofasecret", "user.refresh_token"])
 					.getOne();
 			return user;
 		} catch (error) {
@@ -142,7 +142,7 @@ export class UsersService {
 			throw new HttpException('Username cannot be empty', HttpStatus.FORBIDDEN);
 		const username_user: User = await this.userRepository.findOne({ where: { username: new_username } });
 		if (username_user)
-			return; // send something to frontend
+			return;
 		try {
 			this.updateUsersById(user, { username: new_username })
 		}

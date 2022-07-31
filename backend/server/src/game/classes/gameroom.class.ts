@@ -132,7 +132,8 @@ export class GameRoomClass {
 				wins: user.player.winnings,
 				losses: user.player.losses,
 				mmr: user.player.mmr,
-				username: user.username
+				username: user.username,
+				score: 0
 			};
 			this.mapPlayers.set(sid, player);
 			this.printSid();

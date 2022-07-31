@@ -12,7 +12,9 @@
           Edit Your Profile
         </v-btn>
         <v-divider class="my-3"></v-divider>
-        <v-btn to="/" depressed rounded text color="accent"> Log out </v-btn>
+        <v-btn @click="logout" depressed rounded text color="accent">
+          Log out
+        </v-btn>
       </div>
     </v-list-item-content>
   </v-card>
@@ -48,6 +50,16 @@ export default Vue.extend({
     changeAvatar(filename: string) {
       this.user.avatar =
         `${process.env.API_URL}/users/profile/avatar/` + filename;
+    },
+    logout() {
+      this.$axios
+        .get("/auth/logout")
+        .then((res) => {
+          this.$router.push("/");
+        })
+        .catch((error) => {
+          console.error(error);
+        });
     },
   },
   computed: {
