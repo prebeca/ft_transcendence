@@ -21,14 +21,17 @@ export enum GameStatus {
 	ENDED = "ended",
 }
 
-const gameWidth = 640;
-const gameHeight = 480;
-const padWidth = 10;
-const padHeight = 100;
-const ballRadius = 7;
-const ballSpeed = 1;
-const padSpeed = 20;
-const pointToWin = 2;
+const gameWidth: number = 640;
+const gameHeight: number = 480;
+const padWidth: number = 10;
+const ballRadius: number = 7;
+const padSpeed: number = 20;
+const padHeightDefault: number = 100;
+const ballSpeedDefault: number = 1;
+var padHeight: number = padHeightDefault;
+var ballSpeed: number = ballSpeedDefault;
+var pointToWin: number;
+var difficulty: number = 1;
 
 function random_x_start(side: string) {
 	let x = Math.random() * 0.5 + 0.5;
@@ -125,6 +128,15 @@ function moveBall(game: GameI) {
 }
 
 function initGame(game: GameI) {
+	if (difficulty === 1) {
+		padHeight = padHeightDefault * 2;
+		ballSpeed = ballSpeedDefault / 2;
+	}
+	else if (difficulty === 3) {
+		padHeight = padHeightDefault / 2;
+		ballSpeed = ballSpeedDefault * 2;
+	}
+
 	game.gameWidth = gameWidth;
 	game.gameHeight = gameHeight;
 
@@ -216,13 +228,16 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
 			var playerinfo: PlayerInfo = gameRoom.getPlayerInfoById(client.id);
 			if (playerinfo.player_number === 1) {
 				game.pad1.id = client.id;
+				pointToWin = gameRoom.getPoints();
+				difficulty = gameRoom.getDifficulty();
 				initGame(game);
 			}
 			else if (playerinfo.player_number === 2)
 				game.pad2.id = client.id;
 			this.gatewayStatus.inGame(playerinfo.userid);
 		}
-		client.emit("initDone", game);
+		console.log(game);
+		this.server.to(id).emit("initDone", game);
 	}
 
 	startGame(@ConnectedSocket() client: Socket, @MessageBody() id: string) {
