@@ -137,7 +137,7 @@ export default Vue.extend({
     });
   },
   mounted() {
-    console.log("mouted");
+    console.log("mounted");
     this.socket.emit("joinRoom", this.$route.query.name);
     this.roomid = this.$route.query.name as string;
   },

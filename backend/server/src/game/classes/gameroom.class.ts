@@ -19,6 +19,7 @@ export class GameRoomClass {
 	public roomname: string = null;
 	public status: string = GAMEROOMSTATUS.WAITING;
 	public difficulty: number = 0; // 1 (easy) - 3 (hard) - speed of ball and maybe height of pads
+	public points: number = 0;
 	public game: GameI = {
 		gameWidth: 0,
 		gameHeight: 0,
@@ -33,6 +34,7 @@ export class GameRoomClass {
 
 	setOptions(roomname: string, createGameDto: CreateGameDto) {
 		this.difficulty = createGameDto.difficulty;
+		this.points = createGameDto.points;
 		this.roomname = roomname;
 	}
 
@@ -44,6 +46,14 @@ export class GameRoomClass {
 
 	getGame(): GameI {
 		return this.game;
+	}
+
+	getDifficulty(): number {
+		return this.difficulty;
+	}
+
+	getPoints(): number {
+		return this.points;
 	}
 
 	getPlayerById(player_id: string): PlayerClass {
