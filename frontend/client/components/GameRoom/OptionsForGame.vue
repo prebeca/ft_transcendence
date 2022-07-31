@@ -65,7 +65,7 @@
       thumb-label="always"
       thumb-size="40"
       max="20"
-      min="5"
+      min="1"
       class="mt-10"
     >
       <template v-slot:thumb-label>
@@ -85,7 +85,7 @@ import Vue from "vue";
 export default Vue.extend({
   data() {
     return {
-      difficulty: 1,
+      difficulty: 2,
       points: 5,
     };
   },
