@@ -140,9 +140,7 @@ export default Vue.extend({
     this.socket = this.$nuxtSocket({
       name: "chat",
       withCredentials: true,
-      reconnection: true,
-      reconnectionAttempts: Infinity,
-      reconnectionDelay: 500,
+      persist: "chat",
     });
 
     await this.$axios

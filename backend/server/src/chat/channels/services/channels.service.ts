@@ -230,9 +230,9 @@ export class ChannelsService {
 				this.BanRepository.delete(channel.banned[i].id);
 		}
 
-		this.addUser(data.channel_id, user.id)		// add user to channel members
-		this.userService.addChannel(user.id, channel)	// add channel to the user's channels list
-		this.removeInvite(data.channel_id, user.id);
+		await this.addUser(data.channel_id, user.id)		// add user to channel members
+		await this.userService.addChannel(user.id, channel)	// add channel to the user's channels list
+		await this.removeInvite(data.channel_id, user.id);
 		return channel;
 	}
 

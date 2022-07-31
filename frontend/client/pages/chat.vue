@@ -471,7 +471,10 @@
                       color="primary"
                       width="190px"
                       class="my-5"
-                      @click="addDMDialog = true"
+                      @click="
+                        fetchFiends();
+                        addDMDialog = true;
+                      "
                     >
                       NEW DIRECT MESSAGE
                     </v-btn>
@@ -1005,7 +1008,6 @@ export default Vue.extend({
       .get("/users/channels")
       .then(async (res) => {
         this.channels = res.data;
-        await this.joinChannels();
         this.channels.forEach((e) => {
           e.messages.sort((a, b) => {
             return a.id - b.id;
@@ -1017,12 +1019,17 @@ export default Vue.extend({
         this.channels = this.channels.filter((e) => {
           return e.scope != "dm";
         });
-        console.log(this.channels_dm);
-        console.log(this.channels);
+        await this.joinChannels();
       })
       .catch((error) => {
         console.error(error);
       });
+
+    this.socket.on("connect", async () => {
+      console.log("Connection !");
+      await this.socket.emit("SetSocket");
+      await this.joinChannels();
+    });
 
     this.socket.on("UserKick", async (msg: any) => {
       console.log("you have been kick from a channel");
@@ -1217,6 +1224,17 @@ export default Vue.extend({
         });
     },
 
+    async fetchFiends() {
+      await this.$axios
+        .get("/users/friends")
+        .then((res) => {
+          this.user.friends = res.data;
+        })
+        .catch((error) => {
+          console.error(error);
+        });
+    },
+
     async createChannel() {
       console.log("this.createChannel");
       if (this.name == "") return;
@@ -1254,17 +1272,16 @@ export default Vue.extend({
 
     async joinChannels() {
       for (let i = 0; i < this.channels.length; ++i) {
-        await this.socket.emit(
-          "JoinChan",
-          {
-            channel_id: this.channels[i].id,
-            password: "",
-          },
-          (rep: any) => {
-            if (rep != null) console.log("chan joined");
-            else console.log("cannot join chan");
-          }
-        );
+        await this.socket.emit("JoinChan", {
+          channel_id: this.channels[i].id,
+          password: "",
+        });
+      }
+      for (let i = 0; i < this.channels_dm.length; ++i) {
+        await this.socket.emit("JoinChan", {
+          channel_id: this.channels_dm[i].id,
+          password: "",
+        });
       }
     },
 

@@ -47,6 +47,9 @@ export class UsersService {
 			const { password, salt, ...user } = await this.userRepository.findOne(id, { relations: ["friends", "channels", "blocked"] });
 			if (!(user as User))
 				return null;
+			var friends: User[] = user.friends;
+			friends.forEach(this.removeDataFromFriends);
+			user.friends = friends;
 			return user as User;
 		} catch (error) {
 			throw new HttpException("Query to find user failed", HttpStatus.INTERNAL_SERVER_ERROR);
@@ -59,6 +62,9 @@ export class UsersService {
 			if (!(user as User))
 				return null;
 			user.channels.forEach(e => { e.password = undefined })
+			var friends: User[] = user.friends;
+			friends.forEach(this.removeDataFromFriends);
+			user.friends = friends;
 			return user as User;
 		} catch (error) {
 			throw new HttpException("Query to find user failed", HttpStatus.INTERNAL_SERVER_ERROR);

@@ -85,6 +85,12 @@ export class UsersController {
 		return (await this.userService.findUsersByIdWithChannels(req.user["id"])).channels;
 	}
 
+	@UseGuards(JwtAuthGuard)
+	@Get('friends')
+	async getFriends(@Req() req: Request): Promise<User[]> {
+		return (await this.userService.findUsersById(req.user["id"])).friends;
+	}
+
 	@Get('deleteall')
 	async deleteUsers(): Promise<User[]> {
 		return await this.userService.removeAll();
