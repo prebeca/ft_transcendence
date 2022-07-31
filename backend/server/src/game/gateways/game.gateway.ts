@@ -1,15 +1,13 @@
 import { Inject, Logger } from "@nestjs/common";
 import { ConnectedSocket, MessageBody, OnGatewayConnection, OnGatewayDisconnect, SubscribeMessage, WebSocketGateway, WebSocketServer } from "@nestjs/websockets";
-import { time, timeLog } from "console";
 import { Server, Socket } from "socket.io";
 import { AvatarStatusGateway } from "src/users/gateways/avatarstatus.gateway";
 import { GameRoomClass } from "../classes/gameroom.class";
 import { PlayerClass } from "../classes/player.class";
-import { Game } from "../entities/game.entity";
-import BallI from "../interfaces/ballI.interface";
 import GameI from "../interfaces/gameI.interface";
 import PadI from "../interfaces/padI.interface";
 import { PlayerInfo } from "../interfaces/playerinfo.interface";
+import { GameService } from "../services/game.service";
 import { GameRoomService } from "../services/gameroom.service";
 
 export enum GameStatus {
@@ -23,14 +21,17 @@ export enum GameStatus {
 	ENDED = "ended",
 }
 
-const gameWidth = 640;
-const gameHeight = 480;
-const padWidth = 10;
-const padHeight = 100;
-const ballRadius = 7;
-const ballSpeed = 1;
-const padSpeed = 20;
-const pointToWin = 10;
+const gameWidth: number = 640;
+const gameHeight: number = 480;
+const padWidth: number = 10;
+const ballRadius: number = 7;
+const padSpeed: number = 20;
+const padHeightDefault: number = 100;
+const ballSpeedDefault: number = 1;
+var padHeight: number = padHeightDefault;
+var ballSpeed: number = ballSpeedDefault;
+var pointToWin: number;
+var difficulty: number = 1;
 
 function random_x_start(side: string) {
 	let x = Math.random() * 0.5 + 0.5;
@@ -71,15 +72,18 @@ function resetAfterPoint(game: GameI, side: string) {
 function checkCollision(game: GameI) {
 	if (game.ball.x - game.ball.r <= 0) {
 		game.score2++;
-		if (game.score2 === pointToWin)
+		if (game.score2 === pointToWin) {
 			return GameStatus.PLAYER2WON;
+		}
 		game.looserPoint = game.pad1.id;
 		return resetAfterPoint(game, "left");
 	}
 	else if (game.ball.x + game.ball.r >= game.gameWidth) {
 		game.score1++;
-		if (game.score1 === pointToWin)
+		if (game.score1 === pointToWin) {
+
 			return GameStatus.PLAYER1WON;
+		}
 		game.looserPoint = game.pad2.id;
 		return resetAfterPoint(game, "right");
 	}
@@ -124,6 +128,15 @@ function moveBall(game: GameI) {
 }
 
 function initGame(game: GameI) {
+	if (difficulty === 1) {
+		padHeight = padHeightDefault * 2;
+		ballSpeed = ballSpeedDefault / 2;
+	}
+	else if (difficulty === 3) {
+		padHeight = padHeightDefault / 2;
+		ballSpeed = ballSpeedDefault * 2;
+	}
+
 	game.gameWidth = gameWidth;
 	game.gameHeight = gameHeight;
 
@@ -161,6 +174,7 @@ function initGame(game: GameI) {
 export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
 	constructor(
 		private gameRoomService: GameRoomService,
+		private gameService: GameService
 	) { }
 
 	@WebSocketServer() server: Server;
@@ -197,7 +211,6 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
 			game.status = GameStatus.PLAYER2LEAVE;
 			this.server.to(id).emit('updateStatus', game.status);
 		}
-		//client.disconnect(true);
 	}
 
 	handleConnection(client: Socket, ...args: any[]) {
@@ -215,13 +228,16 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
 			var playerinfo: PlayerInfo = gameRoom.getPlayerInfoById(client.id);
 			if (playerinfo.player_number === 1) {
 				game.pad1.id = client.id;
+				pointToWin = gameRoom.getPoints();
+				difficulty = gameRoom.getDifficulty();
 				initGame(game);
 			}
 			else if (playerinfo.player_number === 2)
 				game.pad2.id = client.id;
 			this.gatewayStatus.inGame(playerinfo.userid);
 		}
-		client.emit("initDone", game);
+		console.log(game);
+		this.server.to(id).emit("initDone", game);
 	}
 
 	startGame(@ConnectedSocket() client: Socket, @MessageBody() id: string) {
@@ -235,9 +251,9 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
 				game.status = checkCollision(game);
 			if (game.status != GameStatus.INPROGRESS)
 				clearInterval(moveInterval);
-			// if (this.game.status === GameStatus.PLAYER1WON || this.game.status === GameStatus.PLAYER2WON)
-			// 	this.server.emit("end", this.game);
-			// else
+			if (game.status === GameStatus.PLAYER2WON || game.status === GameStatus.PLAYER1WON) {
+				this.gameService.gameFinished(this.gameRoomService.getRoomById(id), game);
+			}
 			this.server.to(id).emit("updateGame", game);
 		}, 1000 / 30);
 	}

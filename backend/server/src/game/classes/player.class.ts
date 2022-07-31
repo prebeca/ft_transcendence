@@ -10,7 +10,8 @@ export class PlayerClass {
 	public avatar: string = "";
 	public losses: number = 0;
 	public wins: number = 0;
-	public mmr: number = 0;
+	public mmr: number = 1;
 	public level: number = 0;
+	public score: number = 0;
 
 }

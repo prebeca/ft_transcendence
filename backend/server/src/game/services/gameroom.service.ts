@@ -95,6 +95,7 @@ export class GameRoomService {
 		this.rooms = [];
 		this.gameRooms.clear();
 	}
+
 	deleteRoom(roomid: string): void {
 		this.rooms = this.rooms.splice(this.rooms.indexOf(roomid), 1);
 		this.gameRooms.get(roomid).clearPlayers();
@@ -109,7 +110,7 @@ export class GameRoomService {
 		const rooms: string[] = this.getRoomsNotFull();
 
 		if (rooms.length === 0) {
-			return this.addRoom({ difficulty: 2 });
+			return this.addRoom({ difficulty: 2, points: 5 });
 		}
 		else if (rooms.length === 1) { //join the only one created
 			return rooms[0];

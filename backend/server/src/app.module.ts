@@ -7,7 +7,6 @@ import { TypeOrmConfigService } from './typeorm/typeorm.service';
 import { LoggerMiddleware } from './logger.middleware';
 import { AuthModule } from './auth/auth.module';
 import { UsersModule } from './users/users.module';
-import { ScoresModule } from './scores/scores.module';
 import { ChannelsModule } from './chat/channels/channels.module';
 import { GameModule } from './game/game.module';
 import { SocketModule } from './chat/socket/socket.module';
@@ -20,7 +19,6 @@ import { FriendsModule } from './friends/friends.module';
 		AuthModule,
 		UsersModule,
 		ChannelsModule,
-		ScoresModule,
 		GameModule,
 		SocketModule,
 		FriendsModule

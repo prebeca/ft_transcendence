@@ -1,10 +1,8 @@
-FROM node:16.15-alpine
+FROM node:16.16-alpine
 
 WORKDIR /client
 
 RUN apk update
-
-# RUN npm install -g @vue/cli
 
 EXPOSE 8080
 
