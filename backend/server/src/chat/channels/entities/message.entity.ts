@@ -19,4 +19,7 @@ export class Message {
 
 	@Column()
 	content: string;
+
+	@Column({ nullable: true })
+	challenge: boolean;
 }

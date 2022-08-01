@@ -46,15 +46,6 @@
         </v-btn>
       </template>
     </v-snackbar>
-    <v-snackbar :color="snackcolor" right v-model="snackbar" :timeout="timeout">
-      {{ notif_text }}
-
-      <template v-slot:action="{ attrs }">
-        <v-btn color="green" text v-bind="attrs" @click="acceptGame(); snackbar = false">
-          Accept
-        </v-btn>
-      </template>
-    </v-snackbar>
     <LayoutFooter />
   </v-app>
 </template>
