@@ -71,7 +71,7 @@ export class GameRoomGateway implements OnGatewayConnection, OnGatewayDisconnect
 			const player: PlayerClass = gameRoom.getPlayerById(client.id);
 			if (player) {
 				this.logger.log("sending leaving");
-				this.server.to(data).emit("p" + player.player_number + " leaving", {});
+				this.server.to(data).emit("p" + player.player_number + "leaving", {});
 				this.gatewayStatus.onConnection(player.userid);
 			}
 			gameRoom.deletePlayer(client.id);

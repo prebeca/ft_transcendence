@@ -577,7 +577,7 @@
                     <v-list-item-title
                       class="d-flex justify-center text-button"
                     >
-                      <v-btn @click="" color="primary" min-width="100%">
+                      <v-btn @click="challenge" color="primary" min-width="100%">
                         INVITE TO GAME</v-btn
                       >
                     </v-list-item-title>
@@ -835,11 +835,14 @@
                         >
                           {{ msg.user.username }}
                         </v-list-item-title>
-                        <v-list-item-content>
+                        <v-list-item-content v-if="msg.challenge === null">
                           {{ msg.content }}
                         </v-list-item-content>
                       </v-list-item-content>
                     </v-list-item>
+                    <div v-if="msg.challenge != undefined && msg.challenge === true">
+                      <v-btn @click="toChallenge(msg.content)">Click to join</v-btn>
+                    </div>
                   </td>
                   <td
                     v-if="
@@ -1452,6 +1455,27 @@ export default Vue.extend({
           });
       }
     },
+    challenge() {
+      this.$axios //-> POST CREATION WITH OPTION will generate new name and with the return the game Room will be instanciated
+        .post("/gameroom/create", {
+          difficulty: 2,
+          points: 5,
+        })
+        .then((res) => {
+            this.socket.emit("NewMessage", {
+              channel: this.currentChannel,
+              content: res.data,
+              challenge: true,
+          });
+        })
+        .catch((error) => {
+          console.log(error);
+        });
+    },
+    toChallenge(id:string) {
+      console.log("tochallenge");
+      this.$router.push({ path: "/groom/room", query: { name: id } });
+    }
   },
   components: {},
 });

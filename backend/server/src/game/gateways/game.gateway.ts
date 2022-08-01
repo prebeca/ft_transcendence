@@ -236,7 +236,6 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
 				game.pad2.id = client.id;
 			this.gatewayStatus.inGame(playerinfo.userid);
 		}
-		console.log(game);
 		this.server.to(id).emit("initDone", game);
 	}
 

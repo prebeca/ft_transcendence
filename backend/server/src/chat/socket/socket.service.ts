@@ -293,4 +293,39 @@ export class SocketService {
 		this.channelService.deleteMessage(message.id);
 		server.to(channel.id.toString()).emit("DeleteMessage", message);
 	}
+
+	async NewChallenge(user: User, data: any, server: Server) {
+
+		let channel = await this.channelService.findOneById(data.channel.id);
+
+		if (channel == null)
+			return;
+
+		// let userIsAdmin: boolean = (channel.admins.find(e => { return e.id == user.id }) != undefined ? true : false)
+		// let userIsOwner: boolean = (user.id == channel.owner.id ? true : false)
+
+		// let targetIsAdmin: boolean = (channel.admins.find(e => { return e.id == target.id }) != undefined ? true : false)
+		// let targetIOwner: boolean = (target.id == channel.owner.id ? true : false)
+
+		// if (userIsAdmin == false)
+		// 	return; // return if user is not admin
+
+		// if (targetIOwner == true)
+		// 	return; // return if target is owner
+
+		// if (targetIsAdmin && !userIsOwner)
+		// 	return; // admin cant kick admin but owner can
+
+		// if (this.channelService.addToMuteList(data) == null)
+		// 	return; // already muted
+
+		server.to(data.channel.id).emit('NewMessage', {
+			id: -1,
+			channel: channel,
+			user: user,
+			content: data.content,
+			challenge: true,
+		});
+
+	}
 }
