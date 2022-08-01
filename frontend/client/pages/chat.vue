@@ -66,7 +66,7 @@
                           </v-col>
                           <v-col cols="12" class="mt-5">
                             <v-overflow-btn
-                              v-model="choice"
+                              v-model="scope"
                               filled
                               :items="channelChoice"
                               item-value="text"
@@ -950,6 +950,7 @@ export default Vue.extend({
       choice_user: {} as User,
       currentChannel: {} as Channel,
       name: "",
+      scope: "public",
       password: "",
       channelPassword: "",
       currentPassword: "",
@@ -1236,13 +1237,13 @@ export default Vue.extend({
     },
 
     async createChannel() {
-      console.log("this.createChannel");
+      console.log(this.name);
       if (this.name == "") return;
-      if (this.choice == "") return;
+      if (this.scope == "") return;
       await this.$axios
         .post("/channels/create", {
           name: this.name,
-          scope: this.choice,
+          scope: this.scope,
           password: this.password,
         })
         .then((res) => {

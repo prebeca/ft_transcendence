@@ -50,7 +50,15 @@
       {{ notif_text }}
 
       <template v-slot:action="{ attrs }">
-        <v-btn color="green" text v-bind="attrs" @click="acceptGame(); snackbar = false">
+        <v-btn
+          color="green"
+          text
+          v-bind="attrs"
+          @click="
+            acceptGame();
+            snackbar = false;
+          "
+        >
           Accept
         </v-btn>
       </template>
@@ -143,7 +151,7 @@ export default Vue.extend({
         });
       })
       .catch((error) => {
-        console.error(error);
+        this.$router.push("/");
       });
 
     this.socket = this.$nuxtSocket({

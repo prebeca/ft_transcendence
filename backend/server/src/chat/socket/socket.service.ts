@@ -47,7 +47,6 @@ export class SocketService {
 
 		server.to(channel.id.toString()).emit("ChannelDeleted", channel.id)
 		this.channelService.deleteChannel(channel.id);
-
 	}
 
 	async newMessage(user: User, message: Message, server: Server) {
