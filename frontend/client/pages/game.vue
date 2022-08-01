@@ -174,15 +174,16 @@ export default Vue.extend({
       this.context.fill();
     },
     endGame(game: GameI) {
-      const winner = game.status;
-      this.context.fillStyle = "white";
-      this.context.font = (this.canvas.width / 10).toString() + "px serif";
-      this.context.textAlign = "center";
-      this.context.fillText(
-        winner,
-        this.canvas.width / 2,
-        this.canvas.height / 4
-      );
+      // const winner = game.status;
+      // this.context.fillStyle = "white";
+      // this.context.font = (this.canvas.width / 10).toString() + "px serif";
+      // this.context.textAlign = "center";
+      // this.context.fillText(
+      //   winner,
+      //   this.canvas.width / 2,
+      //   this.canvas.height / 4
+      // );
+      this.$router.push("/groom/score");
     },
   },
 });
