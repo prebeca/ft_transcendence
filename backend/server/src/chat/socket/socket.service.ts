@@ -292,4 +292,5 @@ export class SocketService {
 		this.channelService.deleteMessage(message.id);
 		server.to(channel.id.toString()).emit("DeleteMessage", message);
 	}
+
 }

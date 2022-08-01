@@ -69,16 +69,6 @@ export class ChannelsService {
 		return channel
 	}
 
-	// async getChannelsById(ids: number[]): Promise<Channel[]> {
-	// 	let channels: Channel[] = [];
-	// 	for (let i = 0; i < ids.length; ++i) {
-	// 		let channel = await this.channelRepository.findOne(ids[i]);
-	// 		if (channel != undefined)
-	// 			channels.push(channel)
-	// 	}
-	// 	return channels;
-	// }
-
 	async getUsers(channel_id: number): Promise<User[]> {
 		let channel = await this.channelRepository.findOne(channel_id, { relations: ["users"] });
 		let userList = [];
@@ -101,21 +91,6 @@ export class ChannelsService {
 		let channel = await this.channelRepository.findOne(channel_id, { relations: ["owner"] });
 		return await this.userService.findUsersById(channel.owner.id)
 	}
-
-	// async getMessages(user: User, channel_id: number): Promise<Message[]> {
-	// 	user = await this.userService.findUsersById(user.id)
-	// 	if (user.channels.find(e => { return e.id == channel_id }) == undefined)
-	// 		return;
-	// 	let messages: Message[] = [];
-	// 	messages = await this.messagesRepository.find({ where: { channel.id: channel_id } });
-	// 	let sendlist: Message[] = []
-	// 	for (let i = 0; i < messages.length; ++i) {
-	// 		let isblock = user.blocked.find(e => { return e.id == messages[i].user.id })
-	// 		if (isblock == undefined)
-	// 			sendlist.push(messages[i]);
-	// 	}
-	// 	return (sendlist);
-	// }
 
 	async deleteMessage(id: number) {
 		let message = await this.messagesRepository.findOne(id);
