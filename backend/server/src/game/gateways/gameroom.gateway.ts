@@ -9,6 +9,7 @@ import { GameRoomService } from "../services/gameroom.service";
 import { PlayerInfo } from "../interfaces/playerinfo.interface";
 import { Request } from "express";
 import { AvatarStatusGateway } from "src/users/gateways/avatarstatus.gateway";
+import { Game } from "../entities/game.entity";
 
 @WebSocketGateway(42041, {
 	cors: {
@@ -72,7 +73,7 @@ export class GameRoomGateway implements OnGatewayConnection, OnGatewayDisconnect
 			client.leave(data);
 			const player: PlayerClass = gameRoom.getPlayerById(client.id);
 			if (player) {
-				this.logger.log("sending pleaving");
+				this.logger.log("sending leaving");
 				this.server.to(data).emit("p" + player.player_number + "leaving", {});
 				this.gatewayStatus.onConnection(player.userid);
 			}
@@ -94,7 +95,8 @@ export class GameRoomGateway implements OnGatewayConnection, OnGatewayDisconnect
 			return;
 		}
 		client.join(roomid);
-		gameRoom.status = GAMEROOMSTATUS.WAITING;
+		if (gameRoom.status != GAMEROOMSTATUS.FULL && gameRoom.status != GAMEROOMSTATUS.INGAME)
+			gameRoom.status = GAMEROOMSTATUS.WAITING;
 		if (gameRoom.nbPlayer < this.gameRoomService.getPPG()) {
 			const user: User = { ... (req.user as User) };
 			//console.log(user);

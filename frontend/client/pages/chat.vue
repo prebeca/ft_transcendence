@@ -471,7 +471,10 @@
                       color="primary"
                       width="190px"
                       class="my-5"
-                      @click="addDMDialog = true"
+                      @click="
+                        fetchFiends();
+                        addDMDialog = true;
+                      "
                     >
                       NEW DIRECT MESSAGE
                     </v-btn>
@@ -574,7 +577,7 @@
                     <v-list-item-title
                       class="d-flex justify-center text-button"
                     >
-                      <v-btn @click="" color="primary" min-width="100%">
+                      <v-btn @click="challenge" color="primary" min-width="100%">
                         INVITE TO GAME</v-btn
                       >
                     </v-list-item-title>
@@ -832,11 +835,14 @@
                         >
                           {{ msg.user.username }}
                         </v-list-item-title>
-                        <v-list-item-content>
+                        <v-list-item-content v-if="msg.challenge === null">
                           {{ msg.content }}
                         </v-list-item-content>
                       </v-list-item-content>
                     </v-list-item>
+                    <div v-if="msg.challenge != undefined && msg.challenge === true">
+                      <v-btn @click="toChallenge(msg.content)">Click to join</v-btn>
+                    </div>
                   </td>
                   <td
                     v-if="
@@ -1005,7 +1011,6 @@ export default Vue.extend({
       .get("/users/channels")
       .then(async (res) => {
         this.channels = res.data;
-        await this.joinChannels();
         this.channels.forEach((e) => {
           e.messages.sort((a, b) => {
             return a.id - b.id;
@@ -1017,12 +1022,17 @@ export default Vue.extend({
         this.channels = this.channels.filter((e) => {
           return e.scope != "dm";
         });
-        console.log(this.channels_dm);
-        console.log(this.channels);
+        await this.joinChannels();
       })
       .catch((error) => {
         console.error(error);
       });
+
+    this.socket.on("connect", async () => {
+      console.log("Connection !");
+      await this.socket.emit("SetSocket");
+      await this.joinChannels();
+    });
 
     this.socket.on("UserKick", async (msg: any) => {
       console.log("you have been kick from a channel");
@@ -1217,6 +1227,17 @@ export default Vue.extend({
         });
     },
 
+    async fetchFiends() {
+      await this.$axios
+        .get("/users/friends")
+        .then((res) => {
+          this.user.friends = res.data;
+        })
+        .catch((error) => {
+          console.error(error);
+        });
+    },
+
     async createChannel() {
       console.log("this.createChannel");
       if (this.name == "") return;
@@ -1254,17 +1275,16 @@ export default Vue.extend({
 
     async joinChannels() {
       for (let i = 0; i < this.channels.length; ++i) {
-        await this.socket.emit(
-          "JoinChan",
-          {
-            channel_id: this.channels[i].id,
-            password: "",
-          },
-          (rep: any) => {
-            if (rep != null) console.log("chan joined");
-            else console.log("cannot join chan");
-          }
-        );
+        await this.socket.emit("JoinChan", {
+          channel_id: this.channels[i].id,
+          password: "",
+        });
+      }
+      for (let i = 0; i < this.channels_dm.length; ++i) {
+        await this.socket.emit("JoinChan", {
+          channel_id: this.channels_dm[i].id,
+          password: "",
+        });
       }
     },
 
@@ -1435,6 +1455,27 @@ export default Vue.extend({
           });
       }
     },
+    challenge() {
+      this.$axios //-> POST CREATION WITH OPTION will generate new name and with the return the game Room will be instanciated
+        .post("/gameroom/create", {
+          difficulty: 2,
+          points: 5,
+        })
+        .then((res) => {
+            this.socket.emit("NewMessage", {
+              channel: this.currentChannel,
+              content: res.data,
+              challenge: true,
+          });
+        })
+        .catch((error) => {
+          console.log(error);
+        });
+    },
+    toChallenge(id:string) {
+      console.log("tochallenge");
+      this.$router.push({ path: "/groom/room", query: { name: id } });
+    }
   },
   components: {},
 });

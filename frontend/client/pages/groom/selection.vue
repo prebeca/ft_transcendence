@@ -48,7 +48,7 @@
             height="600px"
             width="800px"
           >
-            <GameRoomDifficulty v-if="e1 === 2" />
+            <GameRoomOptionsForGame v-if="e1 === 2" />
           </v-card>
         </v-stepper-content>
 

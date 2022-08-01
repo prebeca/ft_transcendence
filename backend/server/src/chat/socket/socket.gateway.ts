@@ -100,5 +100,4 @@ export class SocketGateway {
 	async mute(@Req() req: Request, @MessageBody() data, @ConnectedSocket() client: Socket) {
 		return this.socketService.mute(req.user as User, data, this.server)
 	}
-
 }

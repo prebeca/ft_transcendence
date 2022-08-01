@@ -22,6 +22,8 @@ export class GameRoomClass {
 	public begin_date: Date = null;
 	public end_date: Date = null;
 	public finished: boolean = false;
+	public points: number = 0;
+
 	public game: GameI = {
 		gameWidth: 0,
 		gameHeight: 0,
@@ -36,6 +38,7 @@ export class GameRoomClass {
 
 	setOptions(roomname: string, createGameDto: CreateGameDto) {
 		this.difficulty = createGameDto.difficulty;
+		this.points = createGameDto.points;
 		this.roomname = roomname;
 	}
 
@@ -47,6 +50,14 @@ export class GameRoomClass {
 
 	getGame(): GameI {
 		return this.game;
+	}
+
+	getDifficulty(): number {
+		return this.difficulty;
+	}
+
+	getPoints(): number {
+		return this.points;
 	}
 
 	getPlayerById(player_id: string): PlayerClass {
