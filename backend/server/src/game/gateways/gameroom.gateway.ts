@@ -80,8 +80,9 @@ export class GameRoomGateway implements OnGatewayConnection, OnGatewayDisconnect
 			gameRoom.deletePlayer(client.id);
 			if (gameRoom.nbPlayer === 1 && gameRoom.status === GAMEROOMSTATUS.FULL)
 				gameRoom.status = GAMEROOMSTATUS.WAITING;
-			else
+			else {
 				this.gameRoomService.deleteRoom(data);
+			}
 		}
 	}
 

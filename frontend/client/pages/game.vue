@@ -71,6 +71,9 @@ export default Vue.extend({
     this.game.status = GameStatus.WAITING;
   },
   beforeMount() {
+    this.socket.on("noGame", (data) => {
+      this.$router.push("/groom/selection");
+    });
     this.socket.on("initDone", (data: GameI) => {
       this.update(data);
     });
@@ -81,7 +84,7 @@ export default Vue.extend({
       this.game.status = data;
       this.handleResize();
     });
-    this.socket.on("end", (data: GameI) => {
+    this.socket.on("endGame", (data: GameI) => {
       this.endGame(data);
     });
   },
@@ -126,11 +129,11 @@ export default Vue.extend({
       this.drawCanvas();
       this.drawPads();
       this.drawBall();
-      if (
-        this.game.status != GameStatus.INPROGRESS &&
-        this.game.status != GameStatus.WAITING
-      )
-        this.endGame(this.game);
+      // if (
+      //   this.game.status != GameStatus.INPROGRESS &&
+      //   this.game.status != GameStatus.WAITING
+      // )
+      //   this.endGame(this.game);
     },
     clearScreen() {
       this.context.clearRect(0, 0, this.canvas.width, this.canvas.height);
@@ -174,16 +177,7 @@ export default Vue.extend({
       this.context.fill();
     },
     endGame(game: GameI) {
-      // const winner = game.status;
-      // this.context.fillStyle = "white";
-      // this.context.font = (this.canvas.width / 10).toString() + "px serif";
-      // this.context.textAlign = "center";
-      // this.context.fillText(
-      //   winner,
-      //   this.canvas.width / 2,
-      //   this.canvas.height / 4
-      // );
-      this.$router.push("/groom/score");
+      this.$router.push("/groom/selection");
     },
   },
 });

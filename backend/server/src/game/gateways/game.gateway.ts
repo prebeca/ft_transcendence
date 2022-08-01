@@ -213,6 +213,7 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
 		}
 		if (game.status === GameStatus.PLAYER1LEAVE || game.status === GameStatus.PLAYER2LEAVE) {
 			this.gameService.gameFinished(gameRoom, game, id);
+			this.server.to(id).emit('endGame', game.status);
 		}
 	}
 
@@ -225,6 +226,11 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
 		console.log(`Client ${client.id} joined the game`);
 
 		let gameRoom: GameRoomClass = this.gameRoomService.getRoomById(id);
+		if (gameRoom === undefined) {
+			client.emit("noGame");
+			this.logger.log("The game does not exist anymore")
+			return;
+		}
 		let game: GameI = gameRoom.getGame();
 
 		if (!game.pad1.id || !game.pad2.id) {
@@ -256,8 +262,10 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
 				clearInterval(moveInterval);
 			if (game.status === GameStatus.PLAYER2WON || game.status === GameStatus.PLAYER1WON) { //rentre deux fois dans le DB les scores
 				this.gameService.gameFinished(gameRoom, game, id);
+				this.server.to(id).emit('endGame', game.status);
 			}
-			this.server.to(id).emit("updateGame", game);
+			else
+				this.server.to(id).emit("updateGame", game);
 		}, 1000 / 30);
 	}
 
