@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { GameRoomClass } from '../classes/gameroom.class';
+import { GameRoomClass, GAMEROOMSTATUS } from '../classes/gameroom.class';
 import { Player } from '../entities/player.entity';
 import GameI from '../interfaces/gameI.interface';
 import { Repository } from 'typeorm';
@@ -39,6 +39,7 @@ export class GameService {
 	async gameFinished(gameRoom: GameRoomClass, game: GameI, id: string) {
 		if (gameRoom.finished === true)
 			return;
+		gameRoom.status = GAMEROOMSTATUS.ENDED;
 		gameRoom.finished = true;
 		gameRoom.end_date = new Date();
 		gameRoom.end_date.toLocaleDateString();
