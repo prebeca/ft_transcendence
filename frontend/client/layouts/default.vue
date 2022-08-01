@@ -165,6 +165,7 @@ export default Vue.extend({
       console.log("Connection !");
       this.socket.emit("SetSocket");
     });
+
     this.socket.on("disconnect", async () => {
       console.log("Disconnection !");
     });

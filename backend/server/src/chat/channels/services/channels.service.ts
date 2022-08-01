@@ -84,6 +84,7 @@ export class ChannelsService {
 		for (let i = 0; i < channel.admins.length; ++i) {
 			adminList.push(await this.userService.findUsersById(channel.admins[i].id));
 		}
+		adminList.forEach(e => { e.password = undefined; e.socket_id = undefined })
 		return adminList;
 	}
 

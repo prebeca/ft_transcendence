@@ -21,6 +21,7 @@ export class SocketService {
 			return null
 		}
 
+		channel.password = undefined;
 		client.to(channel.id.toString()).emit("NewUser", { user: user, channel_id: channel.id })
 		client.join(channel.id.toString())							// join socket room
 		client.emit("JoinChan", channel)
@@ -36,6 +37,7 @@ export class SocketService {
 		this.channelService.leaveChannel(user, data);
 		client.emit("LeaveChan", { channel_id: channel.id })
 		client.to(channel.id.toString()).emit("UserLeft", { channel_id: channel.id, user_id: user.id })
+		channel.password = undefined;
 		return channel
 	}
 
@@ -142,6 +144,7 @@ export class SocketService {
 		let channel = await this.channelService.createChannel(user, { scope: "dm", name: "dm_" + user.id + "_" + target_user.id, password: "" })
 		if (typeof (channel) == "string")
 			return channel;
+
 		await this.channelService.joinChannel(target_user, { channel_id: channel.id, password: "" });
 		await this.joinChannel(user, { channel_id: channel.id, password: "" }, client)
 		server.to(target_user.socket_id).emit('PrivateMessage', { id: -1, channel: channel, user: null, content: user.username + "Invited you to chat !" });
@@ -158,6 +161,7 @@ export class SocketService {
 				user: { username: "Info" },
 				content: new_admin.username + " is now Admin ! Congrats !",
 			});
+		server.to(new_admin.socket_id).emit("Promoted", data)
 	}
 
 	async kick(user: User, data: any, server: Server) {

@@ -73,7 +73,7 @@
                             >
                             </v-overflow-btn>
                           </v-col>
-                          <v-col v-if="choice === 'protected'" cols="12">
+                          <v-col v-if="scope === 'protected'" cols="12">
                             <v-form>
                               <v-text-field
                                 v-model="password"
@@ -578,7 +578,7 @@
                       class="d-flex justify-center text-button"
                     >
                       <v-btn
-                        @click="challenge"
+                        @click="challenge(getDMUser(channel))"
                         color="primary"
                         min-width="100%"
                       >
@@ -839,7 +839,12 @@
                         >
                           {{ msg.user.username }}
                         </v-list-item-title>
-                        <v-list-item-content v-if="msg.challenge === null">
+                        <v-list-item-content
+                          v-if="
+                            msg.challenge === undefined ||
+                            msg.challenge === null
+                          "
+                        >
                           {{ msg.content }}
                         </v-list-item-content>
                       </v-list-item-content>
@@ -1195,10 +1200,28 @@ export default Vue.extend({
       }
     });
 
+    this.socket.on("Promoted", async (data: any) => {
+      if (data == null) return;
+      let channel = this.channels.find((e) => {
+        return e.id == data.channel_id;
+      });
+      if (channel == undefined) return;
+      await this.$axios
+        .get("/channels/" + channel.id + "/admins")
+        .then((res) => {
+          channel.admins = res.data;
+        })
+        .catch((error) => {
+          console.error(error);
+        });
+    });
+
     this.socket.on("DeleteMessage", async (msg: Message) => {
       console.log("Message deleted !");
       if (msg != null) {
-        let channel = this.channels.find((e) => {
+        let chans = this.channels;
+        if (msg.channel.scope == "dm") chans = this.channels_dm;
+        let channel = chans.find((e) => {
           return e.id == msg.channel.id;
         }) as Channel;
         channel.messages.splice(
@@ -1466,15 +1489,18 @@ export default Vue.extend({
           });
       }
     },
-    challenge() {
+    challenge(target: User) {
       this.$axios //-> POST CREATION WITH OPTION will generate new name and with the return the game Room will be instanciated
         .post("/gameroom/create", {
           difficulty: 2,
           points: 5,
         })
         .then((res) => {
+          let channel = this.channels_dm.find((e) => {
+            return this.getDMUser(e)?.id == target.id;
+          });
           this.socket.emit("NewMessage", {
-            channel: this.currentChannel,
+            channel: channel,
             content: res.data,
             user: this.user,
             challenge: true,

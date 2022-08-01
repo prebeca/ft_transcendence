@@ -20,33 +20,6 @@ import { ChannelsService } from '../services/channels.service';
 export class ChannelsController {
 	constructor(private readonly channelService: ChannelsService) { }
 
-	// @UseGuards(JwtAuthGuard)
-	// @Get(':id/messages')
-	// async getMessages(@Req() req: Request, @Param('id') id: number): Promise<Message[]> {
-	// 	return this.channelService.getMessages(req.user as User, id);
-	// }
-
-	// @Get('ids?:ids')
-	// getChannelsById(@Param('ids') ids: number[]) {
-	// 	return this.channelService.getChannelsById(ids);
-	// }
-
-	// @Get('delete/:id')
-	// deleteChannelsById(@Param('id', ParseIntPipe) id: number) {
-	// 	return this.channelService.remove(id);
-	// }
-
-	// @Get('deleteall')
-	// deleteChannels() {
-	// 	return this.channelService.removeAll();
-	// }
-
-	// @UseGuards(JwtAuthGuard)
-	// @Get(':id')
-	// async getChannel(@Req() req: Request, @Param('id', ParseIntPipe) id: number): Promise<Channel | String> {
-	// 	return this.channelService.getChannel(req.user as User, id);
-	// }
-
 	@UseGuards(JwtAuthGuard)
 	@Post('join')
 	async joinChannel(@Req() req: Request, @Body() data: Message): Promise<Channel | String> {

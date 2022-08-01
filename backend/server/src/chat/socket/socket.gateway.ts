@@ -7,6 +7,7 @@ import { Request } from 'express';
 import { WsJwtAuthGuard } from 'src/auth/guards/ws-jwt-auth.guard';
 import { User, Channel } from 'src/typeorm';
 import { Message } from '../channels/entities/message.entity';
+import { disconnect } from 'process';
 
 
 @WebSocketGateway({
@@ -20,6 +21,12 @@ export class SocketGateway {
 
 	@WebSocketServer()
 	server: Server;
+
+	@UseGuards(WsJwtAuthGuard)
+	@SubscribeMessage('disconnect')
+	async disconnect(@Req() req: Request, @MessageBody() data: any, @ConnectedSocket() client: Socket) {
+		console.log(req.user["username"] + " disconnected !");
+	}
 
 	@UseGuards(WsJwtAuthGuard)
 	@SubscribeMessage('Alert')
