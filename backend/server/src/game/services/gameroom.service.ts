@@ -8,9 +8,9 @@ import GameRoomInterface from '../interfaces/gameroom.interface';
 @Injectable()
 export class GameRoomService {
 
-	public rooms: string[] = []; // keeps track of every rooms created
-	private readonly ppr: number = 2; // maximum player per room/game
-	public gameRooms: Map<string, GameRoomClass> = new Map<string, GameRoomClass>(); // contains every information (every room with their uid as key and every player in every rooms)
+	public rooms: string[] = [];
+	private readonly ppr: number = 2;
+	public gameRooms: Map<string, GameRoomClass> = new Map<string, GameRoomClass>();
 
 	generate_name(): string {
 		var name: string = uuid();
@@ -97,6 +97,8 @@ export class GameRoomService {
 	}
 
 	deleteRoom(roomid: string): void {
+		if (this.rooms.indexOf(roomid) === -1)
+			return;
 		this.rooms = this.rooms.splice(this.rooms.indexOf(roomid), 1);
 		this.gameRooms.get(roomid).clearPlayers();
 		this.gameRooms.delete(roomid);
@@ -108,15 +110,15 @@ export class GameRoomService {
 
 	findRoom(user: User): string {
 		const rooms: string[] = this.getRoomsNotFull();
-
 		if (rooms.length === 0) {
 			return this.addRoom({ difficulty: 2 });
 		}
 		else if (rooms.length === 1) { //join the only one created
 			return rooms[0];
-		} else {
+		} else { /* bugs, les games ne se deletent pas correctement */
 			const players_mmr: number[] = [];
 			const players_id: string[] = [];
+			console.log("number of rooms " + rooms.length);
 			for (var i: number = 0; i < rooms.length; i++) {
 				var gameRoom: GameRoomClass = this.getRoomById(rooms[i]);
 				players_id.push(gameRoom.getPlayersId()[0]);

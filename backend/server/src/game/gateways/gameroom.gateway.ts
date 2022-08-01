@@ -47,6 +47,8 @@ export class GameRoomGateway implements OnGatewayConnection, OnGatewayDisconnect
 	@SubscribeMessage('launchGame')
 	launchGame(@MessageBody() data: string): void {
 		let gameRoom: GameRoomClass = this.gameRoomService.getRoomById(data);
+		gameRoom.begin_date = new Date();
+		gameRoom.begin_date.toLocaleDateString();
 		gameRoom.status = GAMEROOMSTATUS.INGAME;
 		this.server.to(data).emit("gamestart", data);
 	}
@@ -59,6 +61,7 @@ export class GameRoomGateway implements OnGatewayConnection, OnGatewayDisconnect
 	@SubscribeMessage('leaveRoom')
 	leaveRoom(@MessageBody() data: string, @ConnectedSocket() client: Socket): void {
 		let gameRoom: GameRoomClass = this.gameRoomService.getRoomById(data);
+		console.log("leaveRoom " + data);
 		if (gameRoom === undefined) {
 			this.logger.log("The room does not exist anymore")
 		}
@@ -74,7 +77,7 @@ export class GameRoomGateway implements OnGatewayConnection, OnGatewayDisconnect
 				this.gatewayStatus.onConnection(player.userid);
 			}
 			gameRoom.deletePlayer(client.id);
-			if (gameRoom.nbPlayer === 1)
+			if (gameRoom.nbPlayer === 1 && gameRoom.status === GAMEROOMSTATUS.FULL)
 				gameRoom.status = GAMEROOMSTATUS.WAITING;
 			else
 				this.gameRoomService.deleteRoom(data);
@@ -94,14 +97,14 @@ export class GameRoomGateway implements OnGatewayConnection, OnGatewayDisconnect
 		gameRoom.status = GAMEROOMSTATUS.WAITING;
 		if (gameRoom.nbPlayer < this.gameRoomService.getPPG()) {
 			const user: User = { ... (req.user as User) };
-			console.log(user);
+			//console.log(user);
 			gameRoom.addPlayerToRoom(client.id, user);
 			this.gatewayStatus.waiting(user.id);
 			if (gameRoom.nbPlayer === 2) {
 				gameRoom.status = GAMEROOMSTATUS.FULL;
 			}
 		}
-		this.logger.log(gameRoom);
+		this.logger.log(JSON.stringify(gameRoom));
 		this.emitPlayersToRoom(roomid, gameRoom);
 	}
 }
