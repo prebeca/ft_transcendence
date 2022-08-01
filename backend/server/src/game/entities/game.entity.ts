@@ -1,45 +1,32 @@
-import { Entity, Column, PrimaryGeneratedColumn } from "typeorm";
-
-export enum GameStatus {
-	WAITING = "waiting",
-	PLAYING = "playing",
-	ENDED = "ENDED",
-}
+import { Entity, Column, PrimaryGeneratedColumn, JoinColumn, ManyToMany, JoinTable, OneToOne, ManyToOne } from "typeorm";
+import { Player } from "./player.entity";
 
 @Entity()
 export class Game {
 
-	@PrimaryGeneratedColumn("uuid")
-	gameId: number;
+	@PrimaryGeneratedColumn({
+		type: 'bigint',
+		name: 'game_id',
+	})
+	id: number;
+
+	@ManyToOne(() => Player)
+	@JoinColumn()
+	winner: Player;
+
+	@ManyToOne(() => Player)
+	@JoinColumn()
+	looser: Player;
 
 	@Column()
-	player1: string;
+	score_winner: number;
 
 	@Column()
-	player2: string;
-
-	@Column()
-	scoreP1: string;
-
-	@Column()
-	scoreP2: string;
-
-	@Column()
-	winner: string;
-
-	@Column()
-	looser: string;
+	score_looser: number;
 
 	@Column()
 	date: string;
 
 	@Column()
-	time: number;
-
-	@Column({ type: "enum", enum: GameStatus, default: GameStatus.WAITING })
-	statut: GameStatus;
-
-	@Column("simple-array")
-	spectator: string[];
-
+	time: string;
 }

@@ -19,7 +19,11 @@ export class GameRoomClass {
 	public roomname: string = null;
 	public status: string = GAMEROOMSTATUS.WAITING;
 	public difficulty: number = 0; // 1 (easy) - 3 (hard) - speed of ball and maybe height of pads
+	public begin_date: Date = null;
+	public end_date: Date = null;
+	public finished: boolean = false;
 	public points: number = 0;
+
 	public game: GameI = {
 		gameWidth: 0,
 		gameHeight: 0,

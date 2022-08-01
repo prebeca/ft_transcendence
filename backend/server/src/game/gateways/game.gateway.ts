@@ -198,18 +198,24 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
 		console.log("leave = " + id);
 		if (id === null)
 			return;
-		let game: GameI = this.gameRoomService.getRoomById(id).getGame();
+		let gameRoom: GameRoomClass = this.gameRoomService.getRoomById(id);
+		if (!gameRoom || gameRoom.finished)
+			return;
+		let game: GameI = gameRoom.getGame();
 		if (game.pad1.id === client.id) {
-			var pc: PlayerClass = this.gameRoomService.getRoomById(id).getPlayerById(client.id);
+			var pc: PlayerClass = gameRoom.getPlayerById(client.id);
 			this.gatewayStatus.backToConnected(pc.userid);
 			game.status = GameStatus.PLAYER1LEAVE;
 			this.server.to(id).emit('updateStatus', game.status);
 		}
 		if (game.pad2.id === client.id) {
-			var pc: PlayerClass = this.gameRoomService.getRoomById(id).getPlayerById(client.id);
+			var pc: PlayerClass = gameRoom.getPlayerById(client.id);
 			this.gatewayStatus.backToConnected(pc.userid);
 			game.status = GameStatus.PLAYER2LEAVE;
 			this.server.to(id).emit('updateStatus', game.status);
+		}
+		if (game.status === GameStatus.PLAYER1LEAVE || game.status === GameStatus.PLAYER2LEAVE) {
+			this.gameService.gameFinished(gameRoom, game, id);
 		}
 	}
 
@@ -240,7 +246,8 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
 	}
 
 	startGame(@ConnectedSocket() client: Socket, @MessageBody() id: string) {
-		let game: GameI = this.gameRoomService.getRoomById(id).getGame();
+		let gameRoom: GameRoomClass = this.gameRoomService.getRoomById(id);
+		let game: GameI = gameRoom.getGame();
 		let moveInterval: NodeJS.Timer;
 
 		game.status = GameStatus.INPROGRESS;
@@ -250,8 +257,8 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
 				game.status = checkCollision(game);
 			if (game.status != GameStatus.INPROGRESS)
 				clearInterval(moveInterval);
-			if (game.status === GameStatus.PLAYER2WON || game.status === GameStatus.PLAYER1WON) {
-				this.gameService.gameFinished(this.gameRoomService.getRoomById(id), game);
+			if (game.status === GameStatus.PLAYER2WON || game.status === GameStatus.PLAYER1WON) { //rentre deux fois dans le DB les scores
+				this.gameService.gameFinished(gameRoom, game, id);
 			}
 			this.server.to(id).emit("updateGame", game);
 		}, 1000 / 30);
