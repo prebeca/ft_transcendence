@@ -72,18 +72,15 @@ function resetAfterPoint(game: GameI, side: string) {
 function checkCollision(game: GameI) {
 	if (game.ball.x - game.ball.r <= 0) {
 		game.score2++;
-		if (game.score2 === pointToWin) {
+		if (game.score2 === pointToWin)
 			return GameStatus.PLAYER2WON;
-		}
 		game.looserPoint = game.pad1.id;
 		return resetAfterPoint(game, "left");
 	}
 	else if (game.ball.x + game.ball.r >= game.gameWidth) {
 		game.score1++;
-		if (game.score1 === pointToWin) {
-
+		if (game.score1 === pointToWin)
 			return GameStatus.PLAYER1WON;
-		}
 		game.looserPoint = game.pad2.id;
 		return resetAfterPoint(game, "right");
 	}

@@ -73,7 +73,7 @@ export class GameRoomGateway implements OnGatewayConnection, OnGatewayDisconnect
 			client.leave(data);
 			const player: PlayerClass = gameRoom.getPlayerById(client.id);
 			if (player) {
-				this.logger.log("sending leaving");
+				this.logger.log("sending pleaving");
 				this.server.to(data).emit("p" + player.player_number + "leaving", {});
 				this.gatewayStatus.onConnection(player.userid);
 			}
@@ -99,7 +99,6 @@ export class GameRoomGateway implements OnGatewayConnection, OnGatewayDisconnect
 			gameRoom.status = GAMEROOMSTATUS.WAITING;
 		if (gameRoom.nbPlayer < this.gameRoomService.getPPG()) {
 			const user: User = { ... (req.user as User) };
-			//console.log(user);
 			gameRoom.addPlayerToRoom(client.id, user);
 			this.gatewayStatus.waiting(user.id);
 			if (gameRoom.nbPlayer === 2) {
