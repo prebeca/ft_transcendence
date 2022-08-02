@@ -20,7 +20,6 @@ export class Player {
 	@Column({ default: 1 })
 	mmr: number;
 
-	/* 
-		INSERT HERE TO ADD PERSONAL ACHIEVEMENTS like badge obtained etc
-	*/
+	@Column({ default: 0 })
+	xp: number;
 }

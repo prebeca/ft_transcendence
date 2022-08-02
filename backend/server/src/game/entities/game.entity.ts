@@ -27,6 +27,18 @@ export class Game {
 	@Column()
 	score_looser: number;
 
+	@Column({ default: 0 })
+	xp_winner: number;
+
+	@Column({ default: 0 })
+	xp_looser: number;
+
+	@Column({ default: 0 })
+	level_winner: number;
+
+	@Column({ default: 0 })
+	level_looser: number;
+
 	@Column()
 	date: string;
 
