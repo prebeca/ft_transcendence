@@ -45,6 +45,12 @@ export class GameService {
 		return match;
 	}
 
+	async getHistoryByPlayerId(playerid: number): Promise<Game[]> {
+		const player: Player = await this.playerRepository.findOne({ id: playerid });
+		const games: Game[] = await this.gameRepository.find({ where: [{ winner: player }, { looser: player }] });
+		return games;
+	}
+
 	calculate_new_xp(xp: number, level: number, goals: number, difficulty: string, mmr: number, winner: boolean): { new_xp: number, new_level: number, new_mmr: number } {
 		let new_xp: number = xp;
 		let new_level: number = level;
