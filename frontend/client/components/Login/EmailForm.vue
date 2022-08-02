@@ -1,7 +1,13 @@
 <template>
   <v-dialog v-model="dialog" persistent max-width="600px" min-width="360px">
     <div>
-      <v-tabs v-model="tab" show-arrows background-color="primary" icons-and-text grow>
+      <v-tabs
+        v-model="tab"
+        show-arrows
+        background-color="primary"
+        icons-and-text
+        grow
+      >
         <v-tabs-slider color="accent"></v-tabs-slider>
         <v-tab>
           <v-icon large>{{ tabs[0].icon }}</v-icon>
@@ -17,29 +23,66 @@
               <v-form ref="loginForm" v-model="valid" lazy-validation>
                 <v-row>
                   <v-col cols="12">
-                    <v-text-field v-model="loginEmail" :rules="loginEmailRules" label="E-mail" required color="info">
+                    <v-text-field
+                      v-model="loginEmail"
+                      :rules="loginEmailRules"
+                      label="E-mail"
+                      required
+                      color="info"
+                    >
                     </v-text-field>
                   </v-col>
                   <v-col cols="12">
-                    <v-text-field v-model="loginPassword" :append-icon="show1 ? 'eye' : 'eye-off'"
-                      :rules="[rules.required, rules.min]" :type="show1 ? 'text' : 'password'" name="input-10-1"
-                      label="Password" hint="At least 8 characters" counter @click:append="show1 = !show1" color="info">
+                    <v-text-field
+                      v-model="loginPassword"
+                      :append-icon="show1 ? 'eye' : 'eye-off'"
+                      :rules="[rules.required, rules.min]"
+                      :type="show1 ? 'text' : 'password'"
+                      name="input-10-1"
+                      label="Password"
+                      hint="At least 8 characters"
+                      counter
+                      @click:append="show1 = !show1"
+                      color="info"
+                    >
                     </v-text-field>
                   </v-col>
                   <v-col class="d-flex" cols="12"></v-col>
                   <v-spacer></v-spacer>
-                  <v-col class="d-flex ml-auto" cols="12" sm="3" xsm="12" align-end>
-                    <v-dialog v-model="passwordDialog" persistent max-width="290">
+                  <v-col
+                    class="d-flex ml-auto"
+                    cols="12"
+                    sm="3"
+                    xsm="12"
+                    align-end
+                  >
+                    <v-dialog
+                      v-model="passwordDialog"
+                      persistent
+                      max-width="290"
+                    >
                       <template v-slot:activator="{ on }">
-                        <v-btn x-large block :disabled="!valid" color="success" @click="validateLogin">
+                        <v-btn
+                          x-large
+                          block
+                          :disabled="!valid"
+                          color="success"
+                          @click="validateLogin"
+                          v-on="on"
+                        >
                           Login
                         </v-btn>
                       </template>
                       <v-card color="secondary">
-                        <v-card-text class="text-h6 pt-5">Wrong password. Try again !</v-card-text>
+                        <v-card-text class="text-h6 pt-5"
+                          >Wrong password. Try again !</v-card-text
+                        >
                         <v-card-actions>
                           <v-spacer></v-spacer>
-                          <v-btn color="primary" @click="passwordDialog = false">
+                          <v-btn
+                            color="primary"
+                            @click="passwordDialog = false"
+                          >
                             OK
                           </v-btn>
                         </v-card-actions>
@@ -57,38 +100,86 @@
               <v-form ref="registerForm" v-model="valid" lazy-validation>
                 <v-row>
                   <v-col cols="12">
-                    <v-text-field v-model="username" :rules="[rules.required]" label="Username" maxlength="20" required
-                      color="info"></v-text-field>
+                    <v-text-field
+                      v-model="username"
+                      :rules="[rules.required]"
+                      label="Username"
+                      maxlength="20"
+                      required
+                      color="info"
+                    ></v-text-field>
                   </v-col>
                   <v-col cols="12">
-                    <v-text-field v-model="email" :rules="emailRules" label="E-mail" required color="info">
+                    <v-text-field
+                      v-model="email"
+                      :rules="emailRules"
+                      label="E-mail"
+                      required
+                      color="info"
+                    >
                     </v-text-field>
                   </v-col>
                   <v-col cols="12">
-                    <v-text-field v-model="password" :append-icon="show1 ? 'mdi-eye' : 'mdi-eye-off'"
-                      :rules="[rules.required, rules.min]" :type="show1 ? 'text' : 'password'" name="input-10-1"
-                      label="Password" hint="At least 8 characters" counter @click:append="show1 = !show1" color="info">
+                    <v-text-field
+                      v-model="password"
+                      :append-icon="show1 ? 'mdi-eye' : 'mdi-eye-off'"
+                      :rules="[rules.required, rules.min]"
+                      :type="show1 ? 'text' : 'password'"
+                      name="input-10-1"
+                      label="Password"
+                      hint="At least 8 characters"
+                      counter
+                      @click:append="show1 = !show1"
+                      color="info"
+                    >
                     </v-text-field>
                   </v-col>
                   <v-col cols="12">
-                    <v-text-field block v-model="verify" :append-icon="show1 ? 'mdi-eye' : 'mdi-eye-off'"
-                      :rules="[rules.required, passwordMatch]" :type="show1 ? 'text' : 'password'" name="input-10-1"
-                      label="Confirm Password" counter @click:append="show1 = !show1" color="info"></v-text-field>
+                    <v-text-field
+                      block
+                      v-model="verify"
+                      :append-icon="show1 ? 'mdi-eye' : 'mdi-eye-off'"
+                      :rules="[rules.required, passwordMatch]"
+                      :type="show1 ? 'text' : 'password'"
+                      name="input-10-1"
+                      label="Confirm Password"
+                      counter
+                      @click:append="show1 = !show1"
+                      color="info"
+                    ></v-text-field>
                   </v-col>
                   <v-spacer></v-spacer>
                   <v-col class="d-flex ml-auto" cols="12" sm="3" xsm="12">
-                    <v-dialog v-model="registerDialog" persistent max-width="290">
+                    <v-dialog
+                      v-model="registerDialog"
+                      persistent
+                      max-width="290"
+                    >
                       <template v-slot:activator="{ on }">
-                        <v-btn v-on="on" x-large block :disabled="!valid" color="success" @click="validateRegister">
+                        <v-btn
+                          v-on="on"
+                          x-large
+                          block
+                          :disabled="!valid"
+                          color="success"
+                          @click="validateRegister"
+                        >
                           Register
                         </v-btn>
                       </template>
                       <v-card color="secondary">
-                        <v-card-text class="text-h6 pt-5">Your account has been created.</v-card-text>
-                        <v-card-text class="text-h6">You can now Log In !</v-card-text>
+                        <v-card-text class="text-h6 pt-5"
+                          >Your account has been created.</v-card-text
+                        >
+                        <v-card-text class="text-h6"
+                          >You can now Log In !</v-card-text
+                        >
                         <v-card-actions>
                           <v-spacer></v-spacer>
-                          <v-btn color="success" @click="registerDialog = false">
+                          <v-btn
+                            color="success"
+                            @click="registerDialog = false"
+                          >
                             OK
                           </v-btn>
                         </v-card-actions>

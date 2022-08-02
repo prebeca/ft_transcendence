@@ -1,8 +1,27 @@
 <template>
   <div
     id="gameDetails"
-    style="height: 80vh; max-height: 100%; row-gap: 50px"
-  ></div>
+    tyle="height: 80vh; max-height: 100%; row-gap: 50px"
+    class="d-flex flex-column justify-center align-center"
+  >
+    <div class="d-flex align-center" style="column-gap: 20px">
+      <GameRoomWinnerLooserCard
+        :player="game_details.winner"
+        title="WINNER"
+        :score="game_details.score_winner"
+        :level="game_details.level_winner"
+        :xp="game_details.xp_winner"
+      />
+      <h1>VS</h1>
+      <GameRoomWinnerLooserCard
+        :player="game_details.looser"
+        title="LOOSER"
+        :score="game_details.score_looser"
+        :level="game_details.level_looser"
+        :xp="game_details.xp_looser"
+      />
+    </div>
+  </div>
 </template>
 
 <script lang="ts">
@@ -21,6 +40,7 @@ export default Vue.extend({
           mmr: 0,
           wins: 0,
           losses: 0,
+          xp: 0,
         },
         looser: {
           username: "",
@@ -29,6 +49,7 @@ export default Vue.extend({
           mmr: 0,
           wins: 0,
           losses: 0,
+          xp: 0,
         },
         score_winner: 0,
         score_looser: 0,
