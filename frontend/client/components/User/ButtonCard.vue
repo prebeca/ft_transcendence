@@ -10,13 +10,13 @@
       <img :src="user.avatar" alt="avatar" />
     </v-avatar>
 
-    <v-card-actions v-if="isUser === false">
+    <v-card-actions v-if="!user.isUser">
       <div class="pt-2">
         <div>
           <v-btn
             color="success"
             width="200px"
-            v-if="isFriend === false"
+            v-if="!user.isFriend"
             @click="addFriend"
           >
             Add Friend
@@ -27,7 +27,12 @@
         </div>
 
         <div class="pt-2">
-          <v-btn color="accent" width="200px" v-if="!isBlocked" @click="block">
+          <v-btn
+            color="accent"
+            width="200px"
+            v-if="!user.isBlocked"
+            @click="block"
+          >
             Block User
           </v-btn>
           <v-btn color="primary" width="200px" v-else @click="unblock">
@@ -52,9 +57,6 @@ export default Vue.extend({
   name: "ButtonCard",
   data() {
     return {
-      isUser: false,
-      isFriend: false,
-      isBlocked: false,
       currentUser: {
         id: "",
         blocked: [] as any,
@@ -72,44 +74,14 @@ export default Vue.extend({
       required: true,
     },
   },
-  created: async function () {
-    await this.$axios
-      .get("/users/profile")
-      .then((res) => {
-        console.log(res.data);
-        this.currentUser = res.data;
-        if (this.currentUser.id === this.user.id) {
-          this.isUser = true;
-        }
-        if (
-          this.currentUser.friends.find((e) => {
-            return e.id == this.user.id;
-          })
-        )
-          this.isFriend = true;
-      })
-      .catch((error) => {
-        console.error(error);
-      });
-
-    console.log(this.currentUser.blocked);
-    if (this.currentUser.blocked !== undefined) {
-      if (
-        this.currentUser.blocked.find((e: any) => {
-          return e.id == this.user.id;
-        }) != undefined
-      )
-        this.isBlocked = true;
-    }
-  },
   methods: {
     async block() {
       console.log("block user");
       await this.$axios
         .post("users/block/" + this.user.id)
         .then((res) => {
-          this.isBlocked = true;
-          this.isFriend = false;
+          this.user.isBlocked = true;
+          this.user.isFriend = false;
         })
         .catch((error) => {
           console.log(error);
@@ -120,7 +92,7 @@ export default Vue.extend({
       await this.$axios
         .post("users/unblock/" + this.user.id)
         .then((res) => {
-          this.isBlocked = false;
+          this.user.isBlocked = false;
         })
         .catch((error) => {
           console.log(error);
@@ -133,7 +105,7 @@ export default Vue.extend({
         })
         .then((res) => {
           console.log(res);
-          this.isFriend = true;
+          this.user.isFriend = true;
         })
         .catch((error) => {
           console.log(error);
@@ -146,7 +118,7 @@ export default Vue.extend({
         })
         .then((res) => {
           console.log(res);
-          this.isFriend = false;
+          this.user.isFriend = false;
         })
         .catch((error) => {
           console.log(error);

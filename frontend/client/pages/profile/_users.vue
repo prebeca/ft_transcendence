@@ -19,14 +19,35 @@ export default Vue.extend({
   data() {
     return {
       currentUser: {
-        avatar: "",
+        id: "",
+        blocked: [] as any,
+        friends: [
+          {
+            id: "",
+          },
+        ],
       },
       user: {
         avatar: "",
         player: {},
         friends: [],
+        id: "",
+        isUser: false,
+        isFriend: false,
+        isBlocked: false,
       },
     };
+  },
+  created: async function () {
+    await this.$axios
+      .get("/users/profile")
+      .then((res) => {
+        console.log(res.data);
+        this.currentUser = res.data;
+      })
+      .catch((error) => {
+        console.error(error);
+      });
   },
   mounted() {
     this.getUser(this.$route.params.users);
@@ -43,6 +64,23 @@ export default Vue.extend({
         .then((res) => {
           this.user = res.data;
           if (this.user !== null) this.changeAvatar(this.user.avatar);
+          if (this.currentUser.id === this.user.id) {
+            this.user.isUser = true;
+          }
+          if (
+            this.currentUser.friends.find((e) => {
+              return e.id == this.user.id;
+            })
+          )
+            this.user.isFriend = true;
+          if (this.currentUser.blocked !== undefined) {
+            if (
+              this.currentUser.blocked.find((e: any) => {
+                return e.id == this.user.id;
+              }) != undefined
+            )
+              this.user.isBlocked = true;
+          }
         })
         .catch((error) => {
           console.error(error);
@@ -51,6 +89,23 @@ export default Vue.extend({
     changeAvatar(filename: string) {
       this.user.avatar =
         `${process.env.API_URL}/users/profile/avatar/` + filename;
+      if (this.currentUser.id === this.user.id) {
+        this.user.isUser = true;
+      }
+      if (
+        this.currentUser.friends.find((e) => {
+          return e.id == this.user.id;
+        })
+      )
+        this.user.isFriend = true;
+      if (this.currentUser.blocked !== undefined) {
+        if (
+          this.currentUser.blocked.find((e: any) => {
+            return e.id == this.user.id;
+          }) != undefined
+        )
+          this.user.isBlocked = true;
+      }
     },
   },
 });
