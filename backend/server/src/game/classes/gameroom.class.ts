@@ -18,7 +18,7 @@ export class GameRoomClass {
 	public nbPlayer: number = 0;
 	public roomname: string = null;
 	public status: string = GAMEROOMSTATUS.WAITING;
-	public difficulty: number = 0; // 1 (easy) - 3 (hard) - speed of ball and maybe height of pads
+	public difficulty: string = "Medium"; // 1 (easy) - 3 (hard) - speed of ball and maybe height of pads
 	public begin_date: Date = null;
 	public end_date: Date = null;
 	public finished: boolean = false;
@@ -52,7 +52,7 @@ export class GameRoomClass {
 		return this.game;
 	}
 
-	getDifficulty(): number {
+	getDifficulty(): string {
 		return this.difficulty;
 	}
 

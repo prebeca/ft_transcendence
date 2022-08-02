@@ -2,10 +2,12 @@ import { IsNumber, IsString } from "class-validator";
 
 export class CreateGameDto {
 
-	@IsNumber()
-	difficulty: number;
+	@IsString()
+	difficulty: string;
 
 	@IsNumber()
 	points: number;
 
+	@IsString()
+	map: string;
 }
