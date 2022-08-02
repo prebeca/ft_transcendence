@@ -194,6 +194,14 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
 		this.leaveGame(client, this.gameRoomService.getRoomNameByPlayerId(client.id));
 	}
 
+	gameEnded(gameRoom: GameRoomClass, game: GameI, id: string) {
+		this.gameService.gameFinished(gameRoom, game, id);
+		for (const [sid, player] of gameRoom.mapPlayers) {
+			this.gatewayStatus.backToConnected(player.userid);
+		}
+		this.server.to(id).emit('endGame', game.status);
+	}
+
 	@SubscribeMessage('leaveGame')
 	leaveGame(@ConnectedSocket() client: Socket, @MessageBody() id: string) {
 		console.log("leave = " + id);
@@ -216,8 +224,7 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
 			this.server.to(id).emit('updateStatus', game.status);
 		}
 		if (game.status === GameStatus.PLAYER1LEAVE || game.status === GameStatus.PLAYER2LEAVE) {
-			this.gameService.gameFinished(gameRoom, game, id);
-			this.server.to(id).emit('endGame', game.status);
+			this.gameEnded(gameRoom, game, id);
 		}
 	}
 
@@ -265,8 +272,7 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
 			if (game.status != GameStatus.INPROGRESS)
 				clearInterval(moveInterval);
 			if (game.status === GameStatus.PLAYER2WON || game.status === GameStatus.PLAYER1WON) { //rentre deux fois dans le DB les scores
-				this.gameService.gameFinished(gameRoom, game, id);
-				this.server.to(id).emit('endGame', game.status);
+				this.gameEnded(gameRoom, game, id);
 			}
 			else
 				this.server.to(id).emit("updateGame", game);
