@@ -177,7 +177,7 @@ export default Vue.extend({
       this.context.fill();
     },
     endGame(game: GameI) {
-      this.$router.push("/groom/selection");
+      this.$router.push("/groom/score");
     },
   },
 });

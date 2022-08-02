@@ -44,7 +44,8 @@
   -->
 
   <v-form ref="form" class="d-flex flex-column" style="row-gap: 40px">
-    <h1>Select your difficulty</h1>
+
+   <!-- <h2>Select your difficulty</h2>
     <v-slider
       v-model="difficulty"
       thumb-label="always"
@@ -58,8 +59,34 @@
           {{ difficulty }}
         </span>
       </template>
-    </v-slider>
-    <h1>Select score for win</h1>
+    </v-slider>-->
+
+    <h2>Select the difficulty</h2>
+    <v-radio-group
+      v-model="difficulty"
+      row
+    >
+      <v-radio
+        label=Easy
+        value="Easy"
+      ></v-radio>
+      <v-radio
+        label=Medium
+        value="Medium"
+      ></v-radio>
+      <v-radio
+        label=Hard
+        value="Hard"
+      ></v-radio>
+      </v-radio-group>
+      <template v-slot:thumb-label>
+        <span class="font-weight-bold" style="font-size: 15px">
+          {{ difficulty }}
+        </span>
+      </template>
+
+
+    <h2>Select score for win</h2>
     <v-slider
       v-model="points"
       thumb-label="always"
@@ -74,6 +101,27 @@
         </span>
       </template>
     </v-slider>
+
+
+    <h2>Select map</h2>
+    <v-radio-group
+      v-model="map"
+      row
+    >
+      <v-radio
+        label=Pong
+        value="Pong"
+      ></v-radio>
+      <v-radio
+        label=Tennis
+        value="Tennis"
+      ></v-radio>
+      </v-radio-group>
+      <template v-slot:thumb-label>
+        <span class="font-weight-bold" style="font-size: 15px">
+          {{ map }}
+        </span>
+      </template>
     <v-btn color="accent" @click="validate"> Validate </v-btn>
   </v-form>
 
@@ -85,8 +133,9 @@ import Vue from "vue";
 export default Vue.extend({
   data() {
     return {
-      difficulty: 2,
+      difficulty: "Medium",
       points: 5,
+      map: "Pong",
     };
   },
   methods: {
@@ -95,6 +144,7 @@ export default Vue.extend({
         .post("/gameroom/create", {
           difficulty: this.difficulty,
           points: this.points,
+          map: this.map,
         })
         .then((res) => {
           this.$router.push({ path: "/groom/room", query: { name: res.data } });
