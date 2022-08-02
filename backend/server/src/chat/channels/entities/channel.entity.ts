@@ -23,9 +23,6 @@ export class Channel {
 	@Column({ nullable: true })
 	password: string;
 
-	@Column({ nullable: true })
-	image_url: string;
-
 	@ManyToOne(() => User)
 	@JoinTable()
 	owner: User

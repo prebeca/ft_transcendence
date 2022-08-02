@@ -282,6 +282,36 @@
                                 >
                               </v-list-item-title>
                             </v-list-item>
+                            <div v-if="!isBlocked(player)">
+                              <v-list-item dense>
+                                <v-list-item-title
+                                  class="d-flex justify-center text-button"
+                                >
+                                  <v-btn
+                                    @click="blockUser(player)"
+                                    color="accent"
+                                    min-width="100%"
+                                  >
+                                    BLOCK</v-btn
+                                  >
+                                </v-list-item-title>
+                              </v-list-item>
+                            </div>
+                            <div v-else>
+                              <v-list-item dense>
+                                <v-list-item-title
+                                  class="d-flex justify-center text-button"
+                                >
+                                  <v-btn
+                                    @click="unblockUser(player)"
+                                    color="success"
+                                    min-width="100%"
+                                  >
+                                    UNBLOCK</v-btn
+                                  >
+                                </v-list-item-title>
+                              </v-list-item>
+                            </div>
                             <div v-if="isAdmin(channel) === true">
                               <v-list-item dense>
                                 <v-list-item-title
@@ -416,19 +446,6 @@
                                       </v-card-actions>
                                     </v-card>
                                   </v-dialog>
-                                </v-list-item-title>
-                              </v-list-item>
-                              <v-list-item dense>
-                                <v-list-item-title
-                                  class="d-flex justify-center text-button"
-                                >
-                                  <v-btn
-                                    @click="blockUser(player.id)"
-                                    color="accent"
-                                    min-width="100%"
-                                  >
-                                    BLOCK</v-btn
-                                  >
                                 </v-list-item-title>
                               </v-list-item>
                               <div v-if="isOwner(channel) === true">
@@ -587,25 +604,36 @@
                       >
                     </v-list-item-title>
                   </v-list-item>
-                  <v-list-item dense>
-                    <v-list-item-title
-                      class="d-flex justify-center text-button"
-                    >
-                      <v-btn
-                        @click="
-                          () => {
-                            let user = getDMUser(channel);
-                            if (user == undefined) return;
-                            blockUser(user.id);
-                          }
-                        "
-                        color="accent"
-                        min-width="100%"
+                  <div v-if="!isBlocked(getDMUser(channel))">
+                    <v-list-item dense>
+                      <v-list-item-title
+                        class="d-flex justify-center text-button"
                       >
-                        BLOCK</v-btn
+                        <v-btn
+                          @click="blockUser(getDMUser(channel))"
+                          color="accent"
+                          min-width="100%"
+                        >
+                          BLOCK</v-btn
+                        >
+                      </v-list-item-title>
+                    </v-list-item>
+                  </div>
+                  <div v-else>
+                    <v-list-item dense>
+                      <v-list-item-title
+                        class="d-flex justify-center text-button"
                       >
-                    </v-list-item-title>
-                  </v-list-item>
+                        <v-btn
+                          @click="unblockUser(getDMUser(channel))"
+                          color="success"
+                          min-width="100%"
+                        >
+                          UNBLOCK</v-btn
+                        >
+                      </v-list-item-title>
+                    </v-list-item>
+                  </div>
                   <v-divider
                     v-if="index < users.length - 1"
                     :key="index"
@@ -939,6 +967,7 @@ interface User {
   id: number;
   username: string;
   friends: User[];
+  blocked: User[];
 }
 
 export default Vue.extend({
@@ -1238,8 +1267,28 @@ export default Vue.extend({
   },
   computed: {},
   methods: {
-    blockUser(user_id: number) {
-      this.$axios.post("/users/block/" + user_id);
+    async blockUser(user: User) {
+      await this.$axios.post("/users/block/" + user.id);
+      let i = this.user.blocked.findIndex((e: User) => {
+        return e.id == user.id;
+      });
+      if (i == -1) this.user.blocked.push(user);
+    },
+
+    async unblockUser(user: User) {
+      await this.$axios.post("/users/unblock/" + user.id);
+      let i = this.user.blocked.findIndex((e: User) => {
+        return e.id == user.id;
+      });
+      if (i != -1) this.user.blocked.splice(i, 1);
+    },
+
+    isBlocked(user: User) {
+      return (
+        this.user.blocked.find((e: User) => {
+          return e.id == user.id;
+        }) != undefined
+      );
     },
 
     scrollToNewMsg() {
@@ -1312,12 +1361,6 @@ export default Vue.extend({
       for (let i = 0; i < this.channels.length; ++i) {
         await this.socket.emit("JoinChan", {
           channel_id: this.channels[i].id,
-          password: "",
-        });
-      }
-      for (let i = 0; i < this.channels_dm.length; ++i) {
-        await this.socket.emit("JoinChan", {
-          channel_id: this.channels_dm[i].id,
           password: "",
         });
       }
@@ -1404,6 +1447,11 @@ export default Vue.extend({
     async sendMessage() {
       if (this.input.length == 0) return;
       if (this.currentChannel.id == undefined) return;
+
+      console.log({
+        channel: this.currentChannel,
+        content: this.input,
+      });
 
       await this.socket.emit("NewMessage", {
         channel: this.currentChannel,
