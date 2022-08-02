@@ -36,16 +36,6 @@ export class UsersController {
 	}
 
 	@UseGuards(JwtTwoFactorAuthGuard)
-	@Get('/:username')
-	async getProfileById(@Param('username') username: string): Promise<User> {
-		const user: User = (await this.userService.findOneByUsername(username));
-		if (!user)
-			return null;
-		const user_to_return: User = (await this.userService.findUsersByIdWithRelations(user.id));
-		return user_to_return;
-	}
-
-	@UseGuards(JwtTwoFactorAuthGuard)
 	@Post('profile/update/userinfos')
 	async updateUserinfo(@Req() req: Request): Promise<boolean> {
 		const user: User = { ... (req.user as User) };
@@ -105,6 +95,16 @@ export class UsersController {
 	@Get('deleteall')
 	async deleteUsers(): Promise<User[]> {
 		return await this.userService.removeAll();
+	}
+
+	@UseGuards(JwtTwoFactorAuthGuard)
+	@Get('/:username')
+	async getProfileById(@Param('username') username: string): Promise<User> {
+		const user: User = (await this.userService.findOneByUsername(username));
+		if (!user)
+			return null;
+		const user_to_return: User = (await this.userService.findUsersByIdWithRelations(user.id));
+		return user_to_return;
 	}
 
 	@UseGuards(JwtAuthGuard)
