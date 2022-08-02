@@ -31,7 +31,7 @@ const ballSpeedDefault: number = 1;
 var padHeight: number = padHeightDefault;
 var ballSpeed: number = ballSpeedDefault;
 var pointToWin: number;
-var difficulty: number = 1;
+var difficulty: string = "Medium";
 
 function random_x_start(side: string) {
 	let x = Math.random() * 0.5 + 0.5;
@@ -125,13 +125,17 @@ function moveBall(game: GameI) {
 }
 
 function initGame(game: GameI) {
-	if (difficulty === 1) {
+	if (difficulty === "Easy") {
 		padHeight = padHeightDefault * 2;
 		ballSpeed = ballSpeedDefault / 2;
 	}
-	else if (difficulty === 3) {
+	else if (difficulty === "Hard") {
 		padHeight = padHeightDefault / 2;
 		ballSpeed = ballSpeedDefault * 2;
+	}
+	else {
+		padHeight = padHeightDefault;
+		ballSpeed = ballSpeedDefault;
 	}
 
 	game.gameWidth = gameWidth;
