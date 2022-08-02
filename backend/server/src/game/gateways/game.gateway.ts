@@ -83,28 +83,22 @@ function checkCollision(game: GameI) {
 		game.looserPoint = game.pad2.id;
 		return resetAfterPoint(game, "right");
 	}
-	else if (game.ball.x - game.ball.r <= game.pad1.x + game.pad1.width && game.ball.x + game.ball.r >= game.pad1.x) {
-		if (game.ball.y - game.ball.r <= game.pad1.y + game.pad1.height && game.ball.y + game.ball.r >= game.pad1.y) {
-
-			game.ball.dir.x *= -1;
-
-			if ((game.ball.y - game.ball.r < game.pad1.y + game.pad1.height && game.ball.y + game.ball.r > game.pad1.y + game.pad1.height ||
-				game.ball.y + game.ball.r > game.pad1.y && game.ball.y - game.ball.r < game.pad1.y) &&
-				game.ball.x - game.ball.r < game.pad1.x + game.pad1.width) {
-				game.ball.dir.y *= -1;
-			}
+	else if (game.ball.x - game.ball.r < game.pad1.x + game.pad1.width && game.pad1.x < game.ball.x + game.ball.r &&
+		game.pad1.y < game.ball.y + game.ball.r && game.pad1.height + game.pad1.y > game.ball.y - game.ball.r) {
+		game.ball.dir.x *= -1;
+		if ((game.ball.y - game.ball.r < game.pad1.y + game.pad1.height && game.ball.y + game.ball.r > game.pad1.y + game.pad1.height ||
+			game.ball.y + game.ball.r > game.pad1.y && game.ball.y - game.ball.r < game.pad1.y) &&
+			game.ball.x - game.ball.r < game.pad1.x + game.pad1.width) {
+			game.ball.dir.y *= -1;
 		}
 	}
-	else if (game.ball.x + game.ball.r >= game.pad2.x && game.ball.x - game.ball.r <= game.pad2.x + game.pad2.width) {
-		if (game.ball.y - game.ball.r <= game.pad2.y + game.pad2.height && game.ball.y + game.ball.r >= game.pad2.y) {
-
-			game.ball.dir.x *= -1;
-
-			if ((game.ball.y - game.ball.r < game.pad2.y + game.pad2.height && game.ball.y + game.ball.r > game.pad2.y + game.pad2.height ||
-				game.ball.y + game.ball.r > game.pad2.y && game.ball.y - game.ball.r < game.pad2.y) &&
-				game.ball.x + game.ball.r > game.pad2.x) {
-				game.ball.dir.y *= -1;
-			}
+	else if (game.pad2.x < game.ball.x + game.ball.r && game.pad2.x + game.pad2.width > game.ball.x &&
+		game.pad2.y < game.ball.y + game.ball.r && game.pad2.height + game.pad2.y > game.ball.y) {
+		game.ball.dir.x *= -1;
+		if ((game.ball.y - game.ball.r < game.pad2.y + game.pad2.height && game.ball.y + game.ball.r > game.pad2.y + game.pad2.height ||
+			game.ball.y + game.ball.r > game.pad2.y && game.ball.y - game.ball.r < game.pad2.y) &&
+			game.ball.x + game.ball.r > game.pad2.x) {
+			game.ball.dir.y *= -1;
 		}
 	}
 	return GameStatus.INPROGRESS;
