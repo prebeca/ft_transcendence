@@ -16,6 +16,10 @@ export class GameDto {
 	score_looser: number;
 	date: string;
 	time: string;
+	xp_winner: number;
+	xp_looser: number;
+	level_winner: number;
+	level_looser: number;
 }
 export enum GameStatus {
 	WAITING = "waiting",
@@ -41,6 +45,35 @@ export class GameService {
 		return match;
 	}
 
+	calculate_new_xp(xp: number, level: number, goals: number, difficulty: string, winner: boolean): { new_xp: number, new_level: number } {
+		let new_xp: number = xp;
+		let new_level: number = level;
+		let diff: number = 0;
+		switch (difficulty) {
+			case "Easy":
+				diff = 1;
+			case "Medium":
+				diff = 2;
+			case "Hard":
+				diff = 3;
+		}
+
+		if (winner) {
+			new_xp += (100 + diff * 10);
+		} else {
+			new_xp += (25 + diff * 10);
+		}
+		new_xp += goals * 10;
+		for (; new_xp >= new_level * 200;) {
+			new_xp -= new_level * 200;
+			new_level += 1;
+		}
+		return {
+			new_xp: new_xp,
+			new_level: new_level
+		};
+	}
+
 	async gameFinished(gameRoom: GameRoomClass, game: GameI, id: string) {
 		if (gameRoom.finished === true)
 			return;
@@ -54,7 +87,8 @@ export class GameService {
 
 		let players: PlayerClass[] = [];
 		let ps: Player[] = [];
-
+		let xps: number[] = [];
+		let levels: number[] = [];
 		for (const [sid, player] of gameRoom.mapPlayers) {
 			players.push(player);
 			let p: Player = await this.playerRepository.findOne({ id: player.userid });
@@ -71,17 +105,29 @@ export class GameService {
 			players[1] = player_class_temp;
 		}
 
+		xps[0] = ps[0].xp;
+		levels[0] = ps[0].level;
+		xps[1] = ps[1].xp;
+		levels[1] = ps[1].level;
+
 		if (game.status === GameStatus.PLAYER1WON || game.status === GameStatus.PLAYER2LEAVE) {
-			this.playerRepository.save({ ...ps[0], winnings: players[0].wins + 1 });
-			this.playerRepository.save({ ...ps[1], losses: players[1].losses + 1 });
-			gameDto = { ...gameDto, winner: ps[0], looser: ps[1], score_winner: game.score1, score_looser: game.score2 };
+			let new_infos_p1: { new_xp: number, new_level: number } = this.calculate_new_xp(xps[0], levels[0], game.score1, gameRoom.difficulty, true);
+			let new_infos_p2: { new_xp: number, new_level: number } = this.calculate_new_xp(xps[1], levels[1], game.score2, gameRoom.difficulty, false);
+			console.log(new_infos_p1);
+			console.log(new_infos_p2);
+			this.playerRepository.save({ ...ps[0], xp: new_infos_p1.new_xp, level: new_infos_p1.new_level, winnings: players[0].wins + 1 });
+			this.playerRepository.save({ ...ps[1], xp: new_infos_p2.new_xp, level: new_infos_p2.new_level, losses: players[1].losses + 1 });
+			gameDto = { ...gameDto, winner: ps[0], looser: ps[1], score_winner: game.score1, score_looser: game.score2, xp_winner: xps[0], xp_looser: xps[1], level_winner: levels[0], level_looser: levels[1] };
 		}
 		else {
-			this.playerRepository.save({ ...ps[1], winnings: players[1].wins + 1 });
-			this.playerRepository.save({ ...ps[0], losses: players[0].losses + 1 });
-			gameDto = { ...gameDto, winner: ps[1], looser: ps[0], score_winner: game.score2, score_looser: game.score1 };
+			let new_infos_p1: { new_xp: number, new_level: number } = this.calculate_new_xp(xps[0], levels[0], game.score1, gameRoom.difficulty, false);
+			let new_infos_p2: { new_xp: number, new_level: number } = this.calculate_new_xp(xps[1], levels[1], game.score2, gameRoom.difficulty, true);
+			console.log(new_infos_p1);
+			console.log(new_infos_p2);
+			this.playerRepository.save({ ...ps[1], xp: new_infos_p2.new_xp, level: new_infos_p2.new_level, winnings: players[1].wins + 1 });
+			this.playerRepository.save({ ...ps[0], xp: new_infos_p1.new_xp, level: new_infos_p1.new_level, losses: players[0].losses + 1 });
+			gameDto = { ...gameDto, winner: ps[1], looser: ps[0], score_winner: game.score2, score_looser: game.score1, xp_winner: xps[1], xp_looser: xps[0], level_winner: levels[1], level_looser: levels[0] };
 		}
-
 		const new_game: Game = this.gameRepository.create(gameDto);
 		this.gameRepository.save(new_game);
 		this.gameRoomService.deleteRoom(id);
