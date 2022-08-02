@@ -1,5 +1,5 @@
 <template>
-  <router-link
+  <NuxtLink
     :to="{ path: userProfile, params: { key: 1 } }"
     class="text-decoration-none"
   >
@@ -11,7 +11,7 @@
         {{ friend.username }}
       </h3>
     </div>
-  </router-link>
+  </NuxtLink>
 </template>
 
 <script lang="ts">

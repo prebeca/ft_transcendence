@@ -41,7 +41,7 @@ export class GameService {
 	private readonly gameRepository: Repository<Game>
 
 	async get_match_details(uuid: string) {
-		const match: Game = await this.gameRepository.findOne({ uuid: uuid });
+		const match: Game = await this.gameRepository.findOne({ uuid: uuid }, { relations: ["winner", "looser"] });
 		return match;
 	}
 
