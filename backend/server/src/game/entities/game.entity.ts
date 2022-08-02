@@ -10,6 +10,9 @@ export class Game {
 	})
 	id: number;
 
+	@Column()
+	uuid: string;
+
 	@ManyToOne(() => Player)
 	@JoinColumn()
 	winner: Player;

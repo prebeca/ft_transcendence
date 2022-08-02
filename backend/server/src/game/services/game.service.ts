@@ -8,6 +8,15 @@ import { Game } from '../entities/game.entity';
 import { PlayerClass } from '../classes/player.class';
 import { GameRoomService } from './gameroom.service';
 
+export class GameDto {
+	uuid: string;
+	winner: Player;
+	looser: Player;
+	score_winner: number;
+	score_looser: number;
+	date: string;
+	time: string;
+}
 export enum GameStatus {
 	WAITING = "waiting",
 	INCOMPLETE = "incomplete",
@@ -18,16 +27,6 @@ export enum GameStatus {
 	PLAYER2LEAVE = "player 1 won by forfeit",
 	ENDED = "ended",
 }
-export class GameDto {
-
-	winner: Player;
-	looser: Player;
-	score_winner: number;
-	score_looser: number;
-	date: string;
-	time: string;
-}
-
 @Injectable()
 export class GameService {
 	constructor(private readonly gameRoomService: GameRoomService) { }
@@ -36,6 +35,11 @@ export class GameService {
 	private readonly playerRepository: Repository<Player>
 	@InjectRepository(Game)
 	private readonly gameRepository: Repository<Game>
+
+	async get_match_details(uuid: string) {
+		const match: Game = await this.gameRepository.findOne({ uuid: uuid });
+		return match;
+	}
 
 	async gameFinished(gameRoom: GameRoomClass, game: GameI, id: string) {
 		if (gameRoom.finished === true)
@@ -46,7 +50,7 @@ export class GameService {
 		gameRoom.end_date.toLocaleDateString();
 		const diffTime: number = Math.abs((gameRoom.end_date.getTime() - gameRoom.begin_date.getTime()) / 1000);
 		let gameDto = new GameDto();
-		gameDto = { ...gameDto, date: gameRoom.end_date.toLocaleDateString(), time: diffTime.toString() };
+		gameDto = { ...gameDto, uuid: id, date: gameRoom.end_date.toLocaleDateString(), time: diffTime.toString() };
 
 		let players: PlayerClass[] = [];
 		let ps: Player[] = [];
