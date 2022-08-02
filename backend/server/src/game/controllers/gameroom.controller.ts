@@ -28,6 +28,14 @@ export class GameRoomController {
 		return this.gameRoomService.getPlayersInRooms();
 	}
 
+	@UseGuards(JwtTwoFactorAuthGuard)
+	@Get('history/:playerid')
+	async getHistoryByPlayerId(@Param('playerid') playerid: number): Promise<Game[]> {
+		if (!playerid)
+			return null;
+		return await this.gameService.getHistoryByPlayerId(playerid);
+	}
+
 	@Get('details/:uuid')
 	async match_details(@Param('uuid') uuid: string) {
 		return await this.gameService.get_match_details(uuid);

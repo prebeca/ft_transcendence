@@ -6,7 +6,6 @@
           <UserButtonCard :user="user" />
           <UserInfoCard :user="user" :player="user.player" />
         </div>
-
         <UserMatchHistory :user="user" :friends="user.friends" />
       </div>
     </v-card>
@@ -15,46 +14,98 @@
 
 <script lang="ts">
 import Vue from "vue";
+
 export default Vue.extend({
   data() {
     return {
       currentUser: {
-        avatar: "",
+        id: "",
+        blocked: [] as any,
+        friends: [
+          {
+            id: "",
+          },
+        ],
       },
       user: {
         avatar: "",
         player: {},
         friends: [],
+        id: "",
+        isUser: false,
+        isFriend: false,
+        isBlocked: false,
       },
     };
   },
-  created: function () {
-    this.$axios
+  created: async function () {
+    await this.$axios
       .get("/users/profile")
       .then((res) => {
+        console.log(res.data);
         this.currentUser = res.data;
       })
       .catch((error) => {
         console.error(error);
       });
-    this.$axios
-      .get("/users")
-      .then((res) => {
-        for (let i = 0; i < res.data.length; i++) {
-          if (res.data[i].username === this.$route.params.users) {
-            this.user = res.data[i];
-            this.changeAvatar(this.user.avatar);
-          }
-        }
-      })
-      .catch((error) => {
-        console.error(error);
-      });
+  },
+  mounted() {
+    this.getUser(this.$route.params.users);
+  },
+  watch: {
+    "$route.params.users"(newUsername: string, oldUsername: string) {
+      this.getUser(newUsername);
+    },
   },
   methods: {
+    getUser(username: string) {
+      this.$axios
+        .get("/users/" + this.$route.params.users)
+        .then((res) => {
+          this.user = res.data;
+          if (this.user !== null) this.changeAvatar(this.user.avatar);
+          if (this.currentUser.id === this.user.id) {
+            this.user.isUser = true;
+          }
+          if (
+            this.currentUser.friends.find((e) => {
+              return e.id == this.user.id;
+            })
+          )
+            this.user.isFriend = true;
+          if (this.currentUser.blocked !== undefined) {
+            if (
+              this.currentUser.blocked.find((e: any) => {
+                return e.id == this.user.id;
+              }) != undefined
+            )
+              this.user.isBlocked = true;
+          }
+        })
+        .catch((error) => {
+          console.error(error);
+        });
+    },
     changeAvatar(filename: string) {
       this.user.avatar =
         `${process.env.API_URL}/users/profile/avatar/` + filename;
+      if (this.currentUser.id === this.user.id) {
+        this.user.isUser = true;
+      }
+      if (
+        this.currentUser.friends.find((e) => {
+          return e.id == this.user.id;
+        })
+      )
+        this.user.isFriend = true;
+      if (this.currentUser.blocked !== undefined) {
+        if (
+          this.currentUser.blocked.find((e: any) => {
+            return e.id == this.user.id;
+          }) != undefined
+        )
+          this.user.isBlocked = true;
+      }
     },
   },
 });
