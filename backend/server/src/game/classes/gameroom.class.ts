@@ -28,6 +28,7 @@ export class GameRoomClass {
 	public game: GameI = {
 		gameWidth: 0,
 		gameHeight: 0,
+		map: "",
 		pad1: {} as PadI,
 		pad2: {} as PadI,
 		ball: {} as BallI,

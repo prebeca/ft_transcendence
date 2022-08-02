@@ -116,6 +116,10 @@
         label=Tennis
         value="Tennis"
       ></v-radio>
+      <v-radio
+        label=Golf
+        value="Golf"
+      ></v-radio>
       </v-radio-group>
       <template v-slot:thumb-label>
         <span class="font-weight-bold" style="font-size: 15px">

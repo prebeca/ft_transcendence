@@ -236,8 +236,7 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
 				game.pad1.id = client.id;
 				pointToWin = gameRoom.getPoints();
 				difficulty = gameRoom.getDifficulty();
-				if (gameRoom.getMap() === "Tennis")
-					this.server.to(id).emit("Map", "Tennis");
+				game.map = gameRoom.getMap();
 				initGame(game);
 			}
 			else if (playerinfo.player_number === 2)
