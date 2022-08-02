@@ -158,6 +158,7 @@
                                 v-model="password"
                                 :rules="passwordRules"
                                 label="Password"
+                                type="password"
                                 hint="If the channel is protected, enter password here !"
                                 persistent-hint
                               >
