@@ -220,10 +220,13 @@ export class AuthService {
 		if (!user) {
 			user = await this.usersService.findOneByUsername(registerUser.username);
 			if (user)
-				throw new HttpException("Username already used", HttpStatus.INTERNAL_SERVER_ERROR);
+				throw new HttpException("Username already used", HttpStatus.CONFLICT);
 		}
 		else {
-			throw new HttpException("Email already used", HttpStatus.INTERNAL_SERVER_ERROR);
+			throw new HttpException("Email already used", HttpStatus.CONFLICT);
+		}
+		if (registerUser.email.indexOf("@student.42.fr") !== -1) {
+			throw new HttpException("42 Email used", HttpStatus.NOT_ACCEPTABLE);
 		}
 		try {
 			const salt_pass = await bcrypt.genSalt();

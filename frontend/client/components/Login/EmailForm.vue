@@ -177,7 +177,6 @@ export default Vue.extend({
         .then((res) => {
           this.tab = 0;
           this.registerDialog = true;
-          console.log(res);
         })
         .catch((error) => {
           console.error(error);

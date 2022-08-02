@@ -45,10 +45,11 @@ export class GameService {
 		return match;
 	}
 
-	calculate_new_xp(xp: number, level: number, goals: number, difficulty: string, winner: boolean): { new_xp: number, new_level: number } {
+	calculate_new_xp(xp: number, level: number, goals: number, difficulty: string, mmr: number, winner: boolean): { new_xp: number, new_level: number, new_mmr: number } {
 		let new_xp: number = xp;
 		let new_level: number = level;
 		let diff: number = 0;
+		let new_mmr: number = mmr;
 		switch (difficulty) {
 			case "Easy":
 				diff = 1;
@@ -60,7 +61,9 @@ export class GameService {
 
 		if (winner) {
 			new_xp += (100 + diff * 10);
+			new_mmr += 30;
 		} else {
+			new_mmr -= 30;
 			new_xp += (25 + diff * 10);
 		}
 		new_xp += goals * 10;
@@ -70,7 +73,8 @@ export class GameService {
 		}
 		return {
 			new_xp: new_xp,
-			new_level: new_level
+			new_level: new_level,
+			new_mmr: new_mmr
 		};
 	}
 
@@ -111,21 +115,21 @@ export class GameService {
 		levels[1] = ps[1].level;
 
 		if (game.status === GameStatus.PLAYER1WON || game.status === GameStatus.PLAYER2LEAVE) {
-			let new_infos_p1: { new_xp: number, new_level: number } = this.calculate_new_xp(xps[0], levels[0], game.score1, gameRoom.difficulty, true);
-			let new_infos_p2: { new_xp: number, new_level: number } = this.calculate_new_xp(xps[1], levels[1], game.score2, gameRoom.difficulty, false);
+			let new_infos_p1: { new_xp: number, new_level: number, new_mmr: number } = this.calculate_new_xp(xps[0], levels[0], game.score1, gameRoom.difficulty, ps[0].mmr, true);
+			let new_infos_p2: { new_xp: number, new_level: number, new_mmr: number } = this.calculate_new_xp(xps[1], levels[1], game.score2, gameRoom.difficulty, ps[1].mmr, false);
 			console.log(new_infos_p1);
 			console.log(new_infos_p2);
-			this.playerRepository.save({ ...ps[0], xp: new_infos_p1.new_xp, level: new_infos_p1.new_level, winnings: players[0].wins + 1 });
-			this.playerRepository.save({ ...ps[1], xp: new_infos_p2.new_xp, level: new_infos_p2.new_level, losses: players[1].losses + 1 });
+			this.playerRepository.save({ ...ps[0], xp: new_infos_p1.new_xp, level: new_infos_p1.new_level, winnings: players[0].wins + 1, mmr: new_infos_p1.new_mmr });
+			this.playerRepository.save({ ...ps[1], xp: new_infos_p2.new_xp, level: new_infos_p2.new_level, losses: players[1].losses + 1, mmr: new_infos_p2.new_mmr });
 			gameDto = { ...gameDto, winner: ps[0], looser: ps[1], score_winner: game.score1, score_looser: game.score2, xp_winner: xps[0], xp_looser: xps[1], level_winner: levels[0], level_looser: levels[1] };
 		}
 		else {
-			let new_infos_p1: { new_xp: number, new_level: number } = this.calculate_new_xp(xps[0], levels[0], game.score1, gameRoom.difficulty, false);
-			let new_infos_p2: { new_xp: number, new_level: number } = this.calculate_new_xp(xps[1], levels[1], game.score2, gameRoom.difficulty, true);
+			let new_infos_p1: { new_xp: number, new_level: number, new_mmr: number } = this.calculate_new_xp(xps[0], levels[0], game.score1, gameRoom.difficulty, ps[0].mmr, false);
+			let new_infos_p2: { new_xp: number, new_level: number, new_mmr: number } = this.calculate_new_xp(xps[1], levels[1], game.score2, gameRoom.difficulty, ps[1].mmr, true);
 			console.log(new_infos_p1);
 			console.log(new_infos_p2);
-			this.playerRepository.save({ ...ps[1], xp: new_infos_p2.new_xp, level: new_infos_p2.new_level, winnings: players[1].wins + 1 });
-			this.playerRepository.save({ ...ps[0], xp: new_infos_p1.new_xp, level: new_infos_p1.new_level, losses: players[0].losses + 1 });
+			this.playerRepository.save({ ...ps[1], xp: new_infos_p2.new_xp, level: new_infos_p2.new_level, winnings: players[1].wins + 1, mmr: new_infos_p2.new_mmr });
+			this.playerRepository.save({ ...ps[0], xp: new_infos_p1.new_xp, level: new_infos_p1.new_level, losses: players[0].losses + 1, mmr: new_infos_p1.new_mmr });
 			gameDto = { ...gameDto, winner: ps[1], looser: ps[0], score_winner: game.score2, score_looser: game.score1, xp_winner: xps[1], xp_looser: xps[0], level_winner: levels[1], level_looser: levels[0] };
 		}
 		const new_game: Game = this.gameRepository.create(gameDto);

@@ -111,7 +111,7 @@ export class GameRoomService {
 	findRoom(user: User): string {
 		const rooms: string[] = this.getRoomsNotFull();
 		if (rooms.length === 0) {
-			return this.addRoom({ difficulty: "Easy", points: 5, map: "Pong" });
+			return this.addRoom({ difficulty: "Medium", points: 5, map: "Pong" });
 		}
 		else if (rooms.length === 1) { //join the only one created
 			return rooms[0];

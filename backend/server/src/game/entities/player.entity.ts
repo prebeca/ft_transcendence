@@ -17,7 +17,7 @@ export class Player {
 	@Column({ default: 0 })
 	winnings: number;
 
-	@Column({ default: 1 })
+	@Column({ default: 0 })
 	mmr: number;
 
 	@Column({ default: 0 })
