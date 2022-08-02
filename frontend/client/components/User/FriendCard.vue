@@ -1,5 +1,8 @@
 <template>
-  <router-link :to="userProfile" class="text-decoration-none">
+  <router-link
+    :to="{ path: userProfile, params: { key: 1 } }"
+    class="text-decoration-none"
+  >
     <div class="d-flex flex-column align-center">
       <v-avatar size="80">
         <img alt="friend-avatar" :src="friendAvatar" />

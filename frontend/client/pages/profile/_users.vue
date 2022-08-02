@@ -28,24 +28,20 @@ export default Vue.extend({
       },
     };
   },
-  created: function () {
-    this.$axios
+  mounted: function () {
+    /*this.$axios
       .get("/users/profile")
       .then((res) => {
         this.currentUser = res.data;
       })
       .catch((error) => {
         console.error(error);
-      });
+      });*/
     this.$axios
-      .get("/users")
+      .get("/users/" + this.$route.params.users)
       .then((res) => {
-        for (let i = 0; i < res.data.length; i++) {
-          if (res.data[i].username === this.$route.params.users) {
-            this.user = res.data[i];
-            this.changeAvatar(this.user.avatar);
-          }
-        }
+        this.user = res.data;
+        if (this.user !== null) this.changeAvatar(this.user.avatar);
       })
       .catch((error) => {
         console.error(error);

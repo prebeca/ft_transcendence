@@ -177,7 +177,7 @@ export default Vue.extend({
       this.context.fill();
     },
     endGame(game: GameI) {
-      this.$router.push("/groom/score");
+      this.$router.push({ path: "/groom/score", query: { name: this.roomid } });
     },
   },
 });
