@@ -63,6 +63,7 @@ export default Vue.extend({
       context: {} as CanvasRenderingContext2D,
       roomid: "",
       game: {} as GameI,
+      map: "Pong",
       ratiox: {} as number,
       ratioy: {} as number,
     };
@@ -73,6 +74,9 @@ export default Vue.extend({
   beforeMount() {
     this.socket.on("noGame", (data) => {
       this.$router.push("/groom/selection");
+    });
+    this.socket.on("updateGame", (map: string) => {
+      this.map = map;
     });
     this.socket.on("initDone", (data: GameI) => {
       this.update(data);
@@ -129,17 +133,16 @@ export default Vue.extend({
       this.drawCanvas();
       this.drawPads();
       this.drawBall();
-      // if (
-      //   this.game.status != GameStatus.INPROGRESS &&
-      //   this.game.status != GameStatus.WAITING
-      // )
-      //   this.endGame(this.game);
     },
     clearScreen() {
       this.context.clearRect(0, 0, this.canvas.width, this.canvas.height);
     },
     drawCanvas() {
-      this.context.fillStyle = "black";
+      if (this.map === "Tennis") {
+        this.context.fillStyle = "red";
+      }
+      else
+       this.context.fillStyle = "black";
       this.context.fillRect(0, 0, this.canvas.width, this.canvas.height);
       this.context.strokeStyle = "white";
       this.context.beginPath();

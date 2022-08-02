@@ -27,9 +27,8 @@ const padWidth: number = 10;
 const ballRadius: number = 7;
 const padSpeed: number = 20;
 const padHeightDefault: number = 100;
-const ballSpeedDefault: number = 1;
+const ballSpeed: number = 1;
 var padHeight: number = padHeightDefault;
-var ballSpeed: number = ballSpeedDefault;
 var pointToWin: number;
 var difficulty: string = "Medium";
 
@@ -125,18 +124,12 @@ function moveBall(game: GameI) {
 }
 
 function initGame(game: GameI) {
-	if (difficulty === "Easy") {
+	if (difficulty === "Easy")
 		padHeight = padHeightDefault * 2;
-		ballSpeed = ballSpeedDefault / 2;
-	}
-	else if (difficulty === "Hard") {
+	else if (difficulty === "Hard")
 		padHeight = padHeightDefault / 2;
-		ballSpeed = ballSpeedDefault * 2;
-	}
-	else {
+	else
 		padHeight = padHeightDefault;
-		ballSpeed = ballSpeedDefault;
-	}
 
 	game.gameWidth = gameWidth;
 	game.gameHeight = gameHeight;
@@ -243,6 +236,8 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
 				game.pad1.id = client.id;
 				pointToWin = gameRoom.getPoints();
 				difficulty = gameRoom.getDifficulty();
+				if (gameRoom.getMap() === "Tennis")
+					this.server.to(id).emit("Map", "Tennis");
 				initGame(game);
 			}
 			else if (playerinfo.player_number === 2)
