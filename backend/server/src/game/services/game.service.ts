@@ -6,6 +6,7 @@ import { Repository } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Game } from '../entities/game.entity';
 import { PlayerClass } from '../classes/player.class';
+import { GameRoomService } from './gameroom.service';
 
 export enum GameStatus {
 	WAITING = "waiting",
@@ -29,7 +30,7 @@ export class GameDto {
 
 @Injectable()
 export class GameService {
-	constructor() { }
+	constructor(private readonly gameRoomService: GameRoomService) { }
 
 	@InjectRepository(Player)
 	private readonly playerRepository: Repository<Player>
@@ -79,5 +80,6 @@ export class GameService {
 
 		const new_game: Game = this.gameRepository.create(gameDto);
 		this.gameRepository.save(new_game);
+		this.gameRoomService.deleteRoom(id);
 	}
 }
