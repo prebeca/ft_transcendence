@@ -5,6 +5,7 @@ import { Repository } from 'typeorm';
 import { CreateChannelDto } from 'src/chat/channels/dto/channels.dto';
 import { Message } from '../entities/message.entity';
 import { UsersService } from 'src/users/services/users.service';
+import * as bcrypt from 'bcrypt';
 
 @Injectable()
 export class ChannelsService {
@@ -30,6 +31,10 @@ export class ChannelsService {
 
 		if (createChannelDto.scope != "protected")
 			createChannelDto.password = null
+		else {
+			const salt = await bcrypt.genSalt();
+			createChannelDto.password = await bcrypt.hash(createChannelDto.password, salt);
+		}
 
 		let channeltmp = this.channelRepository.create(createChannelDto);
 		await this.channelRepository.save(channeltmp);
@@ -194,7 +199,7 @@ export class ChannelsService {
 
 		if (channel.users.find(e => { return e.id == user.id }) != undefined)
 			return channel;
-		if (channel.scope == "protected" && channel.password != data.password)
+		if (channel.scope == "protected" && await bcrypt.compare(data.password, channel.password) == false)
 			return "Wrong Password";
 		if (channel.scope == "private" && channel.invited.find((e) => { return e.id == user.id }) == undefined)
 			return "Not Invited";
@@ -232,6 +237,7 @@ export class ChannelsService {
 			throw new InternalServerErrorException("Request from unknown user");
 		if (channel.users.find(e => { return e.id == user.id }) == undefined)
 			throw new InternalServerErrorException("User not in channel");
+		message.channel = channel;
 		return this.messagesRepository.save(message);
 	}
 
@@ -311,18 +317,18 @@ export class ChannelsService {
 	}
 
 	async updatePassword(user: User, data: any): Promise<any> {
-		let channel: Channel = await this.channelRepository.findOne(data.channel_id, { relations: ["admins"] });
+		let channel: Channel = await this.channelRepository.findOne(data.channel_id, { relations: ["admins", "owner"] });
 
-		if (channel.admins.find(e => { return e.id == user.id }) == undefined)
-			return { color: "red", content: "ERROR: admins right required" }
+		if (channel.owner == null || channel.owner.id != user.id)
+			return { color: "red", content: "ERROR: owner right required" }
 
-		if (channel.password != data.password_old)
+		if (await bcrypt.compare(data.password_old, channel.password) == false)
 			return { color: "red", content: "ERROR: wrong password" }
 
 		if (data.password_new == '' || data.password_new == undefined)
 			return { color: "red", content: "ERROR: new password can not be empty" }
-
-		channel.password = data.password_new;
+		const salt = await bcrypt.genSalt();
+		channel.password = await bcrypt.hash(data.password_new, salt);
 		await this.channelRepository.save(channel);
 		return { color: "green", content: "Password updated succesfully" }
 	}

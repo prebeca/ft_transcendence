@@ -37,7 +37,7 @@ export class SocketGateway {
 	@UseGuards(WsJwtAuthGuard)
 	@SubscribeMessage('JoinChan')
 	async joinChannel(@Req() req: Request, @MessageBody() data: any, @ConnectedSocket() client: Socket) {
-		return this.socketService.joinChannel(req.user as User, data, client)
+		return this.socketService.joinChannel(req.user as User, data, client, this.server)
 	}
 
 

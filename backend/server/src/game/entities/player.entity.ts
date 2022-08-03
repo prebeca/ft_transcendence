@@ -17,10 +17,9 @@ export class Player {
 	@Column({ default: 0 })
 	winnings: number;
 
-	@Column({ default: 1 })
+	@Column({ default: 0 })
 	mmr: number;
 
-	/* 
-		INSERT HERE TO ADD PERSONAL ACHIEVEMENTS like badge obtained etc
-	*/
+	@Column({ default: 0 })
+	xp: number;
 }

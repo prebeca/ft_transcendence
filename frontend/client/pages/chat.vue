@@ -158,6 +158,7 @@
                                 v-model="password"
                                 :rules="passwordRules"
                                 label="Password"
+                                type="password"
                                 hint="If the channel is protected, enter password here !"
                                 persistent-hint
                               >
@@ -281,6 +282,36 @@
                                 >
                               </v-list-item-title>
                             </v-list-item>
+                            <div v-if="!isBlocked(player)">
+                              <v-list-item dense>
+                                <v-list-item-title
+                                  class="d-flex justify-center text-button"
+                                >
+                                  <v-btn
+                                    @click="blockUser(player)"
+                                    color="accent"
+                                    min-width="100%"
+                                  >
+                                    BLOCK</v-btn
+                                  >
+                                </v-list-item-title>
+                              </v-list-item>
+                            </div>
+                            <div v-else>
+                              <v-list-item dense>
+                                <v-list-item-title
+                                  class="d-flex justify-center text-button"
+                                >
+                                  <v-btn
+                                    @click="unblockUser(player)"
+                                    color="success"
+                                    min-width="100%"
+                                  >
+                                    UNBLOCK</v-btn
+                                  >
+                                </v-list-item-title>
+                              </v-list-item>
+                            </div>
                             <div v-if="isAdmin(channel) === true">
                               <v-list-item dense>
                                 <v-list-item-title
@@ -417,19 +448,6 @@
                                   </v-dialog>
                                 </v-list-item-title>
                               </v-list-item>
-                              <v-list-item dense>
-                                <v-list-item-title
-                                  class="d-flex justify-center text-button"
-                                >
-                                  <v-btn
-                                    @click="blockUser(player.id)"
-                                    color="accent"
-                                    min-width="100%"
-                                  >
-                                    BLOCK</v-btn
-                                  >
-                                </v-list-item-title>
-                              </v-list-item>
                               <div v-if="isOwner(channel) === true">
                                 <v-list-item dense class="mb-2">
                                   <v-list-item-title
@@ -545,7 +563,7 @@
                       <tr>
                         <td>
                           <UserAvatarStatus
-                            size="80px"
+                            size="50px"
                             :user="getDMUser(channel)"
                             :offset="20"
                           />
@@ -586,25 +604,36 @@
                       >
                     </v-list-item-title>
                   </v-list-item>
-                  <v-list-item dense>
-                    <v-list-item-title
-                      class="d-flex justify-center text-button"
-                    >
-                      <v-btn
-                        @click="
-                          () => {
-                            let user = getDMUser(channel);
-                            if (user == undefined) return;
-                            blockUser(user.id);
-                          }
-                        "
-                        color="accent"
-                        min-width="100%"
+                  <div v-if="!isBlocked(getDMUser(channel))">
+                    <v-list-item dense>
+                      <v-list-item-title
+                        class="d-flex justify-center text-button"
                       >
-                        BLOCK</v-btn
+                        <v-btn
+                          @click="blockUser(getDMUser(channel))"
+                          color="accent"
+                          min-width="100%"
+                        >
+                          BLOCK</v-btn
+                        >
+                      </v-list-item-title>
+                    </v-list-item>
+                  </div>
+                  <div v-else>
+                    <v-list-item dense>
+                      <v-list-item-title
+                        class="d-flex justify-center text-button"
                       >
-                    </v-list-item-title>
-                  </v-list-item>
+                        <v-btn
+                          @click="unblockUser(getDMUser(channel))"
+                          color="success"
+                          min-width="100%"
+                        >
+                          UNBLOCK</v-btn
+                        >
+                      </v-list-item-title>
+                    </v-list-item>
+                  </div>
                   <v-divider
                     v-if="index < users.length - 1"
                     :key="index"
@@ -937,7 +966,9 @@ interface Channel {
 interface User {
   id: number;
   username: string;
+  avatar: string;
   friends: User[];
+  blocked: User[];
 }
 
 export default Vue.extend({
@@ -959,6 +990,7 @@ export default Vue.extend({
       channelDeleteDialog: false,
       passwordDialog: false,
       valid: true,
+      disconnected: false,
       channelChoice: [
         { text: "public" },
         { text: "private" },
@@ -1005,7 +1037,6 @@ export default Vue.extend({
     this.$axios
       .get("/users")
       .then((res) => {
-        console.log(res.data);
         this.users = res.data;
       })
       .catch((error) => {
@@ -1047,7 +1078,13 @@ export default Vue.extend({
     this.socket.on("connect", async () => {
       console.log("Connection !");
       await this.socket.emit("SetSocket");
+      if (!this.disconnected) return;
       await this.joinChannels();
+      this.disconnected = false;
+    });
+
+    this.socket.on("disconnect", async () => {
+      this.disconnected = true;
     });
 
     this.socket.on("UserKick", async (msg: any) => {
@@ -1078,7 +1115,6 @@ export default Vue.extend({
 
     this.socket.on("JoinChan", async (channel: Channel) => {
       console.log("adding channel:");
-      console.log(channel);
       if (
         channel.scope == "dm" &&
         this.channels_dm.find((e) => {
@@ -1237,8 +1273,28 @@ export default Vue.extend({
   },
   computed: {},
   methods: {
-    blockUser(user_id: number) {
-      this.$axios.post("/users/block/" + user_id);
+    async blockUser(user: User) {
+      await this.$axios.post("/users/block/" + user.id);
+      let i = this.user.blocked.findIndex((e: User) => {
+        return e.id == user.id;
+      });
+      if (i == -1) this.user.blocked.push(user);
+    },
+
+    async unblockUser(user: User) {
+      await this.$axios.post("/users/unblock/" + user.id);
+      let i = this.user.blocked.findIndex((e: User) => {
+        return e.id == user.id;
+      });
+      if (i != -1) this.user.blocked.splice(i, 1);
+    },
+
+    isBlocked(user: User) {
+      return (
+        this.user.blocked.find((e: User) => {
+          return e.id == user.id;
+        }) != undefined
+      );
     },
 
     scrollToNewMsg() {
@@ -1311,12 +1367,6 @@ export default Vue.extend({
       for (let i = 0; i < this.channels.length; ++i) {
         await this.socket.emit("JoinChan", {
           channel_id: this.channels[i].id,
-          password: "",
-        });
-      }
-      for (let i = 0; i < this.channels_dm.length; ++i) {
-        await this.socket.emit("JoinChan", {
-          channel_id: this.channels_dm[i].id,
           password: "",
         });
       }
@@ -1405,7 +1455,7 @@ export default Vue.extend({
       if (this.currentChannel.id == undefined) return;
 
       await this.socket.emit("NewMessage", {
-        channel: this.currentChannel,
+        channel: { id: this.currentChannel.id },
         content: this.input,
       });
 
@@ -1448,9 +1498,11 @@ export default Vue.extend({
 
     getDMUser(channel: Channel): User | undefined {
       //   console.log(channel.users.length);
-      return channel.users.find((e) => {
+      let user = channel.users.find((e) => {
         return e.id != this.user.id;
       });
+
+      return user;
     },
 
     getUserProfile(channel: Channel): string {

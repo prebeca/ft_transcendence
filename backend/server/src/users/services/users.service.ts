@@ -61,7 +61,10 @@ export class UsersService {
 			const { password, salt, ...user } = await this.userRepository.findOne(id, { relations: ["friends", "blocked", "channels", "channels.messages", "channels.users", "channels.messages.user", "channels.messages.channel", "channels.admins", "channels.owner"] });
 			if (!(user as User))
 				return null;
-			user.channels.forEach(e => { e.password = undefined })
+			user.channels.forEach(chan => {
+				chan.messages = chan.messages.filter(msg => { return (user.blocked.find(blocked_user => { return blocked_user.id == msg.user.id }) == undefined) });
+				chan.password = undefined
+			})
 			var friends: User[] = user.friends;
 			friends.forEach(this.removeDataFromFriends);
 			user.friends = friends;

@@ -31,7 +31,6 @@ export class UsersController {
 		const user: User = { ... (req.user as User) };
 		if (!user)
 			return null;
-		//NOPE -> used for friends info.
 		const is2fa: boolean = (await this.userService.findUserbyIdWithSensibleData(user.id)).twofauser;
 		return { ...user, twofauser: is2fa };
 	}
@@ -96,6 +95,16 @@ export class UsersController {
 	@Get('deleteall')
 	async deleteUsers(): Promise<User[]> {
 		return await this.userService.removeAll();
+	}
+
+	@UseGuards(JwtTwoFactorAuthGuard)
+	@Get('/u/:username')
+	async getProfileById(@Param('username') username: string): Promise<User> {
+		const user: User = (await this.userService.findOneByUsername(username));
+		if (!user)
+			return null;
+		const user_to_return: User = (await this.userService.findUsersByIdWithRelations(user.id));
+		return user_to_return;
 	}
 
 	@UseGuards(JwtAuthGuard)

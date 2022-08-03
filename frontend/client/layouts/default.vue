@@ -128,7 +128,7 @@ export default Vue.extend({
       .get("/users/profile")
       .then((res) => {
         this.user = res.data;
-        this.changeAvatar(res.data.avatar);
+        // this.changeAvatar(res.data.avatar);
         this.user.friends.forEach((e) => {
           e.messages = [];
         });
@@ -141,33 +141,34 @@ export default Vue.extend({
       name: "chat",
       withCredentials: true,
       persist: "chat",
+      reconnectionDelay: 2000,
     });
-
-    await this.$axios
-      .get("/users/channels")
-      .then(async (res) => {
-        let channels = res.data;
-        channels = channels.filter((e: Channel) => {
-          return e.scope == "dm";
-        });
-        channels.forEach((e: Channel) => {
-          this.socket.emit("JoinChan", {
-            channel_id: e.id,
-            password: "",
-          });
-        });
-      })
-      .catch((error) => {
-        console.error(error);
-      });
 
     this.socket.on("connect", async () => {
       console.log("Connection !");
       this.socket.emit("SetSocket");
+      await this.$axios
+        .get("/users/channels")
+        .then(async (res) => {
+          let channels = res.data;
+          channels = channels.filter((e: Channel) => {
+            return e.scope == "dm";
+          });
+          console.log("joining dm chans");
+          channels.forEach((e: Channel) => {
+            this.socket.emit("JoinChan", {
+              channel_id: e.id,
+              password: "",
+            });
+          });
+        })
+        .catch((error) => {
+          console.error(error);
+        });
     });
 
-    this.socket.on("disconnect", async () => {
-      console.log("Disconnection !");
+    this.socket.on("disconnect", async (reason) => {
+      console.log("Disconnection ! (" + reason + ")");
     });
 
     this.socket.on("Alert", async (alert: Alert, cb) => {
@@ -187,10 +188,10 @@ export default Vue.extend({
     });
   },
   methods: {
-    changeAvatar(filename: string) {
-      this.user.avatar =
-        `${process.env.API_URL}/users/profile/avatar/` + filename;
-    },
+    // changeAvatar(filename: string) {
+    //   this.user.avatar =
+    //     `${process.env.API_URL}/users/profile/avatar/` + filename;
+    // },
   },
 });
 </script>

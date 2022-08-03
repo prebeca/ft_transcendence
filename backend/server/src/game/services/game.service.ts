@@ -7,6 +7,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Game } from '../entities/game.entity';
 import { PlayerClass } from '../classes/player.class';
 import { GameRoomService } from './gameroom.service';
+import { User } from 'src/users/entities/user.entity';
 
 export class GameDto {
 	uuid: string;
@@ -16,6 +17,10 @@ export class GameDto {
 	score_looser: number;
 	date: string;
 	time: string;
+	xp_winner: number;
+	xp_looser: number;
+	level_winner: number;
+	level_looser: number;
 }
 export enum GameStatus {
 	WAITING = "waiting",
@@ -31,14 +36,76 @@ export enum GameStatus {
 export class GameService {
 	constructor(private readonly gameRoomService: GameRoomService) { }
 
+	@InjectRepository(User)
+	private readonly userRepository: Repository<User>
 	@InjectRepository(Player)
 	private readonly playerRepository: Repository<Player>
 	@InjectRepository(Game)
 	private readonly gameRepository: Repository<Game>
 
 	async get_match_details(uuid: string) {
-		const match: Game = await this.gameRepository.findOne({ uuid: uuid });
+		const match: Game = await this.gameRepository.findOne({ uuid: uuid }, { relations: ["winner", "looser"] });
 		return match;
+	}
+
+	async getHistoryByPlayerId(playerid: number): Promise<Game[]> {
+		const player: Player = await this.playerRepository.findOne(playerid);
+		const games: Game[] = await this.gameRepository.find({
+			relations: ['player'],
+			loadRelationIds: true,
+			where: [
+				{ winner: player },
+				{ looser: player },
+			],
+		});
+		console.log(games);
+		return games;
+	}
+	async getHistoryByUser(user: User): Promise<Game[]> {
+		const userWR: User = await this.userRepository.findOne(user.id, { relations: ["player"] });
+		console.log(userWR);
+		const games: Game[] = await this.gameRepository.find({
+			relations: ['winner', 'looser'],
+			where: [
+				{ winner: userWR.player },
+				{ looser: userWR.player },
+			],
+		});
+		console.log(games);
+		return games;
+	}
+
+	calculate_new_xp(xp: number, level: number, goals: number, difficulty: string, mmr: number, winner: boolean): { new_xp: number, new_level: number, new_mmr: number } {
+		let new_xp: number = xp;
+		let new_level: number = level;
+		let diff: number = 0;
+		let new_mmr: number = mmr;
+		switch (difficulty) {
+			case "Easy":
+				diff = 1;
+			case "Medium":
+				diff = 2;
+			case "Hard":
+				diff = 3;
+		}
+
+		if (winner) {
+			new_xp += (100 + diff * 10);
+			new_mmr += 30;
+		} else {
+			new_mmr -= 30;
+			new_xp += (25 + diff * 10);
+		}
+		new_xp += goals * 10;
+		for (; new_xp >= new_level * 200;) {
+			new_xp -= new_level * 200;
+			new_level += 1;
+		}
+		return {
+			new_xp: new_xp,
+			new_level: new_level,
+			new_mmr: new_mmr
+		};
 	}
 
 	async gameFinished(gameRoom: GameRoomClass, game: GameI, id: string) {
@@ -54,7 +121,8 @@ export class GameService {
 
 		let players: PlayerClass[] = [];
 		let ps: Player[] = [];
-
+		let xps: number[] = [];
+		let levels: number[] = [];
 		for (const [sid, player] of gameRoom.mapPlayers) {
 			players.push(player);
 			let p: Player = await this.playerRepository.findOne({ id: player.userid });
@@ -71,17 +139,29 @@ export class GameService {
 			players[1] = player_class_temp;
 		}
 
+		xps[0] = ps[0].xp;
+		levels[0] = ps[0].level;
+		xps[1] = ps[1].xp;
+		levels[1] = ps[1].level;
+
 		if (game.status === GameStatus.PLAYER1WON || game.status === GameStatus.PLAYER2LEAVE) {
-			this.playerRepository.save({ ...ps[0], winnings: players[0].wins + 1 });
-			this.playerRepository.save({ ...ps[1], losses: players[1].losses + 1 });
-			gameDto = { ...gameDto, winner: ps[0], looser: ps[1], score_winner: game.score1, score_looser: game.score2 };
+			let new_infos_p1: { new_xp: number, new_level: number, new_mmr: number } = this.calculate_new_xp(xps[0], levels[0], game.score1, gameRoom.difficulty, ps[0].mmr, true);
+			let new_infos_p2: { new_xp: number, new_level: number, new_mmr: number } = this.calculate_new_xp(xps[1], levels[1], game.score2, gameRoom.difficulty, ps[1].mmr, false);
+			console.log(new_infos_p1);
+			console.log(new_infos_p2);
+			this.playerRepository.save({ ...ps[0], xp: new_infos_p1.new_xp, level: new_infos_p1.new_level, winnings: players[0].wins + 1, mmr: new_infos_p1.new_mmr });
+			this.playerRepository.save({ ...ps[1], xp: new_infos_p2.new_xp, level: new_infos_p2.new_level, losses: players[1].losses + 1, mmr: new_infos_p2.new_mmr });
+			gameDto = { ...gameDto, winner: ps[0], looser: ps[1], score_winner: game.score1, score_looser: game.score2, xp_winner: xps[0], xp_looser: xps[1], level_winner: levels[0], level_looser: levels[1] };
 		}
 		else {
-			this.playerRepository.save({ ...ps[1], winnings: players[1].wins + 1 });
-			this.playerRepository.save({ ...ps[0], losses: players[0].losses + 1 });
-			gameDto = { ...gameDto, winner: ps[1], looser: ps[0], score_winner: game.score2, score_looser: game.score1 };
+			let new_infos_p1: { new_xp: number, new_level: number, new_mmr: number } = this.calculate_new_xp(xps[0], levels[0], game.score1, gameRoom.difficulty, ps[0].mmr, false);
+			let new_infos_p2: { new_xp: number, new_level: number, new_mmr: number } = this.calculate_new_xp(xps[1], levels[1], game.score2, gameRoom.difficulty, ps[1].mmr, true);
+			console.log(new_infos_p1);
+			console.log(new_infos_p2);
+			this.playerRepository.save({ ...ps[1], xp: new_infos_p2.new_xp, level: new_infos_p2.new_level, winnings: players[1].wins + 1, mmr: new_infos_p2.new_mmr });
+			this.playerRepository.save({ ...ps[0], xp: new_infos_p1.new_xp, level: new_infos_p1.new_level, losses: players[0].losses + 1, mmr: new_infos_p1.new_mmr });
+			gameDto = { ...gameDto, winner: ps[1], looser: ps[0], score_winner: game.score2, score_looser: game.score1, xp_winner: xps[1], xp_looser: xps[0], level_winner: levels[1], level_looser: levels[0] };
 		}
-
 		const new_game: Game = this.gameRepository.create(gameDto);
 		this.gameRepository.save(new_game);
 		this.gameRoomService.deleteRoom(id);

@@ -10,7 +10,7 @@ import { Message } from '../channels/entities/message.entity';
 export class SocketService {
 	constructor(private readonly channelService: ChannelsService, private readonly userService: UsersService) { }
 
-	async joinChannel(user: User, data: any, client: Socket) {
+	async joinChannel(user: User, data: any, client: Socket, server: Server) {
 		let channel = await this.channelService.findOneById(data.channel_id);
 		if (channel == null)
 			return null
@@ -23,7 +23,12 @@ export class SocketService {
 
 		channel.password = undefined;
 		client.to(channel.id.toString()).emit("NewUser", { user: user, channel_id: channel.id })
-		client.join(channel.id.toString())							// join socket room
+
+		const socket_ids = await server.to(channel.id.toString()).allSockets()
+
+		if (!socket_ids.has(user.socket_id))
+			client.join(channel.id.toString())							// join socket room
+		channel.messages = channel.messages.filter(msg => { return (user.blocked.find(blocked_user => { return blocked_user.id == msg.user.id }) == undefined) });
 		client.emit("JoinChan", channel)
 		return channel
 	}
@@ -52,8 +57,10 @@ export class SocketService {
 	}
 
 	async newMessage(user: User, message: Message, server: Server) {
+		console.log("newMessage()")
+		let channel = await this.channelService.findOneById(message.channel.id);
 
-		const channel = await this.channelService.findOneById(message.channel.id);
+		message.channel.scope = "channel.scope"
 		let muted = channel.muted.find(e => { return e.user.id == user.id });
 		if (muted != undefined) {
 			if (muted.end > new Date()) {
@@ -67,6 +74,7 @@ export class SocketService {
 			else
 				this.channelService.removeFromMuteList(muted)
 		}
+		console.log("mute pass")
 
 		try {
 			message = await this.channelService.handleMessage(user, message)
@@ -75,8 +83,9 @@ export class SocketService {
 			return
 		}
 
+		console.log("msg handle pass")
 		// manage block users
-		const socket_ids = await server.to(message.channel.id.toString()).allSockets()
+		const socket_ids = await server.to(channel.id.toString()).allSockets()
 
 		let except = [];
 		for (let item of socket_ids) {
@@ -84,7 +93,8 @@ export class SocketService {
 			if (other_user && other_user.blocked.find(e => { return e.id == user.id }) != undefined)
 				except.push(item)
 		}
-		server.to(message.channel.id.toString()).except(except).emit('NewMessage', message);
+		console.log("block pass")
+		server.to(channel.id.toString()).except(except).emit('NewMessage', message);
 	}
 
 	async invite(user: User, data: any, server: Server) {
@@ -92,6 +102,11 @@ export class SocketService {
 		let channel = await this.channelService.findOneById(data.channel_id)
 
 		if (target == null || channel == null) return
+
+		if (channel.users.find(e => { return e.id == target.id }) != undefined) {
+			server.to(user.socket_id).emit("Alert", { content: "User already in channel", color: "red" })
+			return;
+		}
 
 		if (channel.admins.find(e => { return e.id == user.id }) == undefined) {
 			server.to(user.socket_id).emit("Alert", { content: "Invite require admin rights", color: "red" })
@@ -146,7 +161,7 @@ export class SocketService {
 			return channel;
 
 		await this.channelService.joinChannel(target_user, { channel_id: channel.id, password: "" });
-		await this.joinChannel(user, { channel_id: channel.id, password: "" }, client)
+		await this.joinChannel(user, { channel_id: channel.id, password: "" }, client, server)
 		server.to(target_user.socket_id).emit('PrivateMessage', { id: -1, channel: channel, user: null, content: user.username + "Invited you to chat !" });
 		return channel
 	}

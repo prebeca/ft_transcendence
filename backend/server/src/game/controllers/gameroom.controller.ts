@@ -19,8 +19,6 @@ export class GameRoomController {
 	@Post('create')
 	create(@Body() createGameDto: CreateGameDto, @Req() req: Request): string {
 		const nameroom: string = this.gameRoomService.addRoom(createGameDto)
-		console.log("nameroom = " + nameroom);
-		console.log("reqqqqqq = " + JSON.stringify(req.body));
 		return nameroom;
 	}
 
@@ -30,6 +28,23 @@ export class GameRoomController {
 		return this.gameRoomService.getPlayersInRooms();
 	}
 
+	@UseGuards(JwtTwoFactorAuthGuard)
+	@Get('history/:playerid')
+	async getHistoryByPlayerId(@Param('playerid') playerid: number): Promise<Game[]> {
+		if (!playerid)
+			return null;
+		return await this.gameService.getHistoryByPlayerId(playerid);
+	}
+
+	@UseGuards(JwtTwoFactorAuthGuard)
+	@Get('history')
+	async getHistory(@Req() req: Request): Promise<Game[]> {
+		const user: User = { ...req.user as User };
+		console.log(user);
+		return await this.gameService.getHistoryByUser(user);
+	}
+
+	@UseGuards(JwtTwoFactorAuthGuard)
 	@Get('details/:uuid')
 	async match_details(@Param('uuid') uuid: string) {
 		return await this.gameService.get_match_details(uuid);
