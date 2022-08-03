@@ -12,10 +12,10 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { GameGateway } from './gateways/game.gateway';
 import { UsersModule } from 'src/users/users.module';
 import { Game } from './entities/game.entity';
-
+import { User } from 'src/users/entities/user.entity';
 @Module({
   imports: [
-    TypeOrmModule.forFeature([Player, Game]),
+    TypeOrmModule.forFeature([Player, Game, User]),
     UsersModule,
   ],
   controllers: [GameRoomController, PlayerController],
