@@ -317,9 +317,9 @@ export class ChannelsService {
 	}
 
 	async updatePassword(user: User, data: any): Promise<any> {
-		let channel: Channel = await this.channelRepository.findOne(data.channel_id, { relations: ["admins"] });
+		let channel: Channel = await this.channelRepository.findOne(data.channel_id, { relations: ["admins", "owner"] });
 
-		if (channel.owner.id == user.id)
+		if (channel.owner == null || channel.owner.id != user.id)
 			return { color: "red", content: "ERROR: owner right required" }
 
 		if (await bcrypt.compare(data.password_old, channel.password) == false)
