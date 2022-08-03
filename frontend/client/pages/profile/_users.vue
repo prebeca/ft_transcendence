@@ -115,7 +115,7 @@ export default Vue.extend({
     },
     getUser(username: string) {
       this.$axios
-        .get("/users/" + this.$route.params.users)
+        .get("/users/u/" + this.$route.params.users)
         .then((res) => {
           this.user = res.data;
           if (this.user !== null) {

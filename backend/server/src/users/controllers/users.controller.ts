@@ -98,7 +98,7 @@ export class UsersController {
 	}
 
 	@UseGuards(JwtTwoFactorAuthGuard)
-	@Get('/:username')
+	@Get('/u/:username')
 	async getProfileById(@Param('username') username: string): Promise<User> {
 		const user: User = (await this.userService.findOneByUsername(username));
 		if (!user)
