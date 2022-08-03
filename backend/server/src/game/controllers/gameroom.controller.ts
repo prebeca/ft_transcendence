@@ -36,6 +36,15 @@ export class GameRoomController {
 		return await this.gameService.getHistoryByPlayerId(playerid);
 	}
 
+	@UseGuards(JwtTwoFactorAuthGuard)
+	@Get('history')
+	async getHistory(@Req() req: Request): Promise<Game[]> {
+		const user: User = { ...req.user as User };
+		console.log(user);
+		return await this.gameService.getHistoryByUser(user);
+	}
+
+	@UseGuards(JwtTwoFactorAuthGuard)
 	@Get('details/:uuid')
 	async match_details(@Param('uuid') uuid: string) {
 		return await this.gameService.get_match_details(uuid);

@@ -7,6 +7,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Game } from '../entities/game.entity';
 import { PlayerClass } from '../classes/player.class';
 import { GameRoomService } from './gameroom.service';
+import { User } from 'src/users/entities/user.entity';
 
 export class GameDto {
 	uuid: string;
@@ -35,6 +36,8 @@ export enum GameStatus {
 export class GameService {
 	constructor(private readonly gameRoomService: GameRoomService) { }
 
+	@InjectRepository(User)
+	private readonly userRepository: Repository<User>
 	@InjectRepository(Player)
 	private readonly playerRepository: Repository<Player>
 	@InjectRepository(Game)
@@ -46,8 +49,29 @@ export class GameService {
 	}
 
 	async getHistoryByPlayerId(playerid: number): Promise<Game[]> {
-		const player: Player = await this.playerRepository.findOne({ id: playerid });
-		const games: Game[] = await this.gameRepository.find({ where: [{ winner: player }, { looser: player }] });
+		const player: Player = await this.playerRepository.findOne(playerid);
+		const games: Game[] = await this.gameRepository.find({
+			relations: ['player'],
+			loadRelationIds: true,
+			where: [
+				{ winner: player },
+				{ looser: player },
+			],
+		});
+		console.log(games);
+		return games;
+	}
+	async getHistoryByUser(user: User): Promise<Game[]> {
+		const userWR: User = await this.userRepository.findOne(user.id, { relations: ["player"] });
+		console.log(userWR);
+		const games: Game[] = await this.gameRepository.find({
+			relations: ['winner', 'looser'],
+			where: [
+				{ winner: userWR.player },
+				{ looser: userWR.player },
+			],
+		});
+		console.log(games);
 		return games;
 	}
 
