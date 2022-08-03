@@ -1,10 +1,10 @@
 <template>
   <div
     id="gameDetails"
-    tyle="height: 80vh; max-height: 100%; row-gap: 50px"
-    class="d-flex flex-column justify-center align-center"
+    style="height: 80vh; max-height: 100%; row-gap: 50px"
+    class="d-flex justify-center align-center"
   >
-    <div class="d-flex align-center" style="column-gap: 20px">
+    <div class="d-flex justify-center align-center" style="column-gap: 20px">
       <GameRoomWinnerLooserCard
         :player="game_details.winner"
         title="WINNER"
