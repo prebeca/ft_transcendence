@@ -1037,7 +1037,6 @@ export default Vue.extend({
     this.$axios
       .get("/users")
       .then((res) => {
-        console.log(res.data);
         this.users = res.data;
       })
       .catch((error) => {
@@ -1116,7 +1115,6 @@ export default Vue.extend({
 
     this.socket.on("JoinChan", async (channel: Channel) => {
       console.log("adding channel:");
-      console.log(channel);
       if (
         channel.scope == "dm" &&
         this.channels_dm.find((e) => {
@@ -1456,11 +1454,6 @@ export default Vue.extend({
       if (this.input.length == 0) return;
       if (this.currentChannel.id == undefined) return;
 
-      console.log({
-        channel: this.currentChannel,
-        content: this.input,
-      });
-
       await this.socket.emit("NewMessage", {
         channel: { id: this.currentChannel.id },
         content: this.input,
@@ -1508,8 +1501,6 @@ export default Vue.extend({
       let user = channel.users.find((e) => {
         return e.id != this.user.id;
       });
-      console.log(user);
-      console.log(this.user);
 
       return user;
     },

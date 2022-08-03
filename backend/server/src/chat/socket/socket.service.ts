@@ -103,6 +103,11 @@ export class SocketService {
 
 		if (target == null || channel == null) return
 
+		if (channel.users.find(e => { return e.id == target.id }) != undefined) {
+			server.to(user.socket_id).emit("Alert", { content: "User already in channel", color: "red" })
+			return;
+		}
+
 		if (channel.admins.find(e => { return e.id == user.id }) == undefined) {
 			server.to(user.socket_id).emit("Alert", { content: "Invite require admin rights", color: "red" })
 			return;
