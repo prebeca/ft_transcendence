@@ -6,6 +6,8 @@ export default interface GameI {
 	gameWidth: number,
 	gameHeight: number,
 
+	map: string,
+
 	pad1: PadI,
 	pad2: PadI,
 

@@ -38,13 +38,13 @@
     <v-radio-group v-model="map" row>
       <v-radio label="Pong" value="Pong"></v-radio>
       <v-radio label="Tennis" value="Tennis"></v-radio>
+      <v-radio label="Golf" value="Golf"></v-radio>
     </v-radio-group>
     <!-- <template v-slot:thumb-label>
       <span class="font-weight-bold" style="font-size: 15px">
         {{ map }}
       </span>
     </template> -->
-
     <v-btn color="accent" @click="validate"> Validate </v-btn>
   </v-form>
 </template>

@@ -61,7 +61,7 @@ export default Vue.extend({
       }),
       canvas: {} as HTMLCanvasElement,
       context: {} as CanvasRenderingContext2D,
-      roomid: "",
+      roomid: {} as string,
       game: {} as GameI,
       ratiox: {} as number,
       ratioy: {} as number,
@@ -91,12 +91,11 @@ export default Vue.extend({
   mounted() {
     this.roomid = this.$route.query.roomid as string;
     this.socket.emit("joinGame", this.roomid);
-    this.canvas = document.getElementById("canvas") as HTMLCanvasElement;
-    if (!this.canvas) {
-      return;
-    }
-    this.context = this.canvas.getContext("2d") as CanvasRenderingContext2D;
 
+    this.canvas = document.getElementById("canvas") as HTMLCanvasElement;
+    if (!this.canvas)
+      return;
+    this.context = this.canvas.getContext("2d") as CanvasRenderingContext2D;
     window.addEventListener("keydown", this.handleKeyDown);
     window.addEventListener("resize", this.handleResize);
   },
@@ -107,11 +106,14 @@ export default Vue.extend({
   },
   methods: {
     handleKeyDown: function (event: any) {
-      console.log("roomid = " + this.roomid);
       if (event.key === "ArrowUp")
         this.socket.emit("arrowUp", { data: this.game, id: this.roomid });
       if (event.key === "ArrowDown")
         this.socket.emit("arrowDown", { data: this.game, id: this.roomid });
+    },
+    update(data: GameI) {
+      this.game = data;
+      this.handleResize();
     },
     handleResize() {
       this.canvas.width = window.innerWidth / 1.5;
@@ -120,26 +122,22 @@ export default Vue.extend({
       this.ratioy = this.canvas.height / this.game.gameHeight;
       this.draw();
     },
-    update(data: GameI) {
-      this.game = data;
-      this.handleResize();
-    },
     draw() {
       this.clearScreen();
       this.drawCanvas();
       this.drawPads();
       this.drawBall();
-      // if (
-      //   this.game.status != GameStatus.INPROGRESS &&
-      //   this.game.status != GameStatus.WAITING
-      // )
-      //   this.endGame(this.game);
     },
     clearScreen() {
       this.context.clearRect(0, 0, this.canvas.width, this.canvas.height);
     },
     drawCanvas() {
-      this.context.fillStyle = "black";
+      if (this.game.map === "Pong")
+        this.context.fillStyle = "black";
+      if (this.game.map === "Tennis")
+        this.context.fillStyle = "#D26341";
+      if (this.game.map === "Golf")
+        this.context.fillStyle = "#658F44";
       this.context.fillRect(0, 0, this.canvas.width, this.canvas.height);
       this.context.strokeStyle = "white";
       this.context.beginPath();

@@ -23,10 +23,12 @@ export class GameRoomClass {
 	public end_date: Date = null;
 	public finished: boolean = false;
 	public points: number = 0;
+	public map: string = "Pong";
 
 	public game: GameI = {
 		gameWidth: 0,
 		gameHeight: 0,
+		map: "",
 		pad1: {} as PadI,
 		pad2: {} as PadI,
 		ball: {} as BallI,
@@ -39,6 +41,7 @@ export class GameRoomClass {
 	setOptions(roomname: string, createGameDto: CreateGameDto) {
 		this.difficulty = createGameDto.difficulty;
 		this.points = createGameDto.points;
+		this.map = createGameDto.map;
 		this.roomname = roomname;
 	}
 
@@ -59,6 +62,11 @@ export class GameRoomClass {
 	getPoints(): number {
 		return this.points;
 	}
+
+	getMap(): string {
+		return this.map;
+	}
+
 
 	getPlayerById(player_id: string): PlayerClass {
 		for (const [sid, player] of this.mapPlayers) {
