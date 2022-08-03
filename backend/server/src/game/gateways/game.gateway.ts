@@ -24,7 +24,7 @@ export enum GameStatus {
 const gameWidth: number = 640;
 const gameHeight: number = 480;
 const padWidth: number = 10;
-const ballRadius: number = 7;
+const ballRadius: number = 5;
 const padSpeed: number = 20;
 const padHeightDefault: number = 100;
 const ballSpeed: number = 1;
@@ -69,6 +69,19 @@ function resetAfterPoint(game: GameI, side: string) {
 }
 
 function checkCollision(game: GameI) {
+	//check collision with top and bottom
+	if (game.ball.y + game.ball.r + game.ball.speed > game.gameHeight) {
+		game.ball.y = game.gameHeight - game.ball.r;
+		game.ball.dir.y *= -1;
+	}
+	else if (game.ball.y - game.ball.r < game.ball.speed) {
+		game.ball.y = game.ball.r;
+		game.ball.dir.y *= -1;
+	}
+	//check if the ball is in the middle of the screen to do nothing
+	if (game.ball.x - game.ball.r > game.gameWidth / 7 && game.ball.x + game.ball.r < game.gameWidth - game.gameWidth / 7)
+		return GameStatus.INPROGRESS;
+	//check collision with the goals
 	if (game.ball.x - game.ball.r <= 0) {
 		game.score2++;
 		if (game.score2 === pointToWin)
@@ -83,6 +96,7 @@ function checkCollision(game: GameI) {
 		game.looserPoint = game.pad2.id;
 		return resetAfterPoint(game, "right");
 	}
+	//check collision with pads
 	else if (game.ball.x - game.ball.r < game.pad1.x + game.pad1.width && game.pad1.x < game.ball.x + game.ball.r &&
 		game.pad1.y < game.ball.y + game.ball.r && game.pad1.height + game.pad1.y > game.ball.y - game.ball.r) {
 		game.ball.dir.x *= -1;
@@ -105,14 +119,6 @@ function checkCollision(game: GameI) {
 }
 
 function moveBall(game: GameI) {
-	if (game.ball.y + game.ball.r + game.ball.speed > game.gameHeight) {
-		game.ball.y = game.gameHeight - game.ball.r;
-		game.ball.dir.y *= -1;
-	}
-	if (game.ball.y - game.ball.r < game.ball.speed) {
-		game.ball.y = game.ball.r;
-		game.ball.dir.y *= -1;
-	}
 	game.ball.x += game.ball.dir.x * game.ball.speed;
 	game.ball.y += game.ball.dir.y * game.ball.speed;
 }
@@ -149,8 +155,8 @@ function initGame(game: GameI) {
 	game.score1 = 0;
 	game.score2 = 0;
 
-	game.status = GameStatus.WAITING;
 	game.looserPoint = game.pad1.id;
+	game.status = GameStatus.WAITING;
 }
 
 @WebSocketGateway(42041, {
@@ -269,12 +275,11 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
 		let pad: PadI;
 		if (game.pad1.id === client.id)
 			pad = game.pad1;
-		if (game.pad2.id === client.id)
+		else if (game.pad2.id === client.id)
 			pad = game.pad2;
 		if (pad) {
-			if (data.status === GameStatus.WAITING && game.looserPoint === pad.id) {
+			if (data.status === GameStatus.WAITING && game.looserPoint === pad.id)
 				this.startGame(client, id);
-			}
 			if (game.status === GameStatus.INPROGRESS) {
 				if (pad.y > pad.speed)
 					pad.y -= pad.speed;
@@ -293,12 +298,11 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
 		let pad: PadI;
 		if (game.pad1.id === client.id)
 			pad = game.pad1;
-		if (game.pad2.id === client.id)
+		else if (game.pad2.id === client.id)
 			pad = game.pad2;
 		if (pad) {
-			if (data.status === GameStatus.WAITING && game.looserPoint === pad.id) {
+			if (data.status === GameStatus.WAITING && game.looserPoint === pad.id)
 				this.startGame(client, id);
-			}
 			if (game.status === GameStatus.INPROGRESS) {
 				if (pad.y < game.gameHeight - pad.height - pad.speed)
 					pad.y += pad.speed;
