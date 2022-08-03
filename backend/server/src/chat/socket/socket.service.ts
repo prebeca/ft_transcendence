@@ -58,7 +58,8 @@ export class SocketService {
 
 	async newMessage(user: User, message: Message, server: Server) {
 		console.log("newMessage()")
-		const channel = await this.channelService.findOneById(message.channel.id);
+		let channel = await this.channelService.findOneById(message.channel.id);
+		message.channel.scope = "channel.scope"
 		let muted = channel.muted.find(e => { return e.user.id == user.id });
 		if (muted != undefined) {
 			if (muted.end > new Date()) {

@@ -1454,7 +1454,7 @@ export default Vue.extend({
       });
 
       await this.socket.emit("NewMessage", {
-        channel: this.currentChannel,
+        channel: { id: this.currentChannel.id },
         content: this.input,
       });
 

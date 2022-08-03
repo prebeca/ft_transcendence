@@ -237,6 +237,7 @@ export class ChannelsService {
 			throw new InternalServerErrorException("Request from unknown user");
 		if (channel.users.find(e => { return e.id == user.id }) == undefined)
 			throw new InternalServerErrorException("User not in channel");
+		message.channel = channel;
 		return this.messagesRepository.save(message);
 	}
 
