@@ -563,7 +563,7 @@
                       <tr>
                         <td>
                           <UserAvatarStatus
-                            size="80px"
+                            size="50px"
                             :user="getDMUser(channel)"
                             :offset="20"
                           />
@@ -966,6 +966,7 @@ interface Channel {
 interface User {
   id: number;
   username: string;
+  avatar: string;
   friends: User[];
   blocked: User[];
 }
@@ -989,6 +990,7 @@ export default Vue.extend({
       channelDeleteDialog: false,
       passwordDialog: false,
       valid: true,
+      disconnected: false,
       channelChoice: [
         { text: "public" },
         { text: "private" },
@@ -1077,7 +1079,13 @@ export default Vue.extend({
     this.socket.on("connect", async () => {
       console.log("Connection !");
       await this.socket.emit("SetSocket");
+      if (!this.disconnected) return;
       await this.joinChannels();
+      this.disconnected = false;
+    });
+
+    this.socket.on("disconnect", async () => {
+      this.disconnected = true;
     });
 
     this.socket.on("UserKick", async (msg: any) => {
@@ -1497,9 +1505,13 @@ export default Vue.extend({
 
     getDMUser(channel: Channel): User | undefined {
       //   console.log(channel.users.length);
-      return channel.users.find((e) => {
+      let user = channel.users.find((e) => {
         return e.id != this.user.id;
       });
+      console.log(user);
+      console.log(this.user);
+
+      return user;
     },
 
     getUserProfile(channel: Channel): string {

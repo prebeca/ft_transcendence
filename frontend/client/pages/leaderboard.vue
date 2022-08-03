@@ -51,8 +51,8 @@ export default Vue.extend({
       .then((res) => {
         console.log(res.data);
         this.users = res.data;
-        for (let i = 0; i < this.users.length; i++)
-          this.changePlayerAvatar(res.data[i].avatar, i);
+        // for (let i = 0; i < this.users.length; i++)
+        //   this.changePlayerAvatar(res.data[i].avatar, i);
       })
       .catch((error) => {
         console.error(error);
@@ -70,10 +70,10 @@ export default Vue.extend({
     },
   },
   methods: {
-    changePlayerAvatar(filename: string, i: number) {
-      this.users[i].avatar =
-        `${process.env.API_URL}/users/profile/avatar/` + filename;
-    },
+    // changePlayerAvatar(filename: string, i: number) {
+    //   this.users[i].avatar =
+    //     `${process.env.API_URL}/users/profile/avatar/` + filename;
+    // },
   },
 });
 </script>

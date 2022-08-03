@@ -128,7 +128,7 @@ export default Vue.extend({
       .get("/users/profile")
       .then((res) => {
         this.user = res.data;
-        this.changeAvatar(res.data.avatar);
+        // this.changeAvatar(res.data.avatar);
         this.user.friends.forEach((e) => {
           e.messages = [];
         });
@@ -188,10 +188,10 @@ export default Vue.extend({
     });
   },
   methods: {
-    changeAvatar(filename: string) {
-      this.user.avatar =
-        `${process.env.API_URL}/users/profile/avatar/` + filename;
-    },
+    // changeAvatar(filename: string) {
+    //   this.user.avatar =
+    //     `${process.env.API_URL}/users/profile/avatar/` + filename;
+    // },
   },
 });
 </script>

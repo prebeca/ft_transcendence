@@ -44,6 +44,8 @@ export default Vue.extend({
     },
   },
   created() {
+    this.user.avatar =
+      `${process.env.API_URL}/users/profile/avatar/` + this.user.avatar;
     this.statusSocket.on("changeAvatar" + this.user.id, (data) => {
       this.user.avatar = `${process.env.API_URL}/users/profile/avatar/` + data;
     });
