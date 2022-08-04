@@ -22,6 +22,7 @@
         accept="image/*"
         @change="imageSelected"
         style="display: none"
+        :rules="[rules.sizeMax]"
       />
       <v-btn color="info" @click="selectImage" text> SELECT AN IMAGE </v-btn>
     </v-row>
@@ -96,6 +97,10 @@ export default Vue.extend({
         counter_max: (value: string) =>
           value.length <= 15 || "Max 15 characters",
         counter_min: (value: string) => value.length >= 5 || "Min 5 characters",
+        sizeMax: (value: any) =>
+          !value ||
+          value.size < 2000000 ||
+          "Avatar size should be less than 2 MB!",
       },
     };
   },
