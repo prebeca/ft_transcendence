@@ -141,6 +141,15 @@ export class AuthService {
 
 		var user: User = await this.usersService.findOne(createUserDto.login);
 		if (!user) {
+			let same_username: string = res2.data.login;
+			for (let i = 0; i < 1000000; i++) {
+				var same_user: User = await this.usersService.findOneByUsername(same_username);
+				if (!same_user)
+					break;
+				same_username = (res2.data.login as string).concat(i.toString());
+			}
+			console.log(same_username);
+			createUserDto.username = same_username;
 			user = await this.usersService.createUser(createUserDto);
 			if (user === null)
 				return null;
@@ -255,8 +264,7 @@ export class AuthService {
 				email: registerUser.email,
 				salt: salt_pass,
 				password: hash_pass,
-				username: registerUser.username,
-				login: registerUser.username
+				username: registerUser.username
 			}
 			return this.usersService.createUser(createUserDto);
 		} catch (error) {

@@ -64,7 +64,6 @@
                                 v-model="name"
                                 :rules="[rules.required]"
                                 label="Name"
-                                @keyup.enter="createChannel"
                               >
                               </v-text-field>
                             </v-form>
@@ -83,7 +82,6 @@
                               <v-text-field
                                 v-model="password"
                                 label="Password"
-                                @keyup.enter="createChannel"
                                 type="password"
                               >
                               </v-text-field>
@@ -1241,11 +1239,11 @@ export default Vue.extend({
       let channel = this.channels.find((e) => {
         return e.id == data.channel_id;
       });
-      if (channel == undefined) return;
+      if (channel === undefined) return;
       await this.$axios
         .get("/channels/" + channel.id + "/admins")
         .then((res) => {
-          channel.admins = res.data;
+          (channel as Channel).admins = res.data;
         })
         .catch((error) => {
           console.error(error);
@@ -1389,15 +1387,6 @@ export default Vue.extend({
       }
     },
 
-    // async joinChannels() {
-    //   for (let i = 0; i < this.channels.length; ++i) {
-    //     await this.socket.emit("JoinChan", {
-    //       channel_id: this.channels[i].id,
-    //       password: "",
-    //     });
-    //   }
-    // },
-
     async joinChannel() {
       if (this.choice == "") return;
       this.socket.emit(
@@ -1522,13 +1511,12 @@ export default Vue.extend({
       return false;
     },
 
-    getDMUser(channel: Channel): User | undefined {
+    getDMUser(channel: Channel): User {
       //   console.log(channel.users.length);
       let user = channel.users.find((e) => {
         return e.id != this.user.id;
       });
-
-      return user;
+      return user as User;
     },
 
     getUserProfile(channel: Channel): string {

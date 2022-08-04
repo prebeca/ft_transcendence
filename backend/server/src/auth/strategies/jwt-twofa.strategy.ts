@@ -26,7 +26,6 @@ export class JwtTwoFaStrategy extends PassportStrategy(Strategy, 'jwt-twofa') {
 	}
 
 	async validate(payload: JwtPayload): Promise<User> {
-		console.log("1st strat 2fa")
 		const user = await this.userService.findUserbyIdWithSensibleData(payload.id);
 		if (!user) {
 			throw new UnauthorizedException("user not found")
