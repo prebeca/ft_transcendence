@@ -51,8 +51,7 @@ export class GameService {
 	async getHistoryByPlayerId(playerid: number): Promise<Game[]> {
 		const player: Player = await this.playerRepository.findOne(playerid);
 		const games: Game[] = await this.gameRepository.find({
-			relations: ['player'],
-			loadRelationIds: true,
+			relations: ['winner', 'looser'],
 			where: [
 				{ winner: player },
 				{ looser: player },
@@ -61,6 +60,7 @@ export class GameService {
 		console.log(games);
 		return games;
 	}
+
 	async getHistoryByUser(user: User): Promise<Game[]> {
 		const userWR: User = await this.userRepository.findOne(user.id, { relations: ["player"] });
 		console.log(userWR);

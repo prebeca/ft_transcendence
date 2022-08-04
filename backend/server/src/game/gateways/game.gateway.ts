@@ -188,11 +188,20 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
 	}
 
 	gameEnded(gameRoom: GameRoomClass, game: GameI, id: string) {
+		if (gameRoom.finished)
+			return;
 		this.gameService.gameFinished(gameRoom, game, id);
 		for (const [sid, player] of gameRoom.mapPlayers) {
 			this.gatewayStatus.backToConnected(player.userid);
 		}
 		this.server.to(id).emit('endGame', game.status);
+	}
+
+	emitInfoPlayersToGame(roomid: string, gameRoom: GameRoomClass): void {
+		for (const [key, value] of gameRoom.mapPlayers) {
+			var info_player: PlayerInfo = gameRoom.getPlayerInfoById(key);
+			this.server.to(roomid).emit("usernamep" + info_player.player_number, { username: info_player.username, mmr: info_player.mmr, avatar: info_player.avatar });
+		}
 	}
 
 	@SubscribeMessage('leaveGame')
@@ -217,7 +226,7 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
 			this.server.to(id).emit('updateStatus', game.status);
 		}
 		if (game.status === GameStatus.PLAYER1LEAVE || game.status === GameStatus.PLAYER2LEAVE) {
-			this.gameEnded(gameRoom, game, id);
+			return this.gameEnded(gameRoom, game, id);
 		}
 	}
 
@@ -250,6 +259,7 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
 				game.pad2.id = client.id;
 			this.gatewayStatus.inGame(playerinfo.userid);
 		}
+		this.emitInfoPlayersToGame(id, gameRoom);
 		this.server.to(id).emit("initDone", game);
 	}
 

@@ -38,7 +38,7 @@ export class GameRoomGateway implements OnGatewayConnection, OnGatewayDisconnect
 	}
 
 	emitPlayersToRoom(roomid: string, gameRoom: GameRoomClass): void {
-		for (const [key, value] of gameRoom.mapPlayers) { //will send to every member the informations of every player present
+		for (const [key, value] of gameRoom.mapPlayers) {
 			var info_player: PlayerInfo = gameRoom.getPlayerInfoById(key)
 			this.server.to(roomid).emit("infouserp" + info_player.player_number, info_player);
 		}
@@ -54,26 +54,17 @@ export class GameRoomGateway implements OnGatewayConnection, OnGatewayDisconnect
 		this.server.to(data).emit("gamestart", data);
 	}
 
-	/*
-	** Client leaves room (it can be a player => the information will be send to the other player and spectators)
-	** It can be a spectator, nothing of note happens
-	*/
 	@UseGuards(WsJwtAuthGuard)
 	@SubscribeMessage('leaveRoom')
 	leaveRoom(@MessageBody() data: string, @ConnectedSocket() client: Socket): void {
 		let gameRoom: GameRoomClass = this.gameRoomService.getRoomById(data);
-		console.log("leaveRoom " + data);
 		if (gameRoom === undefined) {
 			this.logger.log("The room does not exist anymore")
 		}
-		else if (gameRoom.status === GAMEROOMSTATUS.INGAME) {
-			this.logger.log("starting game");
-		}
-		else {
+		else if (gameRoom.status !== GAMEROOMSTATUS.INGAME) {
 			client.leave(data);
 			const player: PlayerClass = gameRoom.getPlayerById(client.id);
 			if (player) {
-				this.logger.log("sending pleaving");
 				this.server.to(data).emit("p" + player.player_number + "leaving", {});
 				this.gatewayStatus.onConnection(player.userid);
 			}
@@ -92,7 +83,6 @@ export class GameRoomGateway implements OnGatewayConnection, OnGatewayDisconnect
 		let gameRoom: GameRoomClass = this.gameRoomService.getRoomById(roomid);
 		if (gameRoom === undefined) {
 			client.emit("change_room");
-			this.logger.log("The room does not exist anymore")
 			return;
 		}
 		client.join(roomid);
@@ -106,7 +96,6 @@ export class GameRoomGateway implements OnGatewayConnection, OnGatewayDisconnect
 				gameRoom.status = GAMEROOMSTATUS.FULL;
 			}
 		}
-		this.logger.log(JSON.stringify(gameRoom));
 		this.emitPlayersToRoom(roomid, gameRoom);
 	}
 }
