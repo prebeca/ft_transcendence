@@ -1043,15 +1043,15 @@ export default Vue.extend({
         console.error(error);
       });
 
-    // fetch all channels
-    await this.$axios
-      .get("/channels")
-      .then((res) => {
-        this.allChannels = res.data;
-      })
-      .catch((error) => {
-        console.error(error);
-      });
+    // // fetch all channels
+    // await this.$axios
+    //   .get("/channels")
+    //   .then((res) => {
+    //     this.allChannels = res.data;
+    //   })
+    //   .catch((error) => {
+    //     console.error(error);
+    //   });
 
     // fetch users channels
     await this.$axios
@@ -1519,7 +1519,7 @@ export default Vue.extend({
       return name;
     },
 
-    async options(choice: string) {
+    async options() {
       if (this.currentChannel == undefined) return;
       if (this.currentChannel.scope == "private") {
         this.socket.emit("Invite", {

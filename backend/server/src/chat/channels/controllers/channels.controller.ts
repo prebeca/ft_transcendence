@@ -22,7 +22,7 @@ export class ChannelsController {
 
 	@UseGuards(JwtAuthGuard)
 	@Post('join')
-	async joinChannel(@Req() req: Request, @Body() data: Message): Promise<Channel | String> {
+	async joinChannel(@Req() req: Request, @Body() data: any): Promise<Channel | String> {
 		return this.channelService.joinChannel(req.user as User, data);
 	}
 
@@ -69,8 +69,9 @@ export class ChannelsController {
 		return this.channelService.updatePassword(req.user as User, data);
 	}
 
+	@UseGuards(JwtAuthGuard)
 	@Get()
-	getChannels() {
+	getChannels(@Req() req: Request) {
 		return this.channelService.getChannels();
 	}
 }

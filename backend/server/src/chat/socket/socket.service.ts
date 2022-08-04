@@ -11,16 +11,23 @@ export class SocketService {
 	constructor(private readonly channelService: ChannelsService, private readonly userService: UsersService) { }
 
 	async joinChannel(user: User, data: any, client: Socket, server: Server) {
-		let channel = await this.channelService.findOneById(data.channel_id);
-		if (channel == null)
+		// let channel = await this.channelService.findOneById(data.channel_id);
+		// if (channel == null)
+		// 	return null
+
+		try {
+			data.channel_id = data.channel_id as number;
+		} catch (error) {
+			client.emit("Alert", { content: "ERROR: Bad channel_id", color: "red" })
 			return null
+		}
 
 		let res = await this.channelService.joinChannel(user, data);
 		if (typeof (res) == "string") {
 			client.emit("Alert", { content: "ERROR: " + res, color: "red" })
 			return null
 		}
-
+		let channel = res as Channel;
 		channel.password = undefined;
 		client.to(channel.id.toString()).emit("NewUser", { user: user, channel_id: channel.id })
 
@@ -167,8 +174,10 @@ export class SocketService {
 	}
 
 	async setAdmin(user: User, data, server: Server) {
-		let new_admin = await this.channelService.addAdmin(data.channel_id, data.user_id);
 		let channel = await this.channelService.findOneById(data.channel_id);
+		if (channel.owner == null || channel.owner.id != user.id)
+			return; // user not channel owner
+		let new_admin = await this.channelService.addAdmin(data.channel_id, data.user_id);
 		if (new_admin != null)
 			server.to(data.channel_id).emit('NewMessage', {
 				id: -1,
