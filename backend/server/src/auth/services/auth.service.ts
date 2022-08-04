@@ -277,6 +277,6 @@ export class AuthService {
 			maxAge: 1000 * 60 * 60 * 1000,
 			sameSite: "strict",
 		});
-		this.usersService.updateUsersById(user, { refresh_token: null });
+		this.usersService.updateUsersById(user, { refresh_token: null, socket_id: null });
 	}
 }

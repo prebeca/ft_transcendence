@@ -12,4 +12,6 @@ export class UpdateUserDto {
 	twofasecret?: string;
 
 	refresh_token?: string;
+
+	socket_id?: string;
 }

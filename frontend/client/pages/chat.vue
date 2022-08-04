@@ -279,7 +279,7 @@
                                 class="d-flex justify-center text-button"
                               >
                                 <v-btn
-                                  :to="'/profile/' + player.username"
+                                  :to="'/profile/' + player.id"
                                   color="primary"
                                   class="mx-1"
                                   min-width="100%"
@@ -1539,7 +1539,7 @@ export default Vue.extend({
     getUserProfile(channel: Channel): string {
       let user = this.getDMUser(channel);
       if (user == undefined) return "error";
-      return "/profile/" + this.getDMUser(channel)?.username;
+      return "/profile/" + this.getDMUser(channel)?.id;
     },
 
     getDMUserName(channel: Channel): string {

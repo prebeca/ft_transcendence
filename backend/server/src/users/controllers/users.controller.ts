@@ -36,15 +36,18 @@ export class UsersController {
 	@UseGuards(JwtTwoFactorAuthGuard)
 	@Post('profile/update/userinfos')
 	async updateUserinfo(@Req() req: Request): Promise<boolean> {
-		const user: User = { ... (req.user as User) };
-		if (!user)
-			return null;
-		await this.userService.updateUserinfo(user, req.body["new_username"]);
-		if (req.body["istwofa"] === false)
-			await this.userService.updateTwoFAUser(user, false);
-		if (req.body["istwofa"] === true) {
-			return true;
+		const user: User = await this.userService.findUserbyIdWithSensibleData((req.user as User).id);
+		const req_body_2fa: boolean = req.body["istwofa"];
+		if (req_body_2fa !== user.twofauser) {
+			if (req_body_2fa === true) {
+				await this.userService.updateUserinfo(user, req.body["new_username"]);
+				return true;
+			}
+			if (req_body_2fa === false)
+				await this.userService.updateUserinfo(user, req.body["new_username"], false);
 		}
+		else
+			await this.userService.updateUserinfo(user, req.body["new_username"]);
 		return false;
 	}
 
@@ -98,13 +101,12 @@ export class UsersController {
 	}
 
 	@UseGuards(JwtTwoFactorAuthGuard)
-	@Get('/u/:username')
-	async getProfileById(@Param('username') username: string): Promise<User> {
-		const user: User = (await this.userService.findOneByUsername(username));
+	@Get('/u/:id')
+	async getProfileById(@Param('id') id: number): Promise<User> {
+		const user: User = await this.userService.findUsersByIdWithRelations(id);
 		if (!user)
 			return null;
-		const user_to_return: User = (await this.userService.findUsersByIdWithRelations(user.id));
-		return user_to_return;
+		return user;
 	}
 
 	@UseGuards(JwtAuthGuard)
