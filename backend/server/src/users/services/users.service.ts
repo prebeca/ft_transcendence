@@ -118,10 +118,10 @@ export class UsersService {
 		}
 	}
 
-	async updateUsersById(user: User, updatedto: UpdateUserDto): Promise<User> {
+	async updateUsersById(user: User, updatedto: UpdateUserDto) {
 		try {
 			const same_user: User = { ...user, ...updatedto };
-			return await this.userRepository.save(same_user);
+			await this.userRepository.update(same_user.id, { ...updatedto });
 		}
 		catch (error) {
 			throw new HttpException("update of user failed", HttpStatus.INTERNAL_SERVER_ERROR);
@@ -202,7 +202,8 @@ export class UsersService {
 
 	async updateTwoFAUser(user: User, istwofa: boolean): Promise<User> {
 		try {
-			user = await this.updateUsersById(user, { twofauser: istwofa });
+			await this.updateUsersById(user, { twofauser: istwofa });
+			console.log(user);
 			if (!istwofa)
 				await this.updateTwoFASecret(user, null);
 		} catch (error) {
@@ -211,7 +212,7 @@ export class UsersService {
 		return await this.userRepository.findOne(user.id);
 	}
 
-	async updateTwoFASecret(user: User, twofasecret: string): Promise<User> {
+	async updateTwoFASecret(user: User, twofasecret: string): Promise<void> {
 		try {
 			return this.updateUsersById(user, { twofasecret: twofasecret });
 		} catch (error) {
