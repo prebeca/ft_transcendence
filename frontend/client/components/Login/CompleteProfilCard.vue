@@ -23,7 +23,21 @@
         @change="imageSelected"
         style="display: none"
       />
-      <v-btn color="info" @click="selectImage" text> SELECT AN IMAGE </v-btn>
+      <template>
+        <v-btn color="info" @click="selectImage" text> SELECT AN IMAGE </v-btn>
+        <v-dialog v-model="sizeDialog" persistent max-width="290">
+          <v-card color="secondary">
+            <v-card-text class="text-h6 pt-5"
+              >Avatar size should be less than 2 MB!</v-card-text
+            >
+            <v-card-text class="text-h6">Select an other avatar.</v-card-text>
+            <v-card-actions>
+              <v-spacer></v-spacer>
+              <v-btn color="primary" @click="sizeDialog = false"> OK </v-btn>
+            </v-card-actions>
+          </v-card>
+        </v-dialog>
+      </template>
     </v-row>
 
     <v-row justify="center" class="pt-5">
@@ -74,6 +88,7 @@ export default Vue.extend({
   name: "loginCard",
   data() {
     return {
+      sizeDialog: false,
       avatar: "",
       photo: "",
       saving: false,
@@ -126,10 +141,14 @@ export default Vue.extend({
       this.photo = (this.$refs as HTMLFormElement).image.click();
     },
     imageSelected(e: { target: HTMLInputElement }) {
-      const target = e.target as HTMLInputElement;
-      this.$emit("input", target!.files![0]);
-      this.photo = (this.$refs as HTMLFormElement).image.files[0];
-      this.saving = true;
+      if ((this.$refs as HTMLFormElement).image.files[0].size > 2097152)
+        this.sizeDialog = true;
+      else {
+        const target = e.target as HTMLInputElement;
+        this.$emit("input", target!.files![0]);
+        this.photo = (this.$refs as HTMLFormElement).image.files[0];
+        this.saving = true;
+      }
     },
     async saveUsername() {
       console.log(this.user.username);
