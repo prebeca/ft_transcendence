@@ -1,5 +1,5 @@
 import { Channel, User } from 'src/typeorm';
-import { JoinTable, JoinColumn, Column, Entity, ManyToOne, PrimaryGeneratedColumn, ManyToMany } from 'typeorm';
+import { Column, Entity, JoinColumn, JoinTable, ManyToOne, PrimaryGeneratedColumn } from 'typeorm';
 
 @Entity()
 export class Message {

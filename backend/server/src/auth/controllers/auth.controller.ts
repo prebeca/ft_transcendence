@@ -1,14 +1,13 @@
-import { Controller, Get, Res, Redirect, Inject, Query, Post, Req, UnauthorizedException, ValidationPipe, UsePipes, Body } from '@nestjs/common';
-import { AuthService } from '../services/auth.service';
+import { Body, Controller, Get, Inject, Post, Query, Redirect, Req, Res, UnauthorizedException, UseGuards, UsePipes, ValidationPipe } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { Response, Request } from 'express';
-import { UseGuards } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
-import { RegisterAuthDto } from '../dto/register-auth.dto';
-import { JwtTwoFactorAuthGuard } from '../guards/jwt-twofa.guard';
+import { Request, Response } from 'express';
 import { User } from 'src/users/entities/user.entity';
 import { AvatarStatusGateway } from 'src/users/gateways/avatarstatus.gateway';
+import { RegisterAuthDto } from '../dto/register-auth.dto';
+import { JwtTwoFactorAuthGuard } from '../guards/jwt-twofa.guard';
 import cookiePayload from '../interfaces/cookiePayload.interface';
+import { AuthService } from '../services/auth.service';
 
 @Controller('auth')
 export class AuthController {

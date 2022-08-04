@@ -1,13 +1,11 @@
-import { WebSocketGateway, SubscribeMessage, MessageBody, ConnectedSocket, WebSocketServer } from '@nestjs/websockets';
-import { Socket } from 'socket.io';
-import { Server } from 'socket.io';
-import { SocketService } from './socket.service';
 import { Req, UseGuards } from '@nestjs/common';
+import { ConnectedSocket, MessageBody, SubscribeMessage, WebSocketGateway, WebSocketServer } from '@nestjs/websockets';
 import { Request } from 'express';
+import { Server, Socket } from 'socket.io';
 import { WsJwtAuthGuard } from 'src/auth/guards/ws-jwt-auth.guard';
-import { User, Channel } from 'src/typeorm';
+import { Channel, User } from 'src/typeorm';
 import { Message } from '../channels/entities/message.entity';
-import { disconnect } from 'process';
+import { SocketService } from './socket.service';
 
 
 @WebSocketGateway({

@@ -1,10 +1,10 @@
-import { AuthService } from "./auth.service";
 import { Injectable } from "@nestjs/common";
-import { User } from "src/users/entities/user.entity";
+import { Response } from 'express';
 import { authenticator } from "otplib";
 import { toFileStream } from 'qrcode';
-import { Response } from 'express';
+import { User } from "src/users/entities/user.entity";
 import { UsersService } from "src/users/services/users.service";
+import { AuthService } from "./auth.service";
 
 @Injectable()
 export class TwoFactorAuthService {
@@ -69,4 +69,4 @@ export class TwoFactorAuthService {
 			/* secure: true, -> only for localhost AND https */
 		});
 	}
-} 
+}

@@ -1,12 +1,12 @@
-import { Controller, Get, Post, Body, Req, UseGuards, Param } from '@nestjs/common';
-import { GameRoomService } from '../services/gameroom.service';
+import { Body, Controller, Get, Param, Post, Req, UseGuards } from '@nestjs/common';
 import { Request } from 'express';
 import { JwtTwoFactorAuthGuard } from 'src/auth/guards/jwt-twofa.guard';
-import { CreateGameDto } from '../dto/create-game.dto';
 import { User } from 'src/users/entities/user.entity';
-import GameRoomInterface from '../interfaces/gameroom.interface';
+import { CreateGameDto } from '../dto/create-game.dto';
 import { Game } from '../entities/game.entity';
+import GameRoomInterface from '../interfaces/gameroom.interface';
 import { GameService } from '../services/game.service';
+import { GameRoomService } from '../services/gameroom.service';
 
 @Controller('gameroom')
 export class GameRoomController {

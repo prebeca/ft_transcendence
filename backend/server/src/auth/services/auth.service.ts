@@ -1,18 +1,18 @@
-import { Injectable, Inject, HttpException, UnauthorizedException, HttpStatus, Res } from '@nestjs/common';
-import { UsersService } from 'src/users/services/users.service';
-import { JwtService } from '@nestjs/jwt';
+import { HttpException, HttpStatus, Inject, Injectable, UnauthorizedException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
+import { JwtService } from '@nestjs/jwt';
 import axios, { AxiosRequestConfig, AxiosResponse } from 'axios';
-import { UserDto } from 'src/users/dto/users.dto';
-import { User } from 'src/users/entities/user.entity';
-import * as FormData from 'form-data';
 import * as bcrypt from 'bcrypt';
 import { Response } from 'express';
-import { LoginInterface } from '../interfaces/login.interface';
-import { RegisterInterface } from '../interfaces/register.interface';
+import * as FormData from 'form-data';
+import { UserDto } from 'src/users/dto/users.dto';
+import { User } from 'src/users/entities/user.entity';
+import { UsersService } from 'src/users/services/users.service';
+import cookiePayload from '../interfaces/cookiePayload.interface';
 import { JwtPayload } from '../interfaces/JwtPayload.interface';
 import jwtUser from '../interfaces/jwtUser.interface';
-import cookiePayload from '../interfaces/cookiePayload.interface';
+import { LoginInterface } from '../interfaces/login.interface';
+import { RegisterInterface } from '../interfaces/register.interface';
 
 @Injectable()
 export class AuthService {

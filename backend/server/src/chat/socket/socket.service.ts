@@ -1,8 +1,7 @@
-import { Injectable, Scope, UseGuards } from '@nestjs/common';
-import { bufferToggle, empty } from 'rxjs';
+import { Injectable } from '@nestjs/common';
 import { Server, Socket } from 'socket.io';
 import { ChannelsService } from 'src/chat/channels/services/channels.service';
-import { User, Channel } from 'src/typeorm';
+import { Channel, User } from 'src/typeorm';
 import { UsersService } from 'src/users/services/users.service';
 import { Message } from '../channels/entities/message.entity';
 

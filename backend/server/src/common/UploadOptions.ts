@@ -1,8 +1,8 @@
-import { extname } from 'path';
+import { HttpException, HttpStatus } from '@nestjs/common';
 import { existsSync, mkdirSync } from 'fs';
 import { diskStorage, StorageEngine } from 'multer';
+import { extname } from 'path';
 import { v4 as uuid } from 'uuid';
-import { HttpException, HttpStatus } from '@nestjs/common';
 
 // Multer configuration
 export const multerConfig: { dest: string } = {
