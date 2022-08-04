@@ -45,12 +45,6 @@ export class GameRoomClass {
 		this.roomname = roomname;
 	}
 
-	printSid(): void {
-		for (let key of this.mapPlayers.keys()) {
-			console.log("player: " + key);
-		}
-	}
-
 	getGame(): GameI {
 		return this.game;
 	}
@@ -148,10 +142,6 @@ export class GameRoomClass {
 				score: 0
 			};
 			this.mapPlayers.set(sid, player);
-			this.printSid();
-		}
-		else {
-			console.log("already 2 players");
 		}
 	}
 

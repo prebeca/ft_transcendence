@@ -29,8 +29,9 @@ export default Vue.extend({
     return {
       sizeOfAvatar: "120px",
       user: {
-        username: "",
-        avatar: "",
+        id: 0 as number,
+        username: "" as string,
+        avatar: "" as string,
       },
     };
   },
@@ -38,8 +39,6 @@ export default Vue.extend({
     this.$axios
       .get("/users/profile")
       .then((res) => {
-        console.log(this.user);
-        console.log(res.data);
         this.user = res.data;
         this.changeAvatar(res.data.avatar);
       })
@@ -65,7 +64,7 @@ export default Vue.extend({
   },
   computed: {
     userProfile(): string {
-      return `/profile/${this.user.username}`;
+      return `/profile/${this.user.id}`;
     },
   },
 });

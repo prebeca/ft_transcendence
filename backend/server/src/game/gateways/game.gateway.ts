@@ -206,7 +206,6 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
 
 	@SubscribeMessage('leaveGame')
 	leaveGame(@ConnectedSocket() client: Socket, @MessageBody() id: string) {
-		console.log("leave = " + id);
 		if (id === null)
 			return;
 		let gameRoom: GameRoomClass = this.gameRoomService.getRoomById(id);

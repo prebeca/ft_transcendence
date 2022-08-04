@@ -98,7 +98,7 @@ export default Vue.extend({
   },
   computed: {
     userProfile(): string {
-      return `/profile/${this.user.username}`;
+      return `/profile/${this.user.id}`;
     },
   },
 });

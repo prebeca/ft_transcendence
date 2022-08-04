@@ -19,7 +19,6 @@ export class ChannelsService {
 
 
 	async createChannel(user: User, createChannelDto: CreateChannelDto) {
-		console.log("createChannel")
 		let channel: Channel = await this.channelRepository.findOne({ where: { name: createChannelDto.name } })
 
 		if (createChannelDto.scope != "dm" && createChannelDto.name.startsWith("dm_"))

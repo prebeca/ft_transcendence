@@ -82,7 +82,6 @@ export class AuthService {
 			token_client = (await this.jwtGenerate({ email: user.email, id: user.id, isTwoFactorEnable: user.twofauser })).access_token;
 		}
 
-		console.log("userid = " + userid);
 		if (!token_client)
 			return null;
 
@@ -127,7 +126,6 @@ export class AuthService {
 				return response;
 			})
 			.catch(function (response) {
-				console.log("Error getUserInfos =>" + response);
 				return null;
 			});
 
@@ -174,7 +172,6 @@ export class AuthService {
 				res = response;
 			})
 			.catch(function (response: AxiosResponse): void {
-				console.log("Error getToken =>" + response);
 				return null;
 			});
 
@@ -202,6 +199,9 @@ export class AuthService {
 	}
 
 	async validateUser(loginPayload: LoginInterface): Promise<User> {
+		let email_str: string = loginPayload.email;
+		if (this.containsSpecialChars(email_str, true))
+			throw new HttpException("Email cannot contain special characters", HttpStatus.CONFLICT);
 		const user: User = await this.usersService.findOneByEmail(loginPayload.email);
 		if (user) {
 			const passIsCorrect = await this.validatePassword(user, loginPayload.password);
@@ -215,7 +215,27 @@ export class AuthService {
 		throw new UnauthorizedException("User does not exist");
 	}
 
+	containsSpecialChars(str: string, is_email: boolean) {
+		const specialChars: string = `\`!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?~`;
+
+		const result: boolean = specialChars.split('').some(specialChar => {
+			if (str.includes(specialChar)) {
+				if (is_email && (specialChar === '@' || specialChar === '.'))
+					return false;
+				return true;
+			}
+			return false;
+		});
+		return result;
+	}
+
 	async registerUser(registerUser: RegisterInterface): Promise<User> {
+		let username_str: string = registerUser.username;
+		if (this.containsSpecialChars(username_str, false))
+			throw new HttpException("Username cannot contain special characters", HttpStatus.CONFLICT);
+		let email_str: string = registerUser.email;
+		if (this.containsSpecialChars(email_str, true))
+			throw new HttpException("Email cannot contain special characters", HttpStatus.CONFLICT);
 		var user: User = await this.usersService.findOneByEmail(registerUser.email);
 		if (!user) {
 			user = await this.usersService.findOneByUsername(registerUser.username);
@@ -245,9 +265,6 @@ export class AuthService {
 	}
 
 	async logout(response: Response, user: User) {
-		//1. set to null column refresh_token from corresponding user->done
-		//2. set the cookies to empty or delete->done
-		//3. return nothing (200 OK)->done
 		response.clearCookie('access_token', {
 			httpOnly: true,
 			path: '/',
@@ -260,6 +277,6 @@ export class AuthService {
 			maxAge: 1000 * 60 * 60 * 1000,
 			sameSite: "strict",
 		});
-		this.usersService.updateUsersById(user, { refresh_token: null });
+		this.usersService.updateUsersById(user, { refresh_token: null, socket_id: null });
 	}
 }
