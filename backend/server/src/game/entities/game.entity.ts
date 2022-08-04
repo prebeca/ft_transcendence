@@ -17,6 +17,12 @@ export class Game {
 	@JoinColumn()
 	winner: Player;
 
+	@Column()
+	username_winner: string;
+
+	@Column()
+	username_looser: string;
+
 	@ManyToOne(() => Player)
 	@JoinColumn()
 	looser: Player;
