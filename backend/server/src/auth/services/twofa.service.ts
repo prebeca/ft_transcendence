@@ -1,10 +1,10 @@
-import { AuthService } from "./auth.service";
 import { Injectable } from "@nestjs/common";
-import { User } from "src/users/entities/user.entity";
+import { Response } from 'express';
 import { authenticator } from "otplib";
 import { toFileStream } from 'qrcode';
-import { Response } from 'express';
+import { User } from "src/users/entities/user.entity";
 import { UsersService } from "src/users/services/users.service";
+import { AuthService } from "./auth.service";
 
 @Injectable()
 export class TwoFactorAuthService {
@@ -28,7 +28,6 @@ export class TwoFactorAuthService {
 		const otpAuthUrl = authenticator.keyuri(user.email, app_name, secret);
 
 		await this.userService.updateSecret2FA(user, secret);
-		console.log('secret twofa generated = ' + secret);
 		return {
 			secret,
 			otpAuthUrl
@@ -51,7 +50,6 @@ export class TwoFactorAuthService {
 	}
 
 	async signIn(user: User, response: Response): Promise<void> {
-		console.log(user.email + " " + user.id + " " + user.twofasecret);
 		const accessToken: string = (await this.authService.jwtGenerate(
 			{
 				email: user.email,
@@ -60,7 +58,6 @@ export class TwoFactorAuthService {
 				isTwoFaAuthenticated: true
 			}
 		)).access_token;
-		console.log(accessToken);
 		response.cookie('access_token', accessToken, {
 			httpOnly: true,
 			path: '/',
@@ -69,4 +66,4 @@ export class TwoFactorAuthService {
 			/* secure: true, -> only for localhost AND https */
 		});
 	}
-} 
+}

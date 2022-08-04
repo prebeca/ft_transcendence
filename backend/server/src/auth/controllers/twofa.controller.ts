@@ -1,10 +1,10 @@
 import { Body, ClassSerializerInterceptor, Controller, Post, Req, Res, UnauthorizedException, UseGuards, UseInterceptors, ValidationPipe } from "@nestjs/common";
-import { JwtAuthGuard } from "../guards/jwt-auth.guard";
-import { User } from "src/users/entities/user.entity";
-import { TwoFactorAuthService } from "../services/twofa.service";
-import { TwoFaAuthDto } from "../dto/twofa-auth.dto";
 import { Request, Response } from "express";
+import { User } from "src/users/entities/user.entity";
 import { UsersService } from "src/users/services/users.service";
+import { TwoFaAuthDto } from "../dto/twofa-auth.dto";
+import { JwtAuthGuard } from "../guards/jwt-auth.guard";
+import { TwoFactorAuthService } from "../services/twofa.service";
 
 @Controller('2fa')
 @UseInterceptors(ClassSerializerInterceptor)
@@ -15,7 +15,7 @@ export class TwoFactorAuthController {
 	) { }
 
 	@UseGuards(JwtAuthGuard)
-	@Post('generate-qr') //generate the qr code on checking the box and clicking on validate (does not update the boolean yet)
+	@Post('generate-qr')
 	async generateQrCode(
 		@Res() response: Response, @Req() req: Request) {
 		const { otpAuthUrl } = await this.twoFactorAuthService.generateTwoFactorAuthSecret(req.user as User);
@@ -24,10 +24,9 @@ export class TwoFactorAuthController {
 	}
 
 	@UseGuards(JwtAuthGuard)
-	@Post('turn-on-qr') //verify the code entered by the user in the form after scanning the qr code
+	@Post('turn-on-qr')
 	async activationOfTwoFa(@Req() req: Request, @Body(ValidationPipe) twoFaAuthDto: TwoFaAuthDto): Promise<boolean> {
 		const userid: number = (req.user as User).id;
-		console.log(userid + " - " + twoFaAuthDto)
 		const user = await this.userService.findUserbyIdWithSensibleData(userid);
 		const isCodeValid: boolean = await this.twoFactorAuthService.verifyTwoFaCode(twoFaAuthDto.code, user);
 		if (!isCodeValid) {
@@ -37,12 +36,10 @@ export class TwoFactorAuthController {
 		return isCodeValid;
 	}
 
-	// This function will be called if 2FA is on (activationOfTwoFa method) (HOW ?)
 	@Post('authenticate')
 	@UseGuards(JwtAuthGuard)
 	async authenticate(@Res({ passthrough: true }) response: Response, @Req() req: Request, @Body(ValidationPipe) twoFaAuthDto: TwoFaAuthDto): Promise<boolean> {
 		const userid: number = (req.user as User).id;
-		console.log(userid + " - " + twoFaAuthDto)
 		const user = await this.userService.findUserbyIdWithSensibleData(userid);
 		const isCodeValid: boolean = await this.twoFactorAuthService.verifyTwoFaCode(twoFaAuthDto.code, user);
 		if (!isCodeValid) {

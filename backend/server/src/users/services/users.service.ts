@@ -1,15 +1,15 @@
-import { HttpStatus, Inject, Injectable, HttpException, StreamableFile, UnauthorizedException } from '@nestjs/common';
+import { HttpException, HttpStatus, Inject, Injectable, StreamableFile, UnauthorizedException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
+import { createReadStream } from 'fs';
+import { FriendsService } from 'src/friends/services/friends.service';
+import { Player } from 'src/game/entities/player.entity';
+import { Channel } from 'src/typeorm';
+import { UserDto } from 'src/users/dto/users.dto';
 import { User } from 'src/users/entities/user.entity';
 import { Repository } from 'typeorm';
-import { UserDto } from 'src/users/dto/users.dto';
-import { createReadStream } from 'fs';
 import { ReadStream } from 'typeorm/platform/PlatformTools';
 import { UpdateUserDto } from '../dto/updateUser.dto';
-import { Player } from 'src/game/entities/player.entity';
 import { AvatarStatusGateway } from '../gateways/avatarstatus.gateway';
-import { Channel } from 'src/typeorm';
-import { FriendsService } from 'src/friends/services/friends.service';
 
 @Injectable()
 export class UsersService {
@@ -82,7 +82,6 @@ export class UsersService {
 	}
 
 	async findUsersBySocketId(id: string): Promise<User> {
-		console.log(id)
 		try {
 			return await this.userRepository.findOne({ where: { socket_id: id }, relations: ["friends", "channels", "blocked"] });
 		} catch (error) {
@@ -132,6 +131,8 @@ export class UsersService {
 	async updateUserinfo(user: User, new_username: string, istwofa?: boolean): Promise<void> {
 		if (istwofa === undefined)
 			this.updateTwoFAUser(user, istwofa);
+		else
+			this.updateTwoFAUser(user, istwofa);
 		return this.updateUsername(user, new_username);
 	}
 
@@ -146,9 +147,25 @@ export class UsersService {
 		}
 	}
 
+	containsSpecialChars(str: string, is_email: boolean) {
+		const specialChars: string = `\`!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?~`;
+
+		const result: boolean = specialChars.split('').some(specialChar => {
+			if (str.includes(specialChar)) {
+				if (is_email && (specialChar === '@' || specialChar === '.'))
+					return false;
+				return true;
+			}
+			return false;
+		});
+		return result;
+	}
+
 	async updateUsername(user: User, new_username: string): Promise<void> {
 		if (!new_username)
 			throw new HttpException('Username cannot be empty', HttpStatus.FORBIDDEN);
+		if (this.containsSpecialChars(new_username, false))
+			throw new HttpException("Username cannot contain special characters", HttpStatus.CONFLICT);
 		const username_user: User = await this.userRepository.findOne({ where: { username: new_username } });
 		if (username_user)
 			return;
@@ -188,8 +205,10 @@ export class UsersService {
 	async updateTwoFAUser(user: User, istwofa: boolean): Promise<User> {
 		try {
 			await this.updateUsersById(user, { twofauser: istwofa });
+			if (!istwofa)
+				await this.updateTwoFASecret(user, null);
 		} catch (error) {
-			throw new HttpException("Update TwoFAUser not work", HttpStatus.INTERNAL_SERVER_ERROR);
+			throw new HttpException("Update TwoFAUser does not work", HttpStatus.INTERNAL_SERVER_ERROR);
 		}
 		return await this.userRepository.findOne(user.id);
 	}

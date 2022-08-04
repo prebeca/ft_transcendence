@@ -1,16 +1,16 @@
 import { Module } from '@nestjs/common';
-import { UsersController } from './controllers/users.controller';
-import { UsersService } from './services/users.service';
-import { UserDto } from './dto/users.dto';
-import { TypeOrmModule } from '@nestjs/typeorm';
-import { User } from 'src/typeorm';
 import { MulterModule } from '@nestjs/platform-express';
+import { TypeOrmModule } from '@nestjs/typeorm';
 import { ChannelsModule } from 'src/chat/channels/channels.module';
-import { Player } from 'src/game/entities/player.entity';
-import { AvatarStatusGateway } from './gateways/avatarstatus.gateway';
 import { FriendsController } from 'src/friends/controllers/friends.controller';
-import { FriendsService } from 'src/friends/services/friends.service';
 import { FriendsModule } from 'src/friends/friends.module';
+import { FriendsService } from 'src/friends/services/friends.service';
+import { Player } from 'src/game/entities/player.entity';
+import { User } from 'src/typeorm';
+import { UsersController } from './controllers/users.controller';
+import { UserDto } from './dto/users.dto';
+import { AvatarStatusGateway } from './gateways/avatarstatus.gateway';
+import { UsersService } from './services/users.service';
 
 @Module({
 	imports: [

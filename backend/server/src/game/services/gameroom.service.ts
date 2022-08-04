@@ -1,8 +1,8 @@
 import { Injectable } from '@nestjs/common';
+import { User } from 'src/users/entities/user.entity';
+import { v4 as uuid } from 'uuid';
 import { GameRoomClass, GAMEROOMSTATUS } from '../classes/gameroom.class';
 import { CreateGameDto } from '../dto/create-game.dto';
-import { v4 as uuid } from 'uuid';
-import { User } from 'src/users/entities/user.entity';
 import GameRoomInterface from '../interfaces/gameroom.interface';
 
 @Injectable()
@@ -118,7 +118,6 @@ export class GameRoomService {
 		} else { /* bugs, les games ne se deletent pas correctement */
 			const players_mmr: number[] = [];
 			const players_id: string[] = [];
-			console.log("number of rooms " + rooms.length);
 			for (var i: number = 0; i < rooms.length; i++) {
 				var gameRoom: GameRoomClass = this.getRoomById(rooms[i]);
 				players_id.push(gameRoom.getPlayersId()[0]);
@@ -135,7 +134,6 @@ export class GameRoomService {
 					index_closest = i;
 				}
 			}
-			console.log("index = " + index_closest);
 			return (this.getRoomNameByPlayerId(players_id[index_closest]));
 		}
 	}

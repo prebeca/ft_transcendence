@@ -150,14 +150,11 @@ export default Vue.extend({
       this.$router.push("/home");
     },
     async saveUsername() {
-      console.log(this.user.username);
       this.$axios
         .post("/users/profile/update/username", {
           new_username: this.user.username,
         })
-        .then((res) => {
-          console.log(res);
-        })
+        .then((res) => {})
         .catch((error) => {
           console.error(error);
         });
@@ -176,7 +173,6 @@ export default Vue.extend({
       this.$axios
         .post("/users/profile/update/avatar", formdata, config)
         .then((res) => {
-          console.log(res);
           this.changeAvatar(res.data.avatar);
         })
         .catch((error) => {

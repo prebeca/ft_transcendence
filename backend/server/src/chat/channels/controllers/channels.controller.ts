@@ -6,7 +6,7 @@ import {
 	ParseIntPipe,
 	Post,
 	Req,
-	UseGuards,
+	UseGuards
 } from '@nestjs/common';
 import { Request } from 'express';
 import { JwtAuthGuard } from 'src/auth/guards/jwt-auth.guard';
@@ -29,7 +29,6 @@ export class ChannelsController {
 	@UseGuards(JwtAuthGuard)
 	@Post('create')
 	async createChannel(@Req() req: Request, @Body() createChannelDto: CreateChannelDto): Promise<Channel | String> {
-		console.log("channels/create")
 		return this.channelService.createChannel(req.user as User, createChannelDto)
 	}
 

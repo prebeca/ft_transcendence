@@ -1,17 +1,15 @@
 import {
-	Controller, Get, Req, Param, Post, UploadedFile, UseInterceptors, StreamableFile, Res
+	Controller, Get, Param, Post, Req, Res, StreamableFile, UploadedFile, UseGuards, UseInterceptors
 } from '@nestjs/common';
-import { UsersService } from 'src/users/services/users.service';
-import { UseGuards } from '@nestjs/common';
-import { JwtAuthGuard } from 'src/auth/guards/jwt-auth.guard';
-import { Request } from 'express';
 import { FileInterceptor } from '@nestjs/platform-express';
-import { Express, Response } from 'express';
-import { multerOptions } from 'src/common/UploadOptions';
-import { User } from '../entities/user.entity';
-import { ChannelsService } from 'src/chat/channels/services/channels.service';
-import { Channel } from 'src/typeorm';
+import { Request, Response } from 'express';
+import { JwtAuthGuard } from 'src/auth/guards/jwt-auth.guard';
 import { JwtTwoFactorAuthGuard } from 'src/auth/guards/jwt-twofa.guard';
+import { ChannelsService } from 'src/chat/channels/services/channels.service';
+import { multerOptions } from 'src/common/UploadOptions';
+import { Channel } from 'src/typeorm';
+import { UsersService } from 'src/users/services/users.service';
+import { User } from '../entities/user.entity';
 
 @Controller('users')
 export class UsersController {
@@ -42,6 +40,8 @@ export class UsersController {
 		if (!user)
 			return null;
 		await this.userService.updateUserinfo(user, req.body["new_username"]);
+		if (req.body["istwofa"] === false)
+			await this.userService.updateTwoFAUser(user, false);
 		if (req.body["istwofa"] === true) {
 			return true;
 		}

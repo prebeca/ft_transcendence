@@ -197,9 +197,15 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
 		this.server.to(id).emit('endGame', game.status);
 	}
 
+	emitInfoPlayersToGame(roomid: string, gameRoom: GameRoomClass): void {
+		for (const [key, value] of gameRoom.mapPlayers) {
+			var info_player: PlayerInfo = gameRoom.getPlayerInfoById(key);
+			this.server.to(roomid).emit("usernamep" + info_player.player_number, { username: info_player.username, mmr: info_player.mmr, avatar: info_player.avatar });
+		}
+	}
+
 	@SubscribeMessage('leaveGame')
 	leaveGame(@ConnectedSocket() client: Socket, @MessageBody() id: string) {
-		console.log("leave = " + id);
 		if (id === null)
 			return;
 		let gameRoom: GameRoomClass = this.gameRoomService.getRoomById(id);
@@ -252,6 +258,7 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
 				game.pad2.id = client.id;
 			this.gatewayStatus.inGame(playerinfo.userid);
 		}
+		this.emitInfoPlayersToGame(id, gameRoom);
 		this.server.to(id).emit("initDone", game);
 	}
 

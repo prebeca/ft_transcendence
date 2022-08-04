@@ -1,7 +1,7 @@
 import { Message } from 'src/chat/channels/entities/message.entity';
 import { Player } from 'src/game/entities/player.entity';
 import { Channel } from 'src/typeorm';
-import { OneToMany, Column, Entity, JoinColumn, JoinTable, ManyToMany, OneToOne, PrimaryGeneratedColumn } from 'typeorm';
+import { Column, Entity, JoinColumn, JoinTable, ManyToMany, OneToMany, OneToOne, PrimaryGeneratedColumn } from 'typeorm';
 
 @Entity()
 export class User {
