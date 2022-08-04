@@ -1,11 +1,8 @@
 <template>
   <v-card width="500px" height="500px" color="secondary" elevation="20">
     <v-toolbar color="primary" class="d-flex justify-center">
-      <v-toolbar-title
-        class="font-weight-black info--text"
-        style="font-size: 25px"
-      >
-        {{ title }} : {{ player.username }}
+      <v-toolbar-title class="font-weight-black info--text" style="font-size: 25px">
+        {{ title }} : {{ username }}
       </v-toolbar-title>
     </v-toolbar>
 
@@ -57,6 +54,10 @@ export default Vue.extend({
       type: Number,
       required: true,
     },
+    username: {
+      type: String,
+      required: true,
+    }
   },
 
   computed: {
