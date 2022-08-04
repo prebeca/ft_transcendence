@@ -1,5 +1,5 @@
-import { User, Ban, Mute } from 'src/typeorm';
-import { Column, Entity, JoinTable, JoinColumn, ManyToMany, ManyToOne, OneToMany, PrimaryGeneratedColumn } from 'typeorm';
+import { Ban, Mute, User } from 'src/typeorm';
+import { Column, Entity, JoinColumn, JoinTable, ManyToMany, ManyToOne, OneToMany, PrimaryGeneratedColumn } from 'typeorm';
 import { Message } from './message.entity';
 
 @Entity()

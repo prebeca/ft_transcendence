@@ -1,8 +1,8 @@
 import { Controller, Get, Post, Req, UseGuards } from '@nestjs/common';
+import { Request } from 'express';
 import { JwtTwoFactorAuthGuard } from 'src/auth/guards/jwt-twofa.guard';
 import { User } from 'src/users/entities/user.entity';
 import { FriendsService } from '../services/friends.service';
-import { Request } from 'express';
 
 @Controller('friends')
 export class FriendsController {

@@ -1,15 +1,14 @@
 import { Inject, Logger, Req, UseGuards } from "@nestjs/common";
 import { ConnectedSocket, MessageBody, OnGatewayConnection, OnGatewayDisconnect, SubscribeMessage, WebSocketGateway, WebSocketServer } from "@nestjs/websockets";
+import { Request } from "express";
 import { Server, Socket } from "socket.io";
 import { WsJwtAuthGuard } from "src/auth/guards/ws-jwt-auth.guard";
 import { User } from "src/users/entities/user.entity";
+import { AvatarStatusGateway } from "src/users/gateways/avatarstatus.gateway";
 import { GameRoomClass, GAMEROOMSTATUS } from "../classes/gameroom.class";
 import { PlayerClass } from "../classes/player.class";
-import { GameRoomService } from "../services/gameroom.service";
 import { PlayerInfo } from "../interfaces/playerinfo.interface";
-import { Request } from "express";
-import { AvatarStatusGateway } from "src/users/gateways/avatarstatus.gateway";
-import { Game } from "../entities/game.entity";
+import { GameRoomService } from "../services/gameroom.service";
 
 @WebSocketGateway(42041, {
 	cors: {

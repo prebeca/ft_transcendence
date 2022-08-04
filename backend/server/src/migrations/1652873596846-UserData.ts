@@ -1,7 +1,7 @@
+import * as bcrypt from 'bcrypt';
+import { Player } from "src/game/entities/player.entity";
 import { MigrationInterface, QueryRunner } from "typeorm";
 import { User } from "../users/entities/user.entity";
-import * as bcrypt from 'bcrypt'
-import { Player } from "src/game/entities/player.entity";
 
 export class UserData1652873596846 implements MigrationInterface {
 
