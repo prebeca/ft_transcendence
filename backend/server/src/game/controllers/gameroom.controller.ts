@@ -40,7 +40,6 @@ export class GameRoomController {
 	@Get('history')
 	async getHistory(@Req() req: Request): Promise<Game[]> {
 		const user: User = { ...req.user as User };
-		console.log(user);
 		return await this.gameService.getHistoryByUser(user);
 	}
 

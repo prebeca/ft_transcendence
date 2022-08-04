@@ -82,7 +82,6 @@ export class UsersService {
 	}
 
 	async findUsersBySocketId(id: string): Promise<User> {
-		console.log(id)
 		try {
 			return await this.userRepository.findOne({ where: { socket_id: id }, relations: ["friends", "channels", "blocked"] });
 		} catch (error) {
@@ -148,9 +147,25 @@ export class UsersService {
 		}
 	}
 
+	containsSpecialChars(str: string, is_email: boolean) {
+		const specialChars: string = `\`!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?~`;
+
+		const result: boolean = specialChars.split('').some(specialChar => {
+			if (str.includes(specialChar)) {
+				if (is_email && (specialChar === '@' || specialChar === '.'))
+					return false;
+				return true;
+			}
+			return false;
+		});
+		return result;
+	}
+
 	async updateUsername(user: User, new_username: string): Promise<void> {
 		if (!new_username)
 			throw new HttpException('Username cannot be empty', HttpStatus.FORBIDDEN);
+		if (this.containsSpecialChars(new_username, false))
+			throw new HttpException("Username cannot contain special characters", HttpStatus.CONFLICT);
 		const username_user: User = await this.userRepository.findOne({ where: { username: new_username } });
 		if (username_user)
 			return;

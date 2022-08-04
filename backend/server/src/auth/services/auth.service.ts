@@ -82,7 +82,6 @@ export class AuthService {
 			token_client = (await this.jwtGenerate({ email: user.email, id: user.id, isTwoFactorEnable: user.twofauser })).access_token;
 		}
 
-		console.log("userid = " + userid);
 		if (!token_client)
 			return null;
 
@@ -127,7 +126,6 @@ export class AuthService {
 				return response;
 			})
 			.catch(function (response) {
-				console.log("Error getUserInfos =>" + response);
 				return null;
 			});
 
@@ -174,7 +172,6 @@ export class AuthService {
 				res = response;
 			})
 			.catch(function (response: AxiosResponse): void {
-				console.log("Error getToken =>" + response);
 				return null;
 			});
 

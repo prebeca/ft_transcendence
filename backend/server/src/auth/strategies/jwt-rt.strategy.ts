@@ -11,7 +11,6 @@ import * as bcrypt from 'bcrypt';
 
 const cookieExtractor = function (req: Request): String {
 	if (req?.cookies) {
-		console.log(req.cookies['refresh_token']);
 		return req.cookies['refresh_token'];
 	}
 	return null;

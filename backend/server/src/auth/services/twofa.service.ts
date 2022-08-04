@@ -28,7 +28,6 @@ export class TwoFactorAuthService {
 		const otpAuthUrl = authenticator.keyuri(user.email, app_name, secret);
 
 		await this.userService.updateSecret2FA(user, secret);
-		console.log('secret twofa generated = ' + secret);
 		return {
 			secret,
 			otpAuthUrl
@@ -51,7 +50,6 @@ export class TwoFactorAuthService {
 	}
 
 	async signIn(user: User, response: Response): Promise<void> {
-		console.log(user.email + " " + user.id + " " + user.twofasecret);
 		const accessToken: string = (await this.authService.jwtGenerate(
 			{
 				email: user.email,
@@ -60,7 +58,6 @@ export class TwoFactorAuthService {
 				isTwoFaAuthenticated: true
 			}
 		)).access_token;
-		console.log(accessToken);
 		response.cookie('access_token', accessToken, {
 			httpOnly: true,
 			path: '/',

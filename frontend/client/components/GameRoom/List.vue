@@ -197,7 +197,6 @@ export default Vue.extend({
     async join(name: string) {
       if (name === "") return;
       this.$router.push({ path: "/groom/room", query: { name: name } });
-      console.log("does nothing" + name);
     },
   },
 });
