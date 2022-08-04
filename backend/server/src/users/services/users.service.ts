@@ -200,6 +200,10 @@ export class UsersService {
 		return await this.userRepository.findOne(user.id);
 	}
 
+	async cleanLogout(user: User): Promise<void> {
+		await this.updateUsersById(user, { refresh_token: null, socket_id: null });
+	}
+
 	async updateTwoFAUser(user: User, istwofa: boolean): Promise<User> {
 		try {
 			await this.updateUsersById(user, { twofauser: istwofa });
@@ -347,4 +351,5 @@ export class UsersService {
 		user.blocked.splice(index, 1);
 		await this.userRepository.save(user);
 	}
+
 }

@@ -23,7 +23,6 @@
 
 <script lang="ts">
 import Vue from "vue";
-import leaderboardVue from "../../pages/leaderboard.vue";
 
 export default Vue.extend({
   name: "LeaderboardItem",

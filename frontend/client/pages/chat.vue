@@ -55,11 +55,16 @@
                       <v-container>
                         <v-row>
                           <v-col cols="12">
-                            <v-form ref="form" v-model="valid">
+                            <v-form
+                              @submit.prevent=""
+                              ref="form"
+                              v-model="valid"
+                            >
                               <v-text-field
                                 v-model="name"
                                 :rules="rules"
                                 label="Name"
+                                @keyup.enter="createChannel"
                               >
                               </v-text-field>
                             </v-form>
@@ -74,11 +79,12 @@
                             </v-overflow-btn>
                           </v-col>
                           <v-col v-if="scope === 'protected'" cols="12">
-                            <v-form>
+                            <v-form @submit.prevent="">
                               <v-text-field
                                 v-model="password"
                                 :rules="passwordRules"
                                 label="Password"
+                                @keyup.enter="createChannel"
                                 type="password"
                               >
                               </v-text-field>
@@ -1043,15 +1049,15 @@ export default Vue.extend({
         console.error(error);
       });
 
-    // fetch all channels
-    await this.$axios
-      .get("/channels")
-      .then((res) => {
-        this.allChannels = res.data;
-      })
-      .catch((error) => {
-        console.error(error);
-      });
+    // // fetch all channels
+    // await this.$axios
+    //   .get("/channels")
+    //   .then((res) => {
+    //     this.allChannels = res.data;
+    //   })
+    //   .catch((error) => {
+    //     console.error(error);
+    //   });
 
     // fetch users channels
     await this.$axios
@@ -1069,7 +1075,6 @@ export default Vue.extend({
         this.channels = this.channels.filter((e) => {
           return e.scope != "dm";
         });
-        await this.joinChannels();
       })
       .catch((error) => {
         console.error(error);
@@ -1269,9 +1274,25 @@ export default Vue.extend({
       }
     });
 
+    await this.joinChannels();
     console.log("Created");
   },
-  computed: {},
+  destroyed() {
+    this.socket.off("NewMessage");
+    this.socket.off("ChannelDeleted");
+    this.socket.off("NewMessage");
+    this.socket.off("NewMessage");
+    this.socket.off("NewMessage");
+    this.socket.off("UserKick");
+    this.socket.off("Kick");
+    this.socket.off("DeleteMessage");
+    this.socket.off("Promoted");
+    this.socket.off("LeaveChan");
+    this.socket.off("UserLeft");
+    this.socket.off("NewUser");
+    this.socket.off("PrivateMessage");
+    this.socket.off("JoinChan");
+  },
   methods: {
     async blockUser(user: User) {
       await this.$axios.post("/users/block/" + user.id);
@@ -1365,12 +1386,22 @@ export default Vue.extend({
 
     async joinChannels() {
       for (let i = 0; i < this.channels.length; ++i) {
+        console.log("joinChannels()");
         await this.socket.emit("JoinChan", {
           channel_id: this.channels[i].id,
           password: "",
         });
       }
     },
+
+    // async joinChannels() {
+    //   for (let i = 0; i < this.channels.length; ++i) {
+    //     await this.socket.emit("JoinChan", {
+    //       channel_id: this.channels[i].id,
+    //       password: "",
+    //     });
+    //   }
+    // },
 
     async joinChannel() {
       if (this.choice == "") return;
@@ -1519,7 +1550,7 @@ export default Vue.extend({
       return name;
     },
 
-    async options(choice: string) {
+    async options() {
       if (this.currentChannel == undefined) return;
       if (this.currentChannel.scope == "private") {
         this.socket.emit("Invite", {

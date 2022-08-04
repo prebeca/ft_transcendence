@@ -48,8 +48,8 @@ export default Vue.extend({
     this.$axios
       .get("/users")
       .then((res) => {
-        console.log(res.data);
         this.users = res.data;
+        console.log(this.users);
       })
       .catch((error) => {
         console.error(error);

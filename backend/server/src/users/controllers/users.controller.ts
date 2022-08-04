@@ -41,6 +41,7 @@ export class UsersController {
 		if (req_body_2fa !== user.twofauser) {
 			if (req_body_2fa === true) {
 				await this.userService.updateUserinfo(user, req.body["new_username"]);
+				await this.userService.cleanLogout(user);
 				return true;
 			}
 			if (req_body_2fa === false)
