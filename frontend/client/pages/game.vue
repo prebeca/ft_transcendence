@@ -9,6 +9,10 @@
       width="80%"
       height="15%"
     >
+      <v-avatar size="100px">
+        <img :src="player1.avatar" alt="avatar" />
+      </v-avatar>
+      <p>{{ player1.username }}</p>
       <v-card
         class="d-flex justify-center align-center"
         width="90px"
@@ -25,6 +29,11 @@
       >
         <h1>{{ game.score2 }}</h1>
       </v-card>
+
+      <p>{{ player2.username }}</p>
+      <v-avatar size="100px">
+        <img :src="player2.avatar" alt="avatar" />
+      </v-avatar>
     </v-card>
     <div id="myGame" width="100vw" height="100vh">
       <canvas id="canvas"></canvas>
@@ -33,11 +42,8 @@
 </template>
 
 <script lang="ts">
-import type { NuxtSocket } from "nuxt-socket-io";
 import Vue from "vue";
 import GameI from "../types/interfaces/gameI.interface";
-import PadI from "../types/interfaces/padI.interface";
-import BallI from "../types/interfaces/ballI.interface";
 
 export enum GameStatus {
   WAITING = "waiting",
@@ -65,6 +71,16 @@ export default Vue.extend({
       game: {} as GameI,
       ratiox: {} as number,
       ratioy: {} as number,
+      player1: {
+        username: "" as string,
+        mmr: 0 as number,
+        avatar: "" as string,
+      },
+      player2: {
+        username: "" as string,
+        mmr: 0 as number,
+        avatar: "" as string,
+      },
     };
   },
   created() {
@@ -87,14 +103,31 @@ export default Vue.extend({
     this.socket.on("endGame", (data: GameI) => {
       this.endGame(data);
     });
+    this.socket.on("usernamep1", (data) => {
+      this.player1 = {
+        ...this.player1,
+        username: data.username,
+        mmr: data.mmr,
+        avatar:
+          `${process.env.API_URL}` + "/users/profile/avatar/" + data.avatar,
+      };
+    });
+    this.socket.on("usernamep2", (data) => {
+      this.player2 = {
+        ...this.player2,
+        username: data.username,
+        mmr: data.mmr,
+        avatar:
+          `${process.env.API_URL}` + "/users/profile/avatar/" + data.avatar,
+      };
+    });
   },
   mounted() {
     this.roomid = this.$route.query.roomid as string;
     this.socket.emit("joinGame", this.roomid);
 
     this.canvas = document.getElementById("canvas") as HTMLCanvasElement;
-    if (!this.canvas)
-      return;
+    if (!this.canvas) return;
     this.context = this.canvas.getContext("2d") as CanvasRenderingContext2D;
     window.addEventListener("keydown", this.handleKeyDown);
     window.addEventListener("resize", this.handleResize);
@@ -132,12 +165,9 @@ export default Vue.extend({
       this.context.clearRect(0, 0, this.canvas.width, this.canvas.height);
     },
     drawCanvas() {
-      if (this.game.map === "Pong")
-        this.context.fillStyle = "black";
-      if (this.game.map === "Tennis")
-        this.context.fillStyle = "#D26341";
-      if (this.game.map === "Golf")
-        this.context.fillStyle = "#658F44";
+      if (this.game.map === "Pong") this.context.fillStyle = "black";
+      if (this.game.map === "Tennis") this.context.fillStyle = "#D26341";
+      if (this.game.map === "Golf") this.context.fillStyle = "#658F44";
       this.context.fillRect(0, 0, this.canvas.width, this.canvas.height);
       this.context.strokeStyle = "white";
       this.context.beginPath();
