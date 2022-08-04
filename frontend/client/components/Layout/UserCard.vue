@@ -2,7 +2,9 @@
   <v-card color="secondary">
     <v-list-item-content class="justify-center">
       <div class="mx-auto text-center">
-        <UserAvatarStatus :size="sizeOfAvatar" :user="user" :offset="25" />
+        <v-avatar :size="sizeOfAvatar">
+          <img :src="user.avatar" alt="avatar" />
+        </v-avatar>
         <v-divider class="my-3"></v-divider>
         <v-btn :to="userProfile" depressed rounded text color="info">
           Your Profile
