@@ -14,13 +14,6 @@ export class SocketService {
 		// if (channel == null)
 		// 	return null
 
-		try {
-			data.channel_id = data.channel_id as number;
-		} catch (error) {
-			client.emit("Alert", { content: "ERROR: Bad channel_id", color: "red" })
-			return null
-		}
-
 		let res = await this.channelService.joinChannel(user, data);
 		if (typeof (res) == "string") {
 			client.emit("Alert", { content: "ERROR: " + res, color: "red" })
@@ -31,11 +24,12 @@ export class SocketService {
 		client.to(channel.id.toString()).emit("NewUser", { user: user, channel_id: channel.id })
 
 		const socket_ids = await server.to(channel.id.toString()).allSockets()
-
-		if (!socket_ids.has(user.socket_id))
+		console.log(socket_ids)
+		if (!socket_ids.has(user.socket_id)) {
 			client.join(channel.id.toString())							// join socket room
+		}
 		channel.messages = channel.messages.filter(msg => { return (user.blocked.find(blocked_user => { return blocked_user.id == msg.user.id }) == undefined) });
-		client.emit("JoinChan", channel)
+		server.to(user.socket_id).emit("JoinChan", channel)
 		return channel
 	}
 
@@ -101,6 +95,8 @@ export class SocketService {
 		}
 		console.log("block pass")
 		server.to(channel.id.toString()).except(except).emit('NewMessage', message);
+		if (channel.scope == 'dm')
+			server.to(channel.id.toString()).except(except).emit('NewMessageDM', message);
 	}
 
 	async invite(user: User, data: any, server: Server) {

@@ -73,7 +73,7 @@ interface Channel {
 interface User {
   id: number;
   username: string;
-  friends: Channel[];
+  friends: User[];
   avatar: string;
 }
 
@@ -173,12 +173,13 @@ export default Vue.extend({
 
     this.socket.on("Alert", async (alert: Alert, cb) => {
       console.log("new Alert");
+      this.snackbar = false;
       this.notif_text = alert.content;
       this.snackcolor = alert.color;
       this.snackbar = true;
     });
 
-    this.socket.on("NewMessage", async (msg: Message) => {
+    this.socket.on("NewMessageDM", async (msg: Message) => {
       if (msg.channel.scope == "dm" && msg.user.id != this.user.id) {
         this.socket.emit("Alert", {
           color: "blue",
