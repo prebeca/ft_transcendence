@@ -59,7 +59,71 @@
           </v-card>
           <UserInfoCard :user="user" :player="user.player" />
         </div>
-        <UserMatchHistory :user="user" :friends="user.friends" />
+        <v-card class="mx-auto" color="secondary" height="100px" outlined>
+          <v-toolbar color="primary" height="15px" flat>
+            <template v-slot:extension>
+              <v-tabs v-model="tabs" centered color="info">
+                <v-tab v-for="n in 2" :key="n" class="font-weight-bold">
+                  {{ tab[n - 1] }}
+                </v-tab>
+              </v-tabs>
+            </template>
+          </v-toolbar>
+
+          <v-tabs-items v-model="tabs">
+            <v-tab-item>
+              <v-card flat color="secondary" class="py-10">
+                <v-simple-table class="secondary">
+                  <template v-slot:default>
+                    <tbody v-if="user_matches.length > 0">
+                      <tr
+                        v-for="match in user_matches"
+                        :key="match.id"
+                        class="row-color"
+                      >
+                        <UserMatchItem
+                          v-if="match.winner.id === user.id"
+                          :player1_score="match.score_winner"
+                          :player2_score="match.score_looser"
+                          :player1_username="user.username"
+                          player2_username="Player 2"
+                          :date="match.date"
+                        />
+                        <UserMatchItem
+                          v-else
+                          :player1_score="match.score_looser"
+                          :player2_score="match.score_winner"
+                          :player1_username="user.username"
+                          player2_username="Player 2"
+                          :date="match.date"
+                        />
+                      </tr>
+                    </tbody>
+                  </template>
+                </v-simple-table>
+              </v-card>
+            </v-tab-item>
+
+            <v-tab-item color="secondary">
+              <v-card flat color="secondary">
+                <v-simple-table class="secondary">
+                  <template v-slot:default>
+                    <v-row class="my-10 mx-2">
+                      <v-col
+                        v-for="(friend, index) in user.friends"
+                        :key="index"
+                        class="d-flex align-content-space-around justify-space-around"
+                        cols="4"
+                      >
+                        <UserFriendCard :friend="friend" />
+                      </v-col>
+                    </v-row>
+                  </template>
+                </v-simple-table>
+              </v-card>
+            </v-tab-item>
+          </v-tabs-items>
+        </v-card>
       </div>
     </v-card>
   </div>
@@ -85,10 +149,27 @@ export default Vue.extend({
         player: {},
         friends: [],
         id: "",
+        username: "",
       },
       isUser: false,
       isFriend: false,
       isBlocked: false,
+      tabs: null,
+      tab: ["Match History", "Friends List"],
+      user_matches: [
+        {
+          winner: {
+            id: "",
+          },
+          looser: {
+            id: "",
+          },
+          id: "",
+          score_winner: 0,
+          score_looser: 0,
+          date: "",
+        },
+      ],
     };
   },
   mounted() {
@@ -105,25 +186,26 @@ export default Vue.extend({
     getCurrentUser() {
       this.$axios
         .get("/users/profile")
-        .then((res) => {
+        .then((res: any) => {
           console.log(res.data);
           this.currentUser = res.data;
         })
-        .catch((error) => {
+        .catch((error: any) => {
           console.error(error);
         });
     },
     getUser(id: string) {
       this.$axios
         .get("/users/u/" + this.$route.params.users)
-        .then((res) => {
+        .then((res: any) => {
           this.user = res.data;
           if (this.user !== null) {
             this.changeAvatar(this.user.avatar);
             this.changeButtonData(this.user.id);
+            this.getMatchHistory(this.user.id);
           }
         })
-        .catch((error) => {
+        .catch((error: any) => {
           console.error(error);
         });
     },
@@ -154,15 +236,26 @@ export default Vue.extend({
         }
       }
     },
+    getMatchHistory(user_id: string) {
+      this.$axios
+        .get("/gameroom/history/" + user_id) //historique du user que l'on souhaite
+        .then((res: any) => {
+          console.log(res);
+          this.user_matches = res.data;
+        })
+        .catch((error: any) => {
+          console.error(error);
+        });
+    },
     async block() {
       console.log("block user");
       await this.$axios
         .post("users/block/" + this.user.id)
-        .then((res) => {
+        .then((res: any) => {
           this.isBlocked = true;
           this.isFriend = false;
         })
-        .catch((error) => {
+        .catch((error: any) => {
           console.log(error);
         });
     },
@@ -170,10 +263,10 @@ export default Vue.extend({
       console.log("unblock user");
       await this.$axios
         .post("users/unblock/" + this.user.id)
-        .then((res) => {
+        .then((res: any) => {
           this.isBlocked = false;
         })
-        .catch((error) => {
+        .catch((error: any) => {
           console.log(error);
         });
     },
@@ -182,11 +275,11 @@ export default Vue.extend({
         .post("/friends/add", {
           user_id_to_add: this.user.id,
         })
-        .then((res) => {
+        .then((res: any) => {
           console.log(res);
           this.isFriend = true;
         })
-        .catch((error) => {
+        .catch((error: any) => {
           console.log(error);
         });
     },
@@ -195,14 +288,28 @@ export default Vue.extend({
         .post("/friends/remove", {
           user_id_to_remove: this.user.id,
         })
-        .then((res) => {
+        .then((res: any) => {
           console.log(res);
           this.isFriend = false;
         })
-        .catch((error) => {
+        .catch((error: any) => {
           console.log(error);
         });
     },
   },
 });
 </script>
+
+<style scoped>
+.row-color {
+  display: table-row;
+}
+
+.row-color:hover {
+  background: rgb(94, 53, 177) !important;
+}
+
+.v-window {
+  background-color: rgb(81, 45, 168) !important;
+}
+</style>
