@@ -129,9 +129,6 @@ export default Vue.extend({
       .then((res) => {
         this.user = res.data;
         // this.changeAvatar(res.data.avatar);
-        this.user.friends.forEach((e) => {
-          e.messages = [];
-        });
       })
       .catch((error) => {
         this.$router.push("/");
