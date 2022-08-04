@@ -1,13 +1,13 @@
 import { Injectable } from '@nestjs/common';
+import { InjectRepository } from '@nestjs/typeorm';
+import { User } from 'src/users/entities/user.entity';
+import { Repository } from 'typeorm';
 import { GameRoomClass, GAMEROOMSTATUS } from '../classes/gameroom.class';
+import { PlayerClass } from '../classes/player.class';
+import { Game } from '../entities/game.entity';
 import { Player } from '../entities/player.entity';
 import GameI from '../interfaces/gameI.interface';
-import { Repository } from 'typeorm';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Game } from '../entities/game.entity';
-import { PlayerClass } from '../classes/player.class';
 import { GameRoomService } from './gameroom.service';
-import { User } from 'src/users/entities/user.entity';
 
 export class GameDto {
 	uuid: string;

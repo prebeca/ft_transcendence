@@ -1,6 +1,5 @@
-import { CreateDateColumn, JoinTable, Column, Entity, ManyToOne, PrimaryGeneratedColumn } from 'typeorm';
-import { User } from 'src/typeorm';
-import { Channel } from 'src/typeorm';
+import { Channel, User } from 'src/typeorm';
+import { Column, CreateDateColumn, Entity, JoinTable, ManyToOne, PrimaryGeneratedColumn } from 'typeorm';
 
 @Entity()
 export class Mute {

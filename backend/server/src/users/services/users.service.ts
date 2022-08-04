@@ -1,15 +1,15 @@
-import { HttpStatus, Inject, Injectable, HttpException, StreamableFile, UnauthorizedException } from '@nestjs/common';
+import { HttpException, HttpStatus, Inject, Injectable, StreamableFile, UnauthorizedException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
+import { createReadStream } from 'fs';
+import { FriendsService } from 'src/friends/services/friends.service';
+import { Player } from 'src/game/entities/player.entity';
+import { Channel } from 'src/typeorm';
+import { UserDto } from 'src/users/dto/users.dto';
 import { User } from 'src/users/entities/user.entity';
 import { Repository } from 'typeorm';
-import { UserDto } from 'src/users/dto/users.dto';
-import { createReadStream } from 'fs';
 import { ReadStream } from 'typeorm/platform/PlatformTools';
 import { UpdateUserDto } from '../dto/updateUser.dto';
-import { Player } from 'src/game/entities/player.entity';
 import { AvatarStatusGateway } from '../gateways/avatarstatus.gateway';
-import { Channel } from 'src/typeorm';
-import { FriendsService } from 'src/friends/services/friends.service';
 
 @Injectable()
 export class UsersService {

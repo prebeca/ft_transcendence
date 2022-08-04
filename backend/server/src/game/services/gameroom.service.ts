@@ -1,8 +1,8 @@
 import { Injectable } from '@nestjs/common';
+import { User } from 'src/users/entities/user.entity';
+import { v4 as uuid } from 'uuid';
 import { GameRoomClass, GAMEROOMSTATUS } from '../classes/gameroom.class';
 import { CreateGameDto } from '../dto/create-game.dto';
-import { v4 as uuid } from 'uuid';
-import { User } from 'src/users/entities/user.entity';
 import GameRoomInterface from '../interfaces/gameroom.interface';
 
 @Injectable()
