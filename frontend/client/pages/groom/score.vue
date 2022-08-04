@@ -6,20 +6,24 @@
   >
     <div class="d-flex justify-center align-center" style="column-gap: 20px">
       <GameRoomWinnerLooserCard
+        v-if="game_details.winner"
         :player="game_details.winner"
         title="WINNER"
         :score="game_details.score_winner"
         :level="game_details.level_winner"
         :xp="game_details.xp_winner"
       />
+      <GameRoomWaitingCard v-else />
       <h1>VS</h1>
       <GameRoomWinnerLooserCard
+        v-if="game_details.looser"
         :player="game_details.looser"
         title="LOOSER"
         :score="game_details.score_looser"
         :level="game_details.level_looser"
         :xp="game_details.xp_looser"
       />
+      <GameRoomWaitingCard v-else />
     </div>
   </div>
 </template>
@@ -73,6 +77,8 @@ export default Vue.extend({
         console.log(res.data);
         this.game_details = res.data;
         console.log(this.game_details);
+        console.log(this.game_details.winner);
+        console.log(this.game_details.looser);
       })
       .catch((error) => {
         console.error(error);
