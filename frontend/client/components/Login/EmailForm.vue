@@ -56,38 +56,38 @@
                     xsm="12"
                     align-end
                   >
-                    <v-dialog
-                      v-model="passwordDialog"
-                      persistent
-                      max-width="290"
-                    >
-                      <template v-slot:activator="{ on }">
-                        <v-btn
-                          x-large
-                          block
-                          :disabled="!valid"
-                          color="success"
-                          @click="validateLogin"
-                          v-on="on"
-                        >
-                          Login
-                        </v-btn>
-                      </template>
-                      <v-card color="secondary">
-                        <v-card-text class="text-h6 pt-5"
-                          >Wrong password. Try again !</v-card-text
-                        >
-                        <v-card-actions>
-                          <v-spacer></v-spacer>
-                          <v-btn
-                            color="primary"
-                            @click="passwordDialog = false"
+                    <template>
+                      <v-btn
+                        x-large
+                        block
+                        :disabled="!valid"
+                        color="success"
+                        @click="validateLogin"
+                        @click.stop="passwordDialog = false"
+                      >
+                        Login
+                      </v-btn>
+                      <v-dialog
+                        v-model="passwordDialog"
+                        persistent
+                        max-width="290"
+                      >
+                        <v-card color="secondary">
+                          <v-card-text class="text-h6 pt-5"
+                            >Wrong password. Try again !</v-card-text
                           >
-                            OK
-                          </v-btn>
-                        </v-card-actions>
-                      </v-card>
-                    </v-dialog>
+                          <v-card-actions>
+                            <v-spacer></v-spacer>
+                            <v-btn
+                              color="primary"
+                              @click="passwordDialog = false"
+                            >
+                              OK
+                            </v-btn>
+                          </v-card-actions>
+                        </v-card>
+                      </v-dialog>
+                    </template>
                   </v-col>
                 </v-row>
               </v-form>
@@ -150,41 +150,41 @@
                   </v-col>
                   <v-spacer></v-spacer>
                   <v-col class="d-flex ml-auto" cols="12" sm="3" xsm="12">
-                    <v-dialog
-                      v-model="registerDialog"
-                      persistent
-                      max-width="290"
-                    >
-                      <template v-slot:activator="{ on }">
-                        <v-btn
-                          v-on="on"
-                          x-large
-                          block
-                          :disabled="!valid"
-                          color="success"
-                          @click="validateRegister"
-                        >
-                          Register
-                        </v-btn>
-                      </template>
-                      <v-card color="secondary">
-                        <v-card-text class="text-h6 pt-5"
-                          >Your account has been created.</v-card-text
-                        >
-                        <v-card-text class="text-h6"
-                          >You can now Log In !</v-card-text
-                        >
-                        <v-card-actions>
-                          <v-spacer></v-spacer>
-                          <v-btn
-                            color="success"
-                            @click="registerDialog = false"
+                    <template>
+                      <v-btn
+                        x-large
+                        block
+                        :disabled="!valid"
+                        color="success"
+                        @click="validateRegister"
+                        @click.stop="registerDialog = false"
+                      >
+                        Register
+                      </v-btn>
+                      <v-dialog
+                        v-model="registerDialog"
+                        persistent
+                        max-width="290"
+                      >
+                        <v-card color="secondary">
+                          <v-card-text class="text-h6 pt-5"
+                            >Your account has been created.</v-card-text
                           >
-                            OK
-                          </v-btn>
-                        </v-card-actions>
-                      </v-card>
-                    </v-dialog>
+                          <v-card-text class="text-h6"
+                            >You can now Log In !</v-card-text
+                          >
+                          <v-card-actions>
+                            <v-spacer></v-spacer>
+                            <v-btn
+                              color="success"
+                              @click="registerDialog = false"
+                            >
+                              OK
+                            </v-btn>
+                          </v-card-actions>
+                        </v-card>
+                      </v-dialog>
+                    </template>
                   </v-col>
                 </v-row>
               </v-form>
