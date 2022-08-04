@@ -149,17 +149,6 @@ export default Vue.extend({
         });
       this.$router.push("/home");
     },
-    async saveUsername() {
-      this.$axios
-        .post("/users/profile/update/username", {
-          new_username: this.user.username,
-        })
-        .then((res) => {})
-        .catch((error) => {
-          console.error(error);
-        });
-      this.$router.push("/home");
-    },
     async saveAvatar() {
       this.saving = false;
       let formdata = new FormData();

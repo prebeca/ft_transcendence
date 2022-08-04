@@ -25,7 +25,7 @@ export default Vue.extend({
   },
   computed: {
     userProfile(): string {
-      return `/profile/${this.friend.username}`;
+      return `/profile/${this.friend.id}`;
     },
     friendAvatar(): string {
       return `${process.env.API_URL}/users/profile/avatar/${this.friend.avatar}`;

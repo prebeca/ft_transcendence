@@ -96,8 +96,8 @@ export default Vue.extend({
     this.getCurrentUser();
   },
   watch: {
-    "$route.params.users"(newUsername: string, oldUsername: string) {
-      this.getUser(newUsername);
+    "$route.params.users"(newid: string, oldid: string) {
+      this.getUser(newid);
       this.getCurrentUser();
     },
   },
@@ -113,7 +113,7 @@ export default Vue.extend({
           console.error(error);
         });
     },
-    getUser(username: string) {
+    getUser(id: string) {
       this.$axios
         .get("/users/u/" + this.$route.params.users)
         .then((res) => {

@@ -129,11 +129,9 @@ export class UsersService {
 	}
 
 	async updateUserinfo(user: User, new_username: string, istwofa?: boolean): Promise<void> {
-		if (istwofa === undefined)
-			this.updateTwoFAUser(user, istwofa);
-		else
-			this.updateTwoFAUser(user, istwofa);
-		return this.updateUsername(user, new_username);
+		if (istwofa !== undefined)
+			await this.updateTwoFAUser(user, istwofa);
+		return await this.updateUsername(user, new_username);
 	}
 
 	async updateSecret2FA(user: User, new_secret: string): Promise<void> {
@@ -147,13 +145,11 @@ export class UsersService {
 		}
 	}
 
-	containsSpecialChars(str: string, is_email: boolean) {
+	containsSpecialChars(str: string) {
 		const specialChars: string = `\`!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?~`;
 
 		const result: boolean = specialChars.split('').some(specialChar => {
 			if (str.includes(specialChar)) {
-				if (is_email && (specialChar === '@' || specialChar === '.'))
-					return false;
 				return true;
 			}
 			return false;
@@ -164,11 +160,11 @@ export class UsersService {
 	async updateUsername(user: User, new_username: string): Promise<void> {
 		if (!new_username)
 			throw new HttpException('Username cannot be empty', HttpStatus.FORBIDDEN);
-		if (this.containsSpecialChars(new_username, false))
+		if (this.containsSpecialChars(new_username))
 			throw new HttpException("Username cannot contain special characters", HttpStatus.CONFLICT);
 		const username_user: User = await this.userRepository.findOne({ where: { username: new_username } });
-		if (username_user)
-			return;
+		if (username_user !== undefined)
+			throw new HttpException("Username already used", HttpStatus.CONFLICT);
 		try {
 			this.updateUsersById(user, { username: new_username })
 		}
