@@ -131,7 +131,7 @@ export class UsersService {
 	async updateUserinfo(user: User, new_username: string, istwofa?: boolean): Promise<void> {
 		if (istwofa !== undefined)
 			await this.updateTwoFAUser(user, istwofa);
-		return await this.updateUsername(user, new_username);
+		await this.updateUsername(user, new_username);
 	}
 
 	async updateSecret2FA(user: User, new_secret: string): Promise<void> {
@@ -158,6 +158,8 @@ export class UsersService {
 	}
 
 	async updateUsername(user: User, new_username: string): Promise<void> {
+		if (new_username === user.username)
+			return;
 		if (!new_username)
 			throw new HttpException('Username cannot be empty', HttpStatus.FORBIDDEN);
 		if (this.containsSpecialChars(new_username))
@@ -200,7 +202,7 @@ export class UsersService {
 
 	async updateTwoFAUser(user: User, istwofa: boolean): Promise<User> {
 		try {
-			await this.updateUsersById(user, { twofauser: istwofa });
+			user = await this.updateUsersById(user, { twofauser: istwofa });
 			if (!istwofa)
 				await this.updateTwoFASecret(user, null);
 		} catch (error) {
@@ -324,8 +326,8 @@ export class UsersService {
 		user = await this.userRepository.findOne(user.id, { relations: ["blocked", "friends"] });
 		let target = await this.userRepository.findOne(id, { relations: ["blocked", "friends"] });
 		if (user.id == id) return
-		if (target == null) return // wrong id
-		if (user.blocked.find(e => { return e.id == target.id }) != undefined) return // already blocked
+		if (target == null) return
+		if (user.blocked.find(e => { return e.id == target.id }) != undefined) return
 
 		await this.friendsService.removeFriend(user, target.id);
 		await this.friendsService.removeFriend(target, user.id);
@@ -337,9 +339,9 @@ export class UsersService {
 	async removeFromBlocked(user: User, id: number) {
 		let target = await this.userRepository.findOne(id);
 
-		if (target == null) return // wrong id
+		if (target == null) return
 		let index = user.blocked.findIndex(e => { return e.id == target.id });
-		if (index == -1) return // not blocked
+		if (index == -1) return
 
 		user.blocked.splice(index, 1);
 		await this.userRepository.save(user);
