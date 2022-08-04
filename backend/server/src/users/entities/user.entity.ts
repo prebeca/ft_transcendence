@@ -11,7 +11,7 @@ export class User {
 	})
 	id: number;
 
-	@Column({ select: false, unique: true })
+	@Column({ select: false, unique: true, nullable: true })
 	login: string;
 
 	@Column({ unique: true })

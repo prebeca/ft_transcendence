@@ -10,25 +10,26 @@ export class SocketService {
 	constructor(private readonly channelService: ChannelsService, private readonly userService: UsersService) { }
 
 	async joinChannel(user: User, data: any, client: Socket, server: Server) {
-		let channel = await this.channelService.findOneById(data.channel_id);
-		if (channel == null)
-			return null
+		// let channel = await this.channelService.findOneById(data.channel_id);
+		// if (channel == null)
+		// 	return null
 
 		let res = await this.channelService.joinChannel(user, data);
 		if (typeof (res) == "string") {
 			client.emit("Alert", { content: "ERROR: " + res, color: "red" })
 			return null
 		}
-
+		let channel = res as Channel;
 		channel.password = undefined;
 		client.to(channel.id.toString()).emit("NewUser", { user: user, channel_id: channel.id })
 
 		const socket_ids = await server.to(channel.id.toString()).allSockets()
-
-		if (!socket_ids.has(user.socket_id))
+		console.log(socket_ids)
+		if (!socket_ids.has(user.socket_id)) {
 			client.join(channel.id.toString())							// join socket room
+		}
 		channel.messages = channel.messages.filter(msg => { return (user.blocked.find(blocked_user => { return blocked_user.id == msg.user.id }) == undefined) });
-		client.emit("JoinChan", channel)
+		server.to(user.socket_id).emit("JoinChan", channel)
 		return channel
 	}
 
@@ -94,6 +95,8 @@ export class SocketService {
 		}
 		console.log("block pass")
 		server.to(channel.id.toString()).except(except).emit('NewMessage', message);
+		if (channel.scope == 'dm')
+			server.to(channel.id.toString()).except(except).emit('NewMessageDM', message);
 	}
 
 	async invite(user: User, data: any, server: Server) {
@@ -166,8 +169,10 @@ export class SocketService {
 	}
 
 	async setAdmin(user: User, data, server: Server) {
-		let new_admin = await this.channelService.addAdmin(data.channel_id, data.user_id);
 		let channel = await this.channelService.findOneById(data.channel_id);
+		if (channel.owner == null || channel.owner.id != user.id)
+			return; // user not channel owner
+		let new_admin = await this.channelService.addAdmin(data.channel_id, data.user_id);
 		if (new_admin != null)
 			server.to(data.channel_id).emit('NewMessage', {
 				id: -1,

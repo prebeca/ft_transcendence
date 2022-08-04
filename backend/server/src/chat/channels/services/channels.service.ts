@@ -22,7 +22,7 @@ export class ChannelsService {
 		let channel: Channel = await this.channelRepository.findOne({ where: { name: createChannelDto.name } })
 
 		if (createChannelDto.scope != "dm" && createChannelDto.name.startsWith("dm_"))
-			return;
+			return "Name contain unauthorized pattern";
 		if (channel != null)
 			return "Channel already exist";
 		if (createChannelDto.scope == 'protected' && createChannelDto.password.length == 0)
@@ -36,8 +36,8 @@ export class ChannelsService {
 		}
 
 		let channeltmp = this.channelRepository.create(createChannelDto);
-		await this.channelRepository.save(channeltmp);
-		channel = await this.channelRepository.findOne({ where: { name: createChannelDto.name }, relations: ["admins", "users", "invited"] })
+		channel = await this.channelRepository.save(channeltmp);
+		channel = await this.channelRepository.findOne(channel.id, { relations: ["admins", "users"] })
 
 		if (channel.scope != "dm") {
 			channel.owner = user;
@@ -194,11 +194,18 @@ export class ChannelsService {
 	}
 
 	async joinChannel(user: User, data: any) {
-		const channel: Channel = await this.findOneById(data.channel_id);
+		let channel: Channel;
+		try {
+			channel = await this.findOneById(data.channel_id);
+		} catch (error) {
+			return "Bad channel id"
+		}
 
+		if (channel == null)
+			return "Channel does not exist";
 		if (channel.users.find(e => { return e.id == user.id }) != undefined)
 			return channel;
-		if (channel.scope == "protected" && await bcrypt.compare(data.password, channel.password) == false)
+		if (channel.scope == "protected" && channel.password != null && await bcrypt.compare(data.password, channel.password) == false)
 			return "Wrong Password";
 		if (channel.scope == "private" && channel.invited.find((e) => { return e.id == user.id }) == undefined)
 			return "Not Invited";
@@ -210,14 +217,19 @@ export class ChannelsService {
 				this.BanRepository.delete(channel.banned[i].id);
 		}
 
-		await this.addUser(data.channel_id, user.id)		// add user to channel members
+		await this.addUser(channel.id, user.id)		// add user to channel members
 		await this.userService.addChannel(user.id, channel)	// add channel to the user's channels list
-		await this.removeInvite(data.channel_id, user.id);
+		await this.removeInvite(channel.id, user.id);
 		return channel;
 	}
 
 	async leaveChannel(user: User, data: any) {
-		const channel: Channel = await this.findOneById(data.channel_id);
+		let channel: Channel;
+		try {
+			channel = await this.findOneById(data.channel_id);
+		} catch (error) {
+			return "Bad channel id"
+		}
 
 		if (channel.users.find(e => { return e.id == user.id }) == undefined)
 			return null;
@@ -321,13 +333,15 @@ export class ChannelsService {
 		if (channel.owner == null || channel.owner.id != user.id)
 			return { color: "red", content: "ERROR: owner right required" }
 
-		if (await bcrypt.compare(data.password_old, channel.password) == false)
+		if (channel.password != null && await bcrypt.compare(data.password_old, channel.password) == false)
 			return { color: "red", content: "ERROR: wrong password" }
 
-		if (data.password_new == '' || data.password_new == undefined)
-			return { color: "red", content: "ERROR: new password can not be empty" }
-		const salt = await bcrypt.genSalt();
-		channel.password = await bcrypt.hash(data.password_new, salt);
+		if (data.password_new == undefined || data.password_new == '')
+			channel.password = null;
+		else {
+			const salt = await bcrypt.genSalt();
+			channel.password = await bcrypt.hash(data.password_new, salt);
+		}
 		await this.channelRepository.save(channel);
 		return { color: "green", content: "Password updated succesfully" }
 	}

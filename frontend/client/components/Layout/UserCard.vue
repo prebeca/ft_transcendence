@@ -2,7 +2,9 @@
   <v-card color="secondary">
     <v-list-item-content class="justify-center">
       <div class="mx-auto text-center">
-        <UserAvatarStatus :size="sizeOfAvatar" :user="user" :offset="25" />
+        <v-avatar :size="sizeOfAvatar">
+          <img :key="componentKey" :src="user.avatar" alt="avatar" />
+        </v-avatar>
         <v-divider class="my-3"></v-divider>
         <v-btn :to="userProfile" depressed rounded text color="info">
           Your Profile
@@ -28,6 +30,7 @@ export default Vue.extend({
   data() {
     return {
       sizeOfAvatar: "120px",
+      componentKey: 0,
       user: {
         id: 0 as number,
         username: "" as string,
@@ -41,6 +44,7 @@ export default Vue.extend({
       .then((res) => {
         this.user = res.data;
         this.changeAvatar(res.data.avatar);
+        this.componentKey += 1;
       })
       .catch((error) => {
         console.error(error);
