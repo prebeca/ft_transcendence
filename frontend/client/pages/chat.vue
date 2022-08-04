@@ -489,9 +489,10 @@
               <div class="d-flex flex-column align-center">
                 <!-- DIALOG CARD TO ADD DM CHANNEL -->
                 <v-dialog v-model="addDMDialog" persistent max-width="600px">
-                  <template v-slot:activator>
+                  <template v-slot:activator="{ on }">
                     <!-- ADD DM CHANNEL BUTTON -->
                     <v-btn
+                      v-on="on"
                       color="primary"
                       width="190px"
                       class="my-5"
