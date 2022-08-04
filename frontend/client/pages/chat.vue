@@ -62,7 +62,7 @@
                             >
                               <v-text-field
                                 v-model="name"
-                                :rules="[rules.name_length, rules.required]"
+                                :rules="[rules.required]"
                                 label="Name"
                               >
                               </v-text-field>
@@ -81,7 +81,6 @@
                             <v-form @submit.prevent="">
                               <v-text-field
                                 v-model="password"
-                                :rules="[rules.pwd_length]"
                                 label="Password"
                                 type="password"
                               >
@@ -160,7 +159,7 @@
                             <v-form @submit.prevent="">
                               <v-text-field
                                 v-model="password"
-                                :rules="[rules.name_length, rules.required]"
+                                :rules="[rules.required]"
                                 label="Password"
                                 type="password"
                                 hint="If the channel is protected, enter password here !"
@@ -798,7 +797,6 @@
                         <v-form @submit.prevent="">
                           <v-text-field
                             v-model="currentPassword"
-                            :rules="[rules.pwd_length]"
                             label="Current Password"
                             type="password"
                           >
@@ -807,7 +805,6 @@
                         <v-form @submit.prevent="">
                           <v-text-field
                             v-model="changePassword"
-                            :rules="rules.pwd_length"
                             label="New Password"
                             type="password"
                           >
@@ -1017,7 +1014,7 @@ export default Vue.extend({
       banMinutes: 10 as number,
       // besoin de bien comprendre comment les regles sont gerees / en juillet
       rules: {
-        required: (v: string) => !v || "Required",
+        required: (v: string) => !!v || "Required",
         name_length: (v: string) =>
           (v && v.length <= 8) || "must be less than 8 characters",
         pwd_length: (v: string) =>
