@@ -41,6 +41,8 @@ export class UsersController {
 		const user: User = { ... (req.user as User) };
 		if (!user)
 			return null;
+		if (req.body["istwofa"] === false)
+			await this.userService.updateTwoFAUser(user, false);
 		await this.userService.updateUserinfo(user, req.body["new_username"]);
 		if (req.body["istwofa"] === true) {
 			return true;

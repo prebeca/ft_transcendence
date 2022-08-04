@@ -132,6 +132,8 @@ export class UsersService {
 	async updateUserinfo(user: User, new_username: string, istwofa?: boolean): Promise<void> {
 		if (istwofa === undefined)
 			this.updateTwoFAUser(user, istwofa);
+		else
+			this.updateTwoFAUser(user, istwofa);
 		return this.updateUsername(user, new_username);
 	}
 
@@ -188,8 +190,10 @@ export class UsersService {
 	async updateTwoFAUser(user: User, istwofa: boolean): Promise<User> {
 		try {
 			await this.updateUsersById(user, { twofauser: istwofa });
+			if (!istwofa)
+				await this.updateTwoFASecret(user, null);
 		} catch (error) {
-			throw new HttpException("Update TwoFAUser not work", HttpStatus.INTERNAL_SERVER_ERROR);
+			throw new HttpException("Update TwoFAUser does not work", HttpStatus.INTERNAL_SERVER_ERROR);
 		}
 		return await this.userRepository.findOne(user.id);
 	}
