@@ -188,6 +188,8 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
 	}
 
 	gameEnded(gameRoom: GameRoomClass, game: GameI, id: string) {
+		if (gameRoom.finished)
+			return;
 		this.gameService.gameFinished(gameRoom, game, id);
 		for (const [sid, player] of gameRoom.mapPlayers) {
 			this.gatewayStatus.backToConnected(player.userid);
@@ -217,7 +219,7 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
 			this.server.to(id).emit('updateStatus', game.status);
 		}
 		if (game.status === GameStatus.PLAYER1LEAVE || game.status === GameStatus.PLAYER2LEAVE) {
-			this.gameEnded(gameRoom, game, id);
+			return this.gameEnded(gameRoom, game, id);
 		}
 	}
 
