@@ -64,7 +64,6 @@
                                 v-model="name"
                                 :rules="[rules.name_length, rules.required]"
                                 label="Name"
-                                @keyup.enter="createChannel"
                               >
                               </v-text-field>
                             </v-form>
@@ -84,7 +83,6 @@
                                 v-model="password"
                                 :rules="[rules.pwd_length]"
                                 label="Password"
-                                @keyup.enter="createChannel"
                                 type="password"
                               >
                               </v-text-field>
