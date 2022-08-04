@@ -62,7 +62,7 @@
                             >
                               <v-text-field
                                 v-model="name"
-                                :rules="rules"
+                                :rules="[rules.name_length, rules.required]"
                                 label="Name"
                                 @keyup.enter="createChannel"
                               >
@@ -82,7 +82,7 @@
                             <v-form @submit.prevent="">
                               <v-text-field
                                 v-model="password"
-                                :rules="passwordRules"
+                                :rules="[rules.pwd_length]"
                                 label="Password"
                                 @keyup.enter="createChannel"
                                 type="password"
@@ -162,7 +162,7 @@
                             <v-form @submit.prevent="">
                               <v-text-field
                                 v-model="password"
-                                :rules="passwordRules"
+                                :rules="[rules.name_length, rules.required]"
                                 label="Password"
                                 type="password"
                                 hint="If the channel is protected, enter password here !"
@@ -800,7 +800,7 @@
                         <v-form @submit.prevent="">
                           <v-text-field
                             v-model="currentPassword"
-                            :rules="passwordRules"
+                            :rules="[rules.pwd_length]"
                             label="Current Password"
                             type="password"
                           >
@@ -809,7 +809,7 @@
                         <v-form @submit.prevent="">
                           <v-text-field
                             v-model="changePassword"
-                            :rules="passwordRules"
+                            :rules="rules.pwd_length"
                             label="New Password"
                             type="password"
                           >
@@ -1018,16 +1018,13 @@ export default Vue.extend({
       banDialog: false,
       banMinutes: 10 as number,
       // besoin de bien comprendre comment les regles sont gerees / en juillet
-      rules: [
-        (v: string) => !!v || "Required",
-        (v: string) => (v: string) =>
+      rules: {
+        required: (v: string) => !v || "Required",
+        name_length: (v: string) =>
           (v && v.length <= 8) || "must be less than 8 characters",
-        // (v: string) => v => !this.channels.some(channel => channel.name === v) || 'already exists',
-      ],
-      passwordRules: [
-        (v: string) => (v: string) =>
+        pwd_length: (v: string) =>
           v.length <= 16 || "must be less than 16 characters",
-      ],
+      },
     };
   },
   props: {
