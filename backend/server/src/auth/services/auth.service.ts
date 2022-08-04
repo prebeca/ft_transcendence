@@ -202,6 +202,9 @@ export class AuthService {
 	}
 
 	async validateUser(loginPayload: LoginInterface): Promise<User> {
+		let email_str: string = loginPayload.email;
+		if (this.containsSpecialChars(email_str, true))
+			throw new HttpException("Email cannot contain special characters", HttpStatus.CONFLICT);
 		const user: User = await this.usersService.findOneByEmail(loginPayload.email);
 		if (user) {
 			const passIsCorrect = await this.validatePassword(user, loginPayload.password);
@@ -215,7 +218,27 @@ export class AuthService {
 		throw new UnauthorizedException("User does not exist");
 	}
 
+	containsSpecialChars(str: string, is_email: boolean) {
+		const specialChars: string = `\`!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?~`;
+
+		const result: boolean = specialChars.split('').some(specialChar => {
+			if (str.includes(specialChar)) {
+				if (is_email && (specialChar === '@' || specialChar === '.'))
+					return false;
+				return true;
+			}
+			return false;
+		});
+		return result;
+	}
+
 	async registerUser(registerUser: RegisterInterface): Promise<User> {
+		let username_str: string = registerUser.username;
+		if (this.containsSpecialChars(username_str, false))
+			throw new HttpException("Username cannot contain special characters", HttpStatus.CONFLICT);
+		let email_str: string = registerUser.email;
+		if (this.containsSpecialChars(email_str, true))
+			throw new HttpException("Email cannot contain special characters", HttpStatus.CONFLICT);
 		var user: User = await this.usersService.findOneByEmail(registerUser.email);
 		if (!user) {
 			user = await this.usersService.findOneByUsername(registerUser.username);
@@ -245,9 +268,6 @@ export class AuthService {
 	}
 
 	async logout(response: Response, user: User) {
-		//1. set to null column refresh_token from corresponding user->done
-		//2. set the cookies to empty or delete->done
-		//3. return nothing (200 OK)->done
 		response.clearCookie('access_token', {
 			httpOnly: true,
 			path: '/',
