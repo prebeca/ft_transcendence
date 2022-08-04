@@ -64,10 +64,10 @@ export default Vue.extend({
 			tab: ["Match History", "Friends List"],
 			matches: [
 				{
-					player1: "player1",
-					player2: "player2",
-					player1Score: 12,
-					player2Score: 3,
+					winner: "player1",
+					looser: "player2",
+					winner_score: 12,
+					looser_score: 3,
 				},
 			],
 		};
