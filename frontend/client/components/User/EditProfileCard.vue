@@ -97,7 +97,6 @@ export default Vue.extend({
   name: "loginCard",
   data() {
     return {
-      sizeDialog: false,
       avatar: "",
       photo: "",
       username: "",
@@ -113,6 +112,7 @@ export default Vue.extend({
           value.length <= 15 || "Max 15 characters",
         counter_min: (value: string) => value.length >= 5 || "Min 5 characters",
       },
+      sizeDialog: false,
     };
   },
   created: function () {
