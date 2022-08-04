@@ -41,7 +41,7 @@ export class Channel {
 
 	@OneToMany(() => Mute, Mute => Mute.channel)
 	@JoinTable()
-	muted: Ban[]
+	muted: Mute[]
 
 	@OneToMany(() => Message, Message => Message.channel)
 	@JoinColumn()

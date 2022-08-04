@@ -24,7 +24,6 @@ export class SocketService {
 		client.to(channel.id.toString()).emit("NewUser", { user: user, channel_id: channel.id })
 
 		const socket_ids = await server.to(channel.id.toString()).allSockets()
-		console.log(socket_ids)
 		if (!socket_ids.has(user.socket_id)) {
 			client.join(channel.id.toString())							// join socket room
 		}
@@ -57,7 +56,6 @@ export class SocketService {
 	}
 
 	async newMessage(user: User, message: Message, server: Server) {
-		console.log("newMessage()")
 		let channel = await this.channelService.findOneById(message.channel.id);
 
 		message.channel.scope = "channel.scope"
@@ -74,7 +72,6 @@ export class SocketService {
 			else
 				this.channelService.removeFromMuteList(muted)
 		}
-		console.log("mute pass")
 
 		try {
 			message = await this.channelService.handleMessage(user, message)
@@ -83,7 +80,6 @@ export class SocketService {
 			return
 		}
 
-		console.log("msg handle pass")
 		// manage block users
 		const socket_ids = await server.to(channel.id.toString()).allSockets()
 
@@ -93,7 +89,6 @@ export class SocketService {
 			if (other_user && other_user.blocked.find(e => { return e.id == user.id }) != undefined)
 				except.push(item)
 		}
-		console.log("block pass")
 		server.to(channel.id.toString()).except(except).emit('NewMessage', message);
 		if (channel.scope == 'dm')
 			server.to(channel.id.toString()).except(except).emit('NewMessageDM', message);
@@ -286,7 +281,7 @@ export class SocketService {
 		if (targetIsAdmin && !userIsOwner)
 			return; // admin cant kick admin but owner can
 
-		if (this.channelService.addToMuteList(data) == null)
+		if (await this.channelService.addToMuteList(data) == null)
 			return; // already muted
 
 		server.to(data.channel_id).emit('NewMessage', {

@@ -142,7 +142,6 @@ export default Vue.extend({
     });
 
     this.socket.on("connect", async () => {
-      console.log("Connection !");
       this.socket.emit("SetSocket");
       await this.$axios
         .get("/users/channels")
@@ -151,7 +150,6 @@ export default Vue.extend({
           channels = channels.filter((e: Channel) => {
             return e.scope == "dm";
           });
-          console.log("joining dm chans");
           channels.forEach((e: Channel) => {
             this.socket.emit("JoinChan", {
               channel_id: e.id,
@@ -164,12 +162,9 @@ export default Vue.extend({
         });
     });
 
-    this.socket.on("disconnect", async (reason) => {
-      console.log("Disconnection ! (" + reason + ")");
-    });
+    this.socket.on("disconnect", async (reason) => {});
 
     this.socket.on("Alert", async (alert: Alert, cb) => {
-      console.log("new Alert");
       this.snackbar = false;
       this.notif_text = alert.content;
       this.snackcolor = alert.color;
@@ -184,12 +179,6 @@ export default Vue.extend({
         });
       }
     });
-  },
-  methods: {
-    // changeAvatar(filename: string) {
-    //   this.user.avatar =
-    //     `${process.env.API_URL}/users/profile/avatar/` + filename;
-    // },
   },
 });
 </script>

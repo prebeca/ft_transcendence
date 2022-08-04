@@ -273,8 +273,13 @@ export class ChannelsService {
 
 		if (user == null)
 			return null;
-		if (channel.banned.find(e => { return e.user.id == user.id }) != undefined)
-			return null; // already banned
+
+		let index = channel.banned.findIndex(e => { return e.user.id == user.id })
+
+		if (index != -1) {
+			let item = channel.banned.splice(index, 1);
+			this.removeFromBanList(item[0])
+		}
 
 		let end = new Date();
 
@@ -299,8 +304,13 @@ export class ChannelsService {
 
 		if (user == null)
 			return null;
-		if (channel.muted.find(e => { return e.user.id == user.id }) != undefined)
-			return null; // already muted
+
+		let index = channel.muted.findIndex(e => { return e.user.id == user.id })
+
+		if (index != -1) {
+			let item = channel.muted.splice(index, 1);
+			this.removeFromMuteList(item[0])
+		}
 
 		let end = new Date();
 

@@ -245,7 +245,7 @@
                     <v-list color="secondary" width="100%">
                       <div
                         v-for="(player, index) in channel.users"
-                        :key="index"
+                        :key="player.id"
                       >
                         <v-list-group
                           v-if="user.id != player.id"
@@ -323,11 +323,16 @@
                                   <v-dialog
                                     v-model="muteDialog"
                                     persistent
+                                    :retain-focus="false"
                                     max-width="600px"
                                   >
                                     <template v-slot:activator="{ on }">
                                       <v-btn
-                                        @click="muteDialog = !muteDialog"
+                                        @click="
+                                          banMute_chan = channel;
+                                          banMute_player = player;
+                                          muteDialog = true;
+                                        "
                                         color="accent"
                                         class="mx-1"
                                         min-width="48%"
@@ -362,15 +367,15 @@
                                         <v-spacer></v-spacer>
                                         <v-btn
                                           color="accent"
-                                          @click="muteDialog = !muteDialog"
+                                          @click="muteDialog = false"
                                         >
                                           CANCEL
                                         </v-btn>
                                         <v-btn
                                           color="success"
                                           @click="
-                                            mute(player, channel);
-                                            muteDialog = !muteDialog;
+                                            mute();
+                                            muteDialog = false;
                                           "
                                         >
                                           OK
@@ -395,11 +400,16 @@
                                   <v-dialog
                                     v-model="banDialog"
                                     persistent
+                                    :retain-focus="false"
                                     max-width="600px"
                                   >
                                     <template v-slot:activator="{ on }">
                                       <v-btn
-                                        @click="banDialog = !banDialog"
+                                        @click="
+                                          banMute_chan = channel;
+                                          banMute_player = player;
+                                          banDialog = !banDialog;
+                                        "
                                         color="accent"
                                         min-width="100%"
                                         v-on="on"
@@ -440,7 +450,7 @@
                                         <v-btn
                                           color="success"
                                           @click="
-                                            ban(player, channel);
+                                            ban();
                                             banDialog = !banDialog;
                                           "
                                         >
@@ -976,6 +986,8 @@ interface User {
 export default Vue.extend({
   data() {
     return {
+      banMute_chan: {} as Channel,
+      banMute_player: {} as User,
       invited_user: {} as User,
       messages: [] as Message[],
       allChannels: [] as Channel[],
@@ -1033,7 +1045,7 @@ export default Vue.extend({
     },
   },
   async created() {
-    this.$axios
+    await this.$axios
       .get("/users")
       .then((res) => {
         this.users = res.data;
@@ -1074,7 +1086,6 @@ export default Vue.extend({
       });
 
     this.socket.on("connect", async () => {
-      console.log("Connection !");
       await this.socket.emit("SetSocket");
       if (!this.disconnected) return;
       await this.joinChannels();
@@ -1086,7 +1097,6 @@ export default Vue.extend({
     });
 
     this.socket.on("UserKick", async (msg: any) => {
-      console.log("you have been kick from a channel");
       let index = this.channels.findIndex((e) => {
         return e.id == msg.channel_id;
       });
@@ -1099,7 +1109,6 @@ export default Vue.extend({
     });
 
     this.socket.on("Kick", async (data: any) => {
-      console.log("A user has been kick from a channel");
       let chan = this.channels.find((e) => {
         return e.id == data.channel_id;
       });
@@ -1112,14 +1121,12 @@ export default Vue.extend({
     });
 
     this.socket.on("JoinChan", async (channel: Channel) => {
-      console.log("adding channel:");
       if (
         channel.scope == "dm" &&
         this.channels_dm.find((e) => {
           return e.id == channel.id;
         }) == undefined
       ) {
-        console.log("channel dm added");
         this.channels_dm.push(channel);
       }
       if (
@@ -1128,13 +1135,11 @@ export default Vue.extend({
           return e.id == channel.id;
         }) == undefined
       ) {
-        console.log("channel added");
         this.channels.push(channel);
       }
     });
 
     this.socket.on("ChannelDeleted", (channel_id: number) => {
-      console.log("Channel deleted");
       let i = this.channels.findIndex((e) => {
         return e.id == channel_id;
       });
@@ -1147,7 +1152,6 @@ export default Vue.extend({
     });
 
     this.socket.on("NewMessage", async (msg: Message) => {
-      console.log("New message received !");
       if (msg != null) {
         if (msg.channel.scope != "dm")
           this.channels
@@ -1174,21 +1178,13 @@ export default Vue.extend({
         }) != undefined
       )
         return;
-      this.socket.emit(
-        "JoinChan",
-        {
-          channel_id: msg.channel.id,
-          password: "",
-        },
-        (rep: any) => {
-          if (rep != null) console.log("chan joined");
-          else console.log("cannot join chan");
-        }
-      );
+      this.socket.emit("JoinChan", {
+        channel_id: msg.channel.id,
+        password: "",
+      });
     });
 
     this.socket.on("NewUser", async (data: any) => {
-      console.log("New user in chat !");
       if (data != null) {
         let chan = this.channels.find((e) => {
           return e.id == data.channel_id;
@@ -1204,7 +1200,6 @@ export default Vue.extend({
     });
 
     this.socket.on("UserLeft", async (data: any) => {
-      console.log("a user left the chat");
       if (data != null) {
         let chan = this.channels.find((e) => {
           return e.id == data.channel_id;
@@ -1251,7 +1246,6 @@ export default Vue.extend({
     });
 
     this.socket.on("DeleteMessage", async (msg: Message) => {
-      console.log("Message deleted !");
       if (msg != null) {
         let chans = this.channels;
         if (msg.channel.scope == "dm") chans = this.channels_dm;
@@ -1268,7 +1262,6 @@ export default Vue.extend({
     });
 
     await this.joinChannels();
-    console.log("Created");
   },
   destroyed() {
     this.socket.off("NewMessage");
@@ -1343,7 +1336,6 @@ export default Vue.extend({
     },
 
     async createChannel() {
-      console.log(this.name);
       if (this.name == "") return;
       if (this.scope == "") return;
       await this.$axios
@@ -1353,7 +1345,6 @@ export default Vue.extend({
           password: this.password,
         })
         .then((res) => {
-          console.log("this.createChannel.then");
           if (typeof res.data === "string") {
             this.socket.emit("Alert", {
               color: "red",
@@ -1379,7 +1370,6 @@ export default Vue.extend({
 
     async joinChannels() {
       for (let i = 0; i < this.channels.length; ++i) {
-        console.log("joinChannels()");
         await this.socket.emit("JoinChan", {
           channel_id: this.channels[i].id,
           password: "",
@@ -1396,11 +1386,7 @@ export default Vue.extend({
           password: this.password,
         },
         (rep: any) => {
-          if (rep != null) console.log("chan joined");
-          else {
-            console.log("cannot join chan");
-            this.passwordDialog = true;
-          }
+          if (rep == null) this.passwordDialog = true;
         }
       );
       this.password = "";
@@ -1436,18 +1422,18 @@ export default Vue.extend({
       });
     },
 
-    async ban(user: User, channel: Channel) {
+    async ban() {
       this.socket.emit("Ban", {
-        user_id: user.id,
-        channel_id: channel.id,
+        user_id: this.banMute_player.id,
+        channel_id: this.banMute_chan.id,
         duration: this.banMinutes,
       });
     },
 
-    async mute(user: User, channel: Channel) {
+    async mute() {
       this.socket.emit("Mute", {
-        user_id: user.id,
-        channel_id: channel.id,
+        user_id: this.banMute_player.id,
+        channel_id: this.banMute_chan.id,
         duration: this.muteMinutes,
       });
     },
@@ -1460,8 +1446,6 @@ export default Vue.extend({
     },
 
     async deleteMessage(msg: Message) {
-      console.log("Delete Message !");
-      console.log(msg.content);
       this.socket.emit("DeleteMessage", msg);
     },
 
@@ -1502,7 +1486,6 @@ export default Vue.extend({
     },
 
     async isProtectedChannel(choice: string) {
-      console.log("check protected");
       for (let i = 0; i < this.allChannels.length; i++) {
         if (parseInt(choice) === this.allChannels[i].id) {
           if (this.allChannels[i].scope === "protected") return true;
@@ -1512,7 +1495,6 @@ export default Vue.extend({
     },
 
     getDMUser(channel: Channel): User {
-      //   console.log(channel.users.length);
       let user = channel.users.find((e) => {
         return e.id != this.user.id;
       });
@@ -1577,7 +1559,6 @@ export default Vue.extend({
         });
     },
     toChallenge(id: string) {
-      console.log("tochallenge");
       this.$router.push({ path: "/groom/room", query: { name: id } });
     },
   },
