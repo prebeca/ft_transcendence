@@ -172,19 +172,19 @@ export default Vue.extend({
       ],
     };
   },
-  mounted() {
+  async mounted() {
+    await this.getCurrentUser();
     this.getUser(this.$route.params.users);
-    this.getCurrentUser();
   },
   watch: {
     "$route.params.users"(newid: string, oldid: string) {
-      this.getUser(newid);
       this.getCurrentUser();
+      this.getUser(newid);
     },
   },
   methods: {
-    getCurrentUser() {
-      this.$axios
+    async getCurrentUser() {
+      await this.$axios
         .get("/users/profile")
         .then((res: any) => {
           console.log(res.data);
@@ -200,8 +200,12 @@ export default Vue.extend({
         .then((res: any) => {
           this.user = res.data;
           if (this.user !== null) {
+            if (this.currentUser.id === this.user.id) {
+              this.isUser = true;
+              this.isFriend = false;
+              this.isBlocked = false;
+            } else this.changeButtonData(this.user.id);
             this.changeAvatar(this.user.avatar);
-            this.changeButtonData(this.user.id);
             this.getMatchHistory(this.user.id);
           }
         })
@@ -214,26 +218,20 @@ export default Vue.extend({
         `${process.env.API_URL}/users/profile/avatar/` + filename;
     },
     changeButtonData(user_id: string) {
-      if (this.currentUser.id === user_id) {
-        this.isUser = true;
-        this.isFriend = false;
-        this.isBlocked = false;
-      } else {
-        this.isUser = false;
+      this.isUser = false;
+      if (
+        this.currentUser.friends.find((e) => {
+          return e.id == user_id;
+        })
+      )
+        this.isFriend = true;
+      if (this.currentUser.blocked !== undefined) {
         if (
-          this.currentUser.friends.find((e) => {
+          this.currentUser.blocked.find((e: any) => {
             return e.id == user_id;
-          })
+          }) != undefined
         )
-          this.isFriend = true;
-        if (this.currentUser.blocked !== undefined) {
-          if (
-            this.currentUser.blocked.find((e: any) => {
-              return e.id == user_id;
-            }) != undefined
-          )
-            this.isBlocked = true;
-        }
+          this.isBlocked = true;
       }
     },
     getMatchHistory(user_id: string) {
