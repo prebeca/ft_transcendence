@@ -75,7 +75,6 @@ export default Vue.extend({
     await this.$axios
       .get("/users/profile")
       .then((res: any) => {
-        console.log(res.data);
         this.currentUsername = res.data.username;
       })
       .catch((error: any) => {
