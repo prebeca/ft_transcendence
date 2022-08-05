@@ -126,10 +126,10 @@ export default Vue.extend({
   created: async function () {
     await this.$axios
       .get("/users/profile")
-      .then((res) => {
+      .then((res:any) => {
         this.user = res.data;
       })
-      .catch((error) => {
+      .catch((error:any) => {
         this.$router.push("/");
       });
 
@@ -141,10 +141,14 @@ export default Vue.extend({
     });
 
     this.socket.on("connect", async () => {
-      this.socket.emit("SetSocket");
+      try {
+        this.socket.emit("SetSocket");
+      } catch (error) {
+        this.$router.push("/");
+      }
       await this.$axios
         .get("/users/channels")
-        .then(async (res) => {
+        .then(async (res:any) => {
           let channels = res.data;
           channels = channels.filter((e: Channel) => {
             return e.scope == "dm";
@@ -156,7 +160,7 @@ export default Vue.extend({
             });
           });
         })
-        .catch((error) => {
+        .catch((error:any) => {
           console.error(error);
         });
     });

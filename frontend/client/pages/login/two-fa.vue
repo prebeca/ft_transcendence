@@ -62,10 +62,10 @@ export default Vue.extend({
   created: function () {
     this.$axios
       .get("/users/profile")
-      .then((res) => {
+      .then((res:any) => {
         this.user = res.data;
       })
-      .catch((error) => {
+      .catch((error:any) => {
         console.error(error);
       });
   },
@@ -81,12 +81,12 @@ export default Vue.extend({
         .post("/2fa/authenticate", {
           code: this.code,
         })
-        .then((res) => {
+        .then((res:any) => {
           if (res.data === true) {
             this.$router.push("/home");
           }
         })
-        .catch((error) => {
+        .catch((error:any) => {
           this.snackbar = true;
           (this.code = ""), console.error("error: " + error);
         });

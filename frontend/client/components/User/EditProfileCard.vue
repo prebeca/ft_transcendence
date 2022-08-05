@@ -140,11 +140,11 @@ export default Vue.extend({
   created: function () {
     this.$axios
       .get("/users/profile")
-      .then((res) => {
+      .then((res:any) => {
         this.user = res.data;
         this.changeAvatar(res.data.avatar);
       })
-      .catch((error) => {
+      .catch((error:any) => {
         console.error(error);
       });
   },
@@ -181,13 +181,13 @@ export default Vue.extend({
           new_username: this.user.username,
           istwofa: this.user.twofauser,
         })
-        .then((res) => {
+        .then((res:any) => {
           if (res.data === true) {
             this.$router.push("/user/qr-two-fa");
           }
           this.$router.push("/home");
         })
-        .catch((error) => {
+        .catch((error:any) => {
           console.error(error);
           this.usernameDialog = true;
         });
@@ -204,10 +204,10 @@ export default Vue.extend({
       };
       this.$axios
         .post("/users/profile/update/avatar", formdata, config)
-        .then((res) => {
+        .then((res:any) => {
           this.changeAvatar(res.data.avatar);
         })
-        .catch((error) => {
+        .catch((error:any) => {
           console.error(error);
         });
     },

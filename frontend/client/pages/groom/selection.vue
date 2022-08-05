@@ -81,10 +81,10 @@ export default Vue.extend({
     async matchmaking() {
       this.$axios
         .get("/gameroom/matchmaking")
-        .then((res) => {
+        .then((res:any) => {
           this.$router.push({ path: "/groom/room", query: { name: res.data } });
         })
-        .catch((error) => {
+        .catch((error:any) => {
           console.error(error);
         });
     },

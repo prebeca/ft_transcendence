@@ -85,10 +85,10 @@ export default Vue.extend({
   mounted() {
     this.$axios
       .get("/gameroom/details/" + this.roomid)
-      .then((res) => {
+      .then((res:any) => {
         this.game_details = res.data;
       })
-      .catch((error) => {
+      .catch((error:any) => {
         console.error(error);
       });
   },
