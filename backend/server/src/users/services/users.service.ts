@@ -207,7 +207,6 @@ export class UsersService {
 	async updateTwoFAUser(user: User, istwofa: boolean): Promise<User> {
 		try {
 			await this.updateUsersById(user, { twofauser: istwofa });
-			console.log(user);
 			if (!istwofa)
 				await this.updateTwoFASecret(user, null);
 		} catch (error) {

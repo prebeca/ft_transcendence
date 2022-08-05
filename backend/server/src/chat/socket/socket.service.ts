@@ -76,7 +76,6 @@ export class SocketService {
 		try {
 			message = await this.channelService.handleMessage(user, message)
 		} catch (error) {
-			console.log(error);
 			return
 		}
 

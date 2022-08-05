@@ -51,9 +51,6 @@ export class GameRoomService {
 		return this.gameRooms.get(id_room);
 	}
 
-	/*
-	** Return every room where a player is waiting
-	*/
 	getPlayersInRooms(): GameRoomInterface[] {
 		let ppr: { roomname: string, player1: string, avatar1: string, player2: string, avatar2: string }[] = [];
 		for (const [keyroom, gameroom] of this.gameRooms) {
@@ -73,18 +70,12 @@ export class GameRoomService {
 		return ppr;
 	}
 
-	/*
-	** Check if the map contains the room we are searching for
-	*/
 	containsRoom(room_id: string): boolean {
 		if (this.rooms.indexOf(room_id) === -1)
 			return false;
 		return true;
 	}
 
-	/*
-	** delete a socket from rooms
-	*/
 	removePlayerFromRooms(sid: string): void {
 		for (const [keyroom, gameroom] of this.gameRooms) {
 			gameroom.removePlayerFromRoom(sid);
@@ -113,9 +104,9 @@ export class GameRoomService {
 		if (rooms.length === 0) {
 			return this.addRoom({ difficulty: "Medium", points: 5, map: "Pong" });
 		}
-		else if (rooms.length === 1) { //join the only one created
+		else if (rooms.length === 1) {
 			return rooms[0];
-		} else { /* bugs, les games ne se deletent pas correctement */
+		} else {
 			const players_mmr: number[] = [];
 			const players_id: string[] = [];
 			for (var i: number = 0; i < rooms.length; i++) {

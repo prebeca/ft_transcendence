@@ -1,13 +1,16 @@
 <template>
   <v-card width="500px" height="500px" color="secondary" elevation="20">
     <v-toolbar color="primary" class="d-flex justify-center">
-      <v-toolbar-title class="font-weight-black info--text" style="font-size: 25px">
+      <v-toolbar-title
+        class="font-weight-black info--text"
+        style="font-size: 25px"
+      >
         {{ title }} : {{ username }}
       </v-toolbar-title>
     </v-toolbar>
 
     <v-row class="pt-10" justify="center" align="center">
-      <v-avatar size="200px">
+      <v-avatar size="200px" v-if="avatar">
         <img :src="playerAvatar" alt="avatar" />
       </v-avatar>
     </v-row>
@@ -57,12 +60,16 @@ export default Vue.extend({
     username: {
       type: String,
       required: true,
-    }
+    },
+    avatar: {
+      type: String,
+      required: true,
+    },
   },
 
   computed: {
     playerAvatar(): string {
-      return `${process.env.API_URL}/users/profile/avatar/${this.player.avatar}`;
+      return `${process.env.API_URL}/users/profile/avatar/${this.avatar}`;
     },
   },
 });

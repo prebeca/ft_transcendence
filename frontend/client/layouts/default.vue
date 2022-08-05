@@ -64,8 +64,8 @@ interface Message {
 interface Channel {
   id: number;
   scope: string;
-  name: string; // for classic channels
-  username: string; // for DM channel
+  name: string;
+  username: string;
   users: User[];
   messages: Message[];
 }
@@ -128,7 +128,6 @@ export default Vue.extend({
       .get("/users/profile")
       .then((res) => {
         this.user = res.data;
-        // this.changeAvatar(res.data.avatar);
       })
       .catch((error) => {
         this.$router.push("/");

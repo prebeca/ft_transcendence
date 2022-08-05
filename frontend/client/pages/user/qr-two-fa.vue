@@ -75,7 +75,7 @@ export default Vue.extend({
   },
   methods: {
     async generateQr() {
-      fetch("http://localhost:3000/2fa/generate-qr", {
+      fetch(`${process.env.API_URL}/2fa/generate-qr`, {
         method: "POST",
         credentials: "include",
       })
@@ -103,12 +103,11 @@ export default Vue.extend({
         .then((stream) => new Response(stream))
         .then((response) => response.blob())
         .then((blob) => URL.createObjectURL(blob))
-        .then((url) => console.log((this.qr_code = url)))
+        .then((url) => (this.qr_code = url))
         .catch((err) => console.error(err));
     },
     async validate() {
       const { code } = this;
-      console.log(this.code);
       this.$axios
         .post("/2fa/turn-on-qr", {
           code: this.code,

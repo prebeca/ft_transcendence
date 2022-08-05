@@ -52,7 +52,6 @@ export class AuthService {
 			path: '/',
 			maxAge: 1000 * 60 * 60 * 20,
 			sameSite: "strict",
-			/* secure: true, -> only for localhost AND https */
 		});
 		const rt_token: string = await this.createRTCookie(user.id);
 		const hash_token: string = await bcrypt.hash(rt_token, 5);
@@ -70,9 +69,11 @@ export class AuthService {
 		var token_client: string;
 		var userCookie: User = user;
 		var userid: number;
+		var created: boolean = false;
 
 		if (is42) {
-			const result: { jwt: { access_token: string }, user: User } = (await this.get42APIToken(code));
+			const result: jwtUser = (await this.get42APIToken(code));
+			created = result.created;
 			userid = result.user.id;
 			token_client = result.jwt.access_token;
 			var userCookie: User = await this.usersService.findUserbyIdWithSensibleData(result.user.id);
@@ -90,7 +91,6 @@ export class AuthService {
 			path: '/',
 			maxAge: 1000 * 60 * 60 * 20,
 			sameSite: "strict",
-			/* secure: true, -> only for localhost AND https */
 		});
 
 		const rt_token: string = await this.createRTCookie(userid);
@@ -104,7 +104,6 @@ export class AuthService {
 			sameSite: "strict",
 		});
 
-		let created: boolean = (userCookie.username) ? false : true;
 		return {
 			userid: userid,
 			response: response,
@@ -138,9 +137,10 @@ export class AuthService {
 			username: res2.data.login,
 			email: res2.data.email,
 		};
-
+		let created: boolean = false;
 		var user: User = await this.usersService.findOne(createUserDto.login);
 		if (!user) {
+			created = true;
 			let same_username: string = res2.data.login;
 			for (let i = 0; i < 1000000; i++) {
 				var same_user: User = await this.usersService.findOneByUsername(same_username);
@@ -148,7 +148,6 @@ export class AuthService {
 					break;
 				same_username = (res2.data.login as string).concat(i.toString());
 			}
-			console.log(same_username);
 			createUserDto.username = same_username;
 			user = await this.usersService.createUser(createUserDto);
 			if (user === null)
@@ -157,7 +156,8 @@ export class AuthService {
 		const result_jwtsign: { access_token: string } = await this.jwtGenerate({ email: user.email, id: user.id, isTwoFactorEnable: user.twofauser });
 		return {
 			jwt: result_jwtsign,
-			user: user
+			user: user,
+			created: created,
 		}
 	}
 

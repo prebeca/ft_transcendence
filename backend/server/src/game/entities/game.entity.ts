@@ -31,6 +31,12 @@ export class Game {
 	score_winner: number;
 
 	@Column()
+	avatar_winner: string;
+
+	@Column()
+	avatar_looser: string;
+
+	@Column()
 	score_looser: number;
 
 	@Column({ default: 0 })

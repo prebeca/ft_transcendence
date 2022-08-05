@@ -964,8 +964,8 @@ interface Message {
 
 interface Channel {
   id: number;
-  name: string; // for classic channels
-  username: string; // for DM channel
+  name: string;
+  username: string;
   scope: string;
   users: User[];
   owner: User;
@@ -1024,7 +1024,7 @@ export default Vue.extend({
       muteMinutes: 10 as number,
       banDialog: false,
       banMinutes: 10 as number,
-      // besoin de bien comprendre comment les regles sont gerees / en juillet
+
       rules: {
         required: (v: string) => !!v || "Required",
         name_length: (v: string) =>
@@ -1054,17 +1054,6 @@ export default Vue.extend({
         console.error(error);
       });
 
-    // // fetch all channels
-    // await this.$axios
-    //   .get("/channels")
-    //   .then((res) => {
-    //     this.allChannels = res.data;
-    //   })
-    //   .catch((error) => {
-    //     console.error(error);
-    //   });
-
-    // fetch users channels
     await this.$axios
       .get("/users/channels")
       .then(async (res) => {
@@ -1539,7 +1528,7 @@ export default Vue.extend({
       }
     },
     challenge(target: User) {
-      this.$axios //-> POST CREATION WITH OPTION will generate new name and with the return the game Room will be instanciated
+      this.$axios
         .post("/gameroom/create", {
           difficulty: 2,
           points: 5,
@@ -1555,9 +1544,7 @@ export default Vue.extend({
             challenge: true,
           });
         })
-        .catch((error) => {
-          console.log(error);
-        });
+        .catch((error) => {});
     },
     toChallenge(id: string) {
       this.$router.push({ path: "/groom/room", query: { name: id } });

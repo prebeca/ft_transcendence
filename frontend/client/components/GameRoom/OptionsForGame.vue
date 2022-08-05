@@ -45,7 +45,10 @@
         {{ map }}
       </span>
     </template> -->
-    <v-btn color="accent" @click="validate"> Validate </v-btn>
+    <v-card-actions>
+      <v-btn large color="primary" to="/home">Cancel</v-btn>
+      <v-btn large color="accent" @click="validate"> Validate </v-btn>
+    </v-card-actions>
   </v-form>
 </template>
 
@@ -62,7 +65,7 @@ export default Vue.extend({
   },
   methods: {
     async validate() {
-      await this.$axios //-> POST CREATION WITH OPTION will generate new name and with the return the game Room will be instanciated
+      await this.$axios
         .post("/gameroom/create", {
           difficulty: this.difficulty,
           points: this.points,
@@ -71,9 +74,7 @@ export default Vue.extend({
         .then((res) => {
           this.$router.push({ path: "/groom/room", query: { name: res.data } });
         })
-        .catch((error) => {
-          console.log(error);
-        });
+        .catch((error) => {});
     },
   },
 });
