@@ -1400,9 +1400,7 @@ export default Vue.extend({
     },
 
     async createDMChannel() {
-      await this.socket.emit("NewDMChannel", {
-        id: this.choice,
-      });
+      await this.socket.emit("NewDMChannel", this.choice);
     },
 
     async kick(user: User, channel: Channel) {
