@@ -1,6 +1,6 @@
-import { Message } from 'src/chat/channels/entities/message.entity';
-import { Player } from 'src/game/entities/player.entity';
-import { Channel } from 'src/typeorm';
+import { Message } from '../../chat/channels/entities/message.entity';
+import { Player } from '../../game/entities/player.entity';
+import { Channel } from '../../typeorm';
 import { Column, Entity, JoinColumn, JoinTable, ManyToMany, OneToMany, OneToOne, PrimaryGeneratedColumn } from 'typeorm';
 
 @Entity()

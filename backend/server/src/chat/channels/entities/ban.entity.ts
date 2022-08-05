@@ -1,4 +1,4 @@
-import { Channel, User } from 'src/typeorm';
+import { Channel, User } from '../../../typeorm';
 import { Column, CreateDateColumn, Entity, JoinTable, ManyToOne, PrimaryGeneratedColumn } from 'typeorm';
 
 @Entity()

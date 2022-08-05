@@ -1,6 +1,6 @@
 import { Module } from '@nestjs/common';
-import { ChannelsModule } from 'src/chat/channels/channels.module';
-import { UsersModule } from 'src/users/users.module';
+import { ChannelsModule } from '../../chat/channels/channels.module';
+import { UsersModule } from '../../users/users.module';
 import { SocketGateway } from './socket.gateway';
 import { SocketService } from './socket.service';
 

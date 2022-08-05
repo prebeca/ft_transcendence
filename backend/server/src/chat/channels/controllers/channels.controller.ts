@@ -9,8 +9,8 @@ import {
 	UseGuards
 } from '@nestjs/common';
 import { Request } from 'express';
-import { JwtTwoFactorAuthGuard } from 'src/auth/guards/jwt-twofa.guard';
-import { User } from 'src/typeorm';
+import { JwtAuthGuard } from '../../../auth/guards/jwt-auth.guard';
+import { User } from '../../../typeorm';
 import { CreateChannelDto } from '../dto/channels.dto';
 import { Channel } from '../entities/channel.entity';
 import { Message } from '../entities/message.entity';

@@ -1,5 +1,5 @@
 import { Injectable } from "@nestjs/common";
-import { User } from "src/users/entities/user.entity";
+import { User } from "../../users/entities/user.entity";
 import { CreateGameDto } from "../dto/create-game.dto";
 import BallI from "../interfaces/ballI.interface";
 import GameI from "../interfaces/gameI.interface";

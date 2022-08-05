@@ -2,8 +2,8 @@ import { Req, UseGuards } from '@nestjs/common';
 import { ConnectedSocket, MessageBody, SubscribeMessage, WebSocketGateway, WebSocketServer } from '@nestjs/websockets';
 import { Request } from 'express';
 import { Server, Socket } from 'socket.io';
-import { WsJwtAuthGuard } from 'src/auth/guards/ws-jwt-auth.guard';
-import { Channel, User } from 'src/typeorm';
+import { WsJwtAuthGuard } from '../../auth/guards/ws-jwt-auth.guard';
+import { Channel, User } from '../../typeorm';
 import { Message } from '../channels/entities/message.entity';
 import { SocketService } from './socket.service';
 

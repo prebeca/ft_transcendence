@@ -23,7 +23,7 @@ export class FriendsService {
 	}
 
 	async removeFriend(user: User, user_id_to_remove: number): Promise<void> {
-		const user_to_remove: User = await this.userRepository.findOne(user_id_to_remove);
+		const user_to_remove: User = await this.userRepository.findOne({ where: { id: user_id_to_remove } });
 		if (!user_to_remove || user.id === user_to_remove.id || this.isFriend(user, user_to_remove) === false)
 			return;
 		user.friends = user.friends.filter(function (value, index, arr) {
@@ -40,8 +40,8 @@ export class FriendsService {
 	}
 
 	async addFriend(user: User, user_id_to_add: number): Promise<void> {
-		const blocked: User[] = (await this.userRepository.findOne(user.id, { relations: ["blocked"] })).blocked;
-		const user_to_add: User = await this.userRepository.findOne(user_id_to_add, { relations: ["blocked"] });
+		const blocked: User[] = (await this.userRepository.findOne({ where: { id: user.id }, relations: ["blocked"] })).blocked;
+		const user_to_add: User = await this.userRepository.findOne({ where: { id: user_id_to_add }, relations: ["blocked"] });
 		if (!user_to_add || user.id === user_to_add.id || this.isFriend(user, user_to_add))
 			return;
 		if (blocked.find(e => { return e.id == user_to_add.id }) != undefined)

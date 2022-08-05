@@ -1,7 +1,7 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { User } from 'src/users/entities/user.entity';
-import { UsersModule } from 'src/users/users.module';
+import { User } from '../users/entities/user.entity';
+import { UsersModule } from '../users/users.module';
 import { GameRoomClass } from './classes/gameroom.class';
 import { PlayerClass } from './classes/player.class';
 import { GameRoomController } from './controllers/gameroom.controller';

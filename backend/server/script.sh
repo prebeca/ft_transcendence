@@ -1,5 +1,6 @@
 npm install
 
-# exec npm run start:prod
+npm run build
+npm run start:prod
 
-exec npm run start:dev
+tail -f /dev/null

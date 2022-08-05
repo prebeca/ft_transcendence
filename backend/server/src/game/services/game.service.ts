@@ -49,12 +49,13 @@ export class GameService {
 	private readonly gameRepository: Repository<Game>
 
 	async get_match_details(uuid: string) {
-		const match: Game = await this.gameRepository.findOne({ uuid: uuid }, { relations: ["winner", "looser"] });
+		const match: Game = await this.gameRepository.findOne({ where: { uuid: uuid }, relations: ["winner", "looser"] });
 		return match;
 	}
 
 	async getHistoryByPlayerId(playerid: number): Promise<Game[]> {
-		const player: Player = await this.playerRepository.findOne(playerid);
+		const player: Player = await this.playerRepository.findOne({ where: { id: playerid } });
+		// const player: Player = await this.playerRepository.findOne({ where: { playerid } });
 		const games: Game[] = await this.gameRepository.find({
 			relations: ['winner', 'looser'],
 			where: [
@@ -66,7 +67,7 @@ export class GameService {
 	}
 
 	async getHistoryByUser(user: User): Promise<Game[]> {
-		const userWR: User = await this.userRepository.findOne(user.id, { relations: ["player"] });
+		const userWR: User = await this.userRepository.findOne({ where: { id: user.id }, relations: ["player"] });
 		const games: Game[] = await this.gameRepository.find({
 			relations: ['winner', 'looser'],
 			where: [
@@ -130,7 +131,7 @@ export class GameService {
 		for (const [sid, player] of gameRoom.mapPlayers) {
 			players.push(player);
 			usernames.push(player.username);
-			let p: Player = await this.playerRepository.findOne({ id: player.userid });
+			let p: Player = await this.playerRepository.findOne({ where: { id: player.userid } });
 			ps.push(p);
 		}
 

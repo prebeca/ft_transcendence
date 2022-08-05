@@ -2,8 +2,8 @@ import { Body, Controller, Get, Inject, Post, Query, Redirect, Req, Res, Unautho
 import { ConfigService } from '@nestjs/config';
 import { AuthGuard } from '@nestjs/passport';
 import { Request, Response } from 'express';
-import { User } from 'src/users/entities/user.entity';
-import { AvatarStatusGateway } from 'src/users/gateways/avatarstatus.gateway';
+import { User } from '../../users/entities/user.entity';
+import { AvatarStatusGateway } from '../../users/gateways/avatarstatus.gateway';
 import { RegisterAuthDto } from '../dto/register-auth.dto';
 import { JwtTwoFactorAuthGuard } from '../guards/jwt-twofa.guard';
 import cookiePayload from '../interfaces/cookiePayload.interface';

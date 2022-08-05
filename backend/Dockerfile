@@ -4,9 +4,7 @@ WORKDIR /server
 
 RUN apk update
 
-RUN npm install --location=global npm@latest
-
-RUN npm install --location=global @nestjs/cli
+RUN npm install --location=global npm@8.16
 
 EXPOSE 3000
 

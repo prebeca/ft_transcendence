@@ -3,12 +3,12 @@ import {
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { Request, Response } from 'express';
-import { JwtAuthGuard } from 'src/auth/guards/jwt-auth.guard';
-import { JwtTwoFactorAuthGuard } from 'src/auth/guards/jwt-twofa.guard';
-import { ChannelsService } from 'src/chat/channels/services/channels.service';
-import { multerOptions } from 'src/common/UploadOptions';
-import { Channel } from 'src/typeorm';
-import { UsersService } from 'src/users/services/users.service';
+import { JwtAuthGuard } from '../../auth/guards/jwt-auth.guard';
+import { JwtTwoFactorAuthGuard } from '../../auth/guards/jwt-twofa.guard';
+import { ChannelsService } from '../../chat/channels/services/channels.service';
+import { multerOptions } from '../../common/UploadOptions';
+import { Channel } from '../../typeorm';
+import { UsersService } from '../../users/services/users.service';
 import { User } from '../entities/user.entity';
 
 @Controller('users')

@@ -2,8 +2,8 @@ import { Injectable } from "@nestjs/common";
 import { Response } from 'express';
 import { authenticator } from "otplib";
 import { toFileStream } from 'qrcode';
-import { User } from "src/users/entities/user.entity";
-import { UsersService } from "src/users/services/users.service";
+import { User } from "../../users/entities/user.entity";
+import { UsersService } from "../../users/services/users.service";
 import { AuthService } from "./auth.service";
 
 @Injectable()

@@ -1,7 +1,7 @@
 import { Body, ClassSerializerInterceptor, Controller, Post, Req, Res, UnauthorizedException, UseGuards, UseInterceptors, ValidationPipe } from "@nestjs/common";
 import { Request, Response } from "express";
-import { User } from "src/users/entities/user.entity";
-import { UsersService } from "src/users/services/users.service";
+import { User } from "../../users/entities/user.entity";
+import { UsersService } from "../../users/services/users.service";
 import { TwoFaAuthDto } from "../dto/twofa-auth.dto";
 import { JwtAuthGuard } from "../guards/jwt-auth.guard";
 import { TwoFactorAuthService } from "../services/twofa.service";

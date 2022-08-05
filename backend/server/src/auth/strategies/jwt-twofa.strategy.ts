@@ -1,8 +1,8 @@
 import { Injectable, UnauthorizedException } from "@nestjs/common";
 import { PassportStrategy } from "@nestjs/passport";
 import { Strategy } from 'passport-jwt'
-import { User } from "src/users/entities/user.entity";
-import { UsersService } from "src/users/services/users.service";
+import { User } from "../../users/entities/user.entity";
+import { UsersService } from "../../users/services/users.service";
 import { Request } from "express";
 import { jwtConstants } from "../constants";
 import { JwtPayload } from "../interfaces/JwtPayload.interface";
@@ -38,4 +38,4 @@ export class JwtTwoFaStrategy extends PassportStrategy(Strategy, 'jwt-twofa') {
 			return user_to_manipulate;
 		}
 	}
-} 
+}

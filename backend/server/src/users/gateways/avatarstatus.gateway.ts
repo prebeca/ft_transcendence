@@ -2,7 +2,7 @@ import { Logger, Req, UseGuards } from '@nestjs/common';
 import { ConnectedSocket, MessageBody, OnGatewayConnection, OnGatewayDisconnect, SubscribeMessage, WebSocketGateway, WebSocketServer } from '@nestjs/websockets';
 import { Request } from 'express';
 import { Server, Socket } from 'socket.io';
-import { WsJwtAuthGuard } from 'src/auth/guards/ws-jwt-auth.guard';
+import { WsJwtAuthGuard } from '../../auth/guards/ws-jwt-auth.guard';
 import { User } from '../entities/user.entity';
 
 @WebSocketGateway(42040, {
