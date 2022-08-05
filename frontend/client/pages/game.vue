@@ -13,7 +13,6 @@
         <img :src="player1.avatar" alt="avatar" />
       </v-avatar>
       <p>{{ player1.username }}</p>
-      <p>{{ player1.mmr + " MMR" }}</p>
       <v-card
         class="d-flex justify-center align-center"
         width="90px"
@@ -32,7 +31,6 @@
       </v-card>
 
       <p>{{ player2.username }}</p>
-      <p>{{ player2.mmr + " MMR" }}</p>
       <v-avatar size="100px">
         <img :src="player2.avatar" alt="avatar" />
       </v-avatar>
