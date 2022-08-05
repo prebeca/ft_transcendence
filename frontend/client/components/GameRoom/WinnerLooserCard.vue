@@ -10,7 +10,7 @@
     </v-toolbar>
 
     <v-row class="pt-10" justify="center" align="center">
-      <v-avatar size="200px">
+      <v-avatar size="200px" v-if="avatar">
         <img :src="playerAvatar" alt="avatar" />
       </v-avatar>
     </v-row>
