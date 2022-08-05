@@ -24,9 +24,7 @@ export class SocketService {
 		server.to(channel.id.toString()).emit("NewUser", { user: user, channel_id: channel.id })
 
 		const socket_ids = await server.to(channel.id.toString()).allSockets()
-		if (!socket_ids.has(user.socket_id)) {
-			client.join(channel.id.toString())							// join socket room
-		}
+		client.join(channel.id.toString())							// join socket room
 		channel.messages = channel.messages.filter(msg => { return (user.blocked.find(blocked_user => { return blocked_user.id == msg.user.id }) == undefined) });
 		client.emit("JoinChan", channel)
 		return channel
