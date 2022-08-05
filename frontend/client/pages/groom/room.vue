@@ -19,7 +19,7 @@
     </div>
     <div class="d-block">
       <v-btn
-        v-if="player1.username.length > 0 && player2.username.length > 0 && (player1.username === currentUser.username || player2.username === currentUser.username)"
+        v-if="player1.username.length > 0 && player2.username.length > 0 && (player1.username === currentUsername || player2.username === currentUsername)"
         x-large
         color="accent"
         @click="gameOn"
@@ -38,8 +38,7 @@ export default Vue.extend({
   name: "GameRoom",
   data() {
     return {
-      currentUser: {} as User,
-      ready: 0,
+      currentUsername: "",
       roomid: "",
       socket: {} as NuxtSocket,
       counter: 0,
@@ -77,8 +76,7 @@ export default Vue.extend({
       .get("/users/profile")
       .then((res: any) => {
         console.log(res.data);
-        this.currentUser = res.data;
-        console.log("current user =" + this.currentUser.username);
+        this.currentUsername = res.data.username;
       })
       .catch((error: any) => {
         console.error(error);
