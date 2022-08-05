@@ -5,4 +5,5 @@ export default interface jwtUser {
 		access_token: string
 	},
 	user: User,
+	created: boolean
 }

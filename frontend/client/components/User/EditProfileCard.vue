@@ -184,7 +184,7 @@ export default Vue.extend({
         })
         .then((res) => {
           if (res.data === true) {
-            this.$router.push("/user/qr-2fa");
+            this.$router.push("/user/qr-two-fa");
           }
           this.$router.push("/home");
         })
