@@ -75,7 +75,7 @@ export default Vue.extend({
   },
   methods: {
     async generateQr() {
-      fetch("http://localhost:3000/2fa/generate-qr", {
+      fetch(`${process.env.API_URL}/2fa/generate-qr`, {
         method: "POST",
         credentials: "include",
       })

@@ -12,19 +12,23 @@ export class UserData1652873596846 implements MigrationInterface {
                 level: 2,
                 winnings: 5,
                 losses: 3,
+                mmr: 60,
             },
             {
                 level: 3,
                 winnings: 8,
                 losses: 3,
+                mmr: 180,
             }, {
                 level: 3,
                 winnings: 9,
                 losses: 5,
+                mmr: 120,
             }, {
                 level: 1,
                 winnings: 0,
                 losses: 50,
+                mmr: -1800,
             },
         ]);
 
