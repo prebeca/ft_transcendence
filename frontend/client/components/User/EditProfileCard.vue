@@ -85,7 +85,30 @@
     <v-divider></v-divider>
 
     <v-card-actions class="d-flex justify-center align-center pa-3">
-      <v-btn color="accent" text @click="saveUserinfo"> Validate </v-btn>
+      <template>
+        <v-btn
+          color="accent"
+          text
+          @click="saveUserinfo"
+          n
+          @click.stop="usernameDialog = false"
+        >
+          Validate
+        </v-btn>
+        <v-dialog v-model="usernameDialog" persistent max-width="290">
+          <v-card color="secondary">
+            <v-card-text class="text-h6 pt-5"
+              >Please choose an other username !
+            </v-card-text>
+            <v-card-actions>
+              <v-spacer></v-spacer>
+              <v-btn color="success" @click="usernameDialog = false">
+                OK
+              </v-btn>
+            </v-card-actions>
+          </v-card>
+        </v-dialog>
+      </template>
     </v-card-actions>
   </v-card>
 </template>
@@ -113,6 +136,7 @@ export default Vue.extend({
         counter_min: (value: string) => value.length >= 5 || "Min 5 characters",
       },
       sizeDialog: false,
+      usernameDialog: false,
     };
   },
   created: function () {
@@ -163,11 +187,12 @@ export default Vue.extend({
           if (res.data === true) {
             this.$router.push("/user/qr-2fa");
           }
+          this.$router.push("/home");
         })
         .catch((error) => {
           console.error(error);
+          this.usernameDialog = true;
         });
-      this.$router.push("/home");
     },
     async saveAvatar() {
       this.saving = false;
