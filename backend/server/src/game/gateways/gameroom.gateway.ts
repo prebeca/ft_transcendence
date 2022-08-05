@@ -84,6 +84,8 @@ export class GameRoomGateway implements OnGatewayConnection, OnGatewayDisconnect
 			client.emit("change_room");
 			return;
 		}
+		else if (gameRoom.status === GAMEROOMSTATUS.INGAME)
+			client.emit("gamestart");
 		client.join(roomid);
 		if (gameRoom.status != GAMEROOMSTATUS.FULL && gameRoom.status != GAMEROOMSTATUS.INGAME)
 			gameRoom.status = GAMEROOMSTATUS.WAITING;

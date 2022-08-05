@@ -19,7 +19,7 @@
     </div>
     <div class="d-block">
       <v-btn
-        v-if="player1.username.length > 0 && player2.username.length > 0"
+        v-if="player1.username.length > 0 && player2.username.length > 0 && (player1.username === currentUsername || player2.username === currentUsername)"
         x-large
         color="accent"
         @click="gameOn"
@@ -39,7 +39,7 @@ export default Vue.extend({
   name: "GameRoom",
   data() {
     return {
-      ready: 0,
+      currentUsername: "",
       roomid: "",
       socket: {} as NuxtSocket,
       counter: 0,
@@ -66,12 +66,21 @@ export default Vue.extend({
       this.socket.emit("launchGame", this.roomid);
     },
   },
-  created() {
+  created: async function() {
     this.socket = this.$nuxtSocket({
       name: "gameroom",
       withCredentials: true,
       persist: "myGameSocket",
     });
+    await this.$axios
+      .get("/users/profile")
+      .then((res: any) => {
+        console.log(res.data);
+        this.currentUsername = res.data.username;
+      })
+      .catch((error: any) => {
+        console.error(error);
+      });
   },
   beforeMount() {
     this.socket.on("handshake", (data) => {});

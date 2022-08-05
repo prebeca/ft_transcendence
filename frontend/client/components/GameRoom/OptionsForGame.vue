@@ -10,12 +10,6 @@
       <v-radio label="Medium" value="Medium"></v-radio>
       <v-radio label="Hard" value="Hard"></v-radio>
     </v-radio-group>
-    <!-- <template v-slot:thumb-label>
-      <span class="font-weight-bold" style="font-size: 15px">
-        {{ difficulty }}
-      </span>
-    </template> -->
-
     <div>
       <h2 class="pb-5">Select score for win</h2>
       <v-slider
