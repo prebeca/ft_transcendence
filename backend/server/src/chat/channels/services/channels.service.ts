@@ -18,7 +18,7 @@ export class ChannelsService {
 	) { }
 
 
-	async createChannel(user: User, createChannelDto: CreateChannelDto) {
+	async createChannel(user: User, createChannelDto: CreateChannelDto): Promise<Channel | string> {
 		let channel: Channel = await this.channelRepository.findOne({ where: { name: createChannelDto.name } })
 
 		if (createChannelDto.scope != "dm" && createChannelDto.name.startsWith("dm_"))
@@ -46,7 +46,7 @@ export class ChannelsService {
 		channel.users.push(user);
 		if (channel.scope == "private")
 			this.addInvite(channel.id, user.id)
-		this.userService.addChannel(user.id, channel);
+		await this.userService.addChannel(user.id, channel);
 		channel = await this.channelRepository.save(channel)
 		channel.password = undefined;
 		return channel;
@@ -66,7 +66,7 @@ export class ChannelsService {
 		let channel = await this.channelRepository.findOne(id, { relations: ["admins", "users", "messages", "messages.user", "messages.channel"] });
 
 		if (channel.users.find(e => { return e.id == user.id }) == undefined)
-			return // user is not member of the channel
+			return;
 
 		channel.password = undefined;
 
@@ -212,7 +212,7 @@ export class ChannelsService {
 		let i = channel.banned.findIndex(e => { return e.user.id == user.id });
 		if (i != -1) {
 			if (channel.banned[i].end > new Date())
-				return "You are still banned for " + ((channel.banned[i].end.valueOf() - (new Date()).valueOf()) / (60 * 1000)).toFixed() + " minutes"; // user is banned
+				return "You are still banned for " + ((channel.banned[i].end.valueOf() - (new Date()).valueOf()) / (60 * 1000)).toFixed() + " minutes";
 			else
 				this.BanRepository.delete(channel.banned[i].id);
 		}

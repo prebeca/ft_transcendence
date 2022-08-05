@@ -23,7 +23,6 @@ export class SocketGateway {
 	@UseGuards(WsJwtAuthGuard)
 	@SubscribeMessage('disconnect')
 	async disconnect(@Req() req: Request, @MessageBody() data: any, @ConnectedSocket() client: Socket) {
-		console.log(req.user["username"] + " disconnected !");
 	}
 
 	@UseGuards(WsJwtAuthGuard)
@@ -61,14 +60,21 @@ export class SocketGateway {
 	@SubscribeMessage('Invite')
 	async invite(@Req() req: Request, @MessageBody() data: any, @ConnectedSocket() client: Socket) {
 		let user = req.user as User;
-		return this.socketService.invite(user, data, this.server)
+		return this.socketService.invite(user, data, this.server, client)
 	}
 
 	@UseGuards(WsJwtAuthGuard)
 	@SubscribeMessage('SetSocket')
-	async updateSocket(@Req() req: Request, @ConnectedSocket() client: Socket) {
+	async setSocket(@Req() req: Request, @ConnectedSocket() client: Socket) {
 		return this.socketService.setSocket(req.user as User, client)
 	}
+
+	@UseGuards(WsJwtAuthGuard)
+	@SubscribeMessage('UnsetSocket')
+	async unsetSocket(@Req() req: Request, @ConnectedSocket() client: Socket) {
+		return this.socketService.unsetSocket(req.user as User)
+	}
+
 
 	@UseGuards(WsJwtAuthGuard)
 	@SubscribeMessage('SetAdmin')

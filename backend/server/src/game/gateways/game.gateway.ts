@@ -69,7 +69,6 @@ function resetAfterPoint(game: GameI, side: string) {
 }
 
 function checkCollision(game: GameI) {
-	//check collision with top and bottom
 	if (game.ball.y + game.ball.r + game.ball.speed > game.gameHeight) {
 		game.ball.y = game.gameHeight - game.ball.r;
 		game.ball.dir.y *= -1;
@@ -78,10 +77,8 @@ function checkCollision(game: GameI) {
 		game.ball.y = game.ball.r;
 		game.ball.dir.y *= -1;
 	}
-	//check if the ball is in the middle of the screen to do nothing
 	if (game.ball.x - game.ball.r > game.gameWidth / 7 && game.ball.x + game.ball.r < game.gameWidth - game.gameWidth / 7)
 		return GameStatus.INPROGRESS;
-	//check collision with the goals
 	if (game.ball.x - game.ball.r <= 0) {
 		game.score2++;
 		if (game.score2 === pointToWin)
@@ -96,7 +93,6 @@ function checkCollision(game: GameI) {
 		game.looserPoint = game.pad2.id;
 		return resetAfterPoint(game, "right");
 	}
-	//check collision with pads
 	else if (game.ball.x - game.ball.r < game.pad1.x + game.pad1.width && game.pad1.x < game.ball.x + game.ball.r &&
 		game.pad1.y < game.ball.y + game.ball.r && game.pad1.height + game.pad1.y > game.ball.y - game.ball.r) {
 		game.ball.dir.x *= -1;
@@ -183,7 +179,7 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
 	}
 
 	handleDisconnect(client: Socket) {
-		console.log(`Client ${client.id} disconnected from game`);
+		this.logger.log(`Client ${client.id} disconnected from game`);
 		this.leaveGame(client, this.gameRoomService.getRoomNameByPlayerId(client.id));
 	}
 
@@ -218,11 +214,14 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
 			game.status = GameStatus.PLAYER1LEAVE;
 			this.server.to(id).emit('updateStatus', game.status);
 		}
-		if (game.pad2.id === client.id) {
+		else if (game.pad2.id === client.id) {
 			var pc: PlayerClass = gameRoom.getPlayerById(client.id);
 			this.gatewayStatus.backToConnected(pc.userid);
 			game.status = GameStatus.PLAYER2LEAVE;
 			this.server.to(id).emit('updateStatus', game.status);
+		}
+		else {
+			this.server.in(client.id).socketsLeave(id);
 		}
 		if (game.status === GameStatus.PLAYER1LEAVE || game.status === GameStatus.PLAYER2LEAVE) {
 			return this.gameEnded(gameRoom, game, id);
@@ -230,12 +229,12 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
 	}
 
 	handleConnection(client: Socket, ...args: any[]) {
-		console.log(`Client ${client.id} connected to game gateway`);
+		this.logger.log(`Client ${client.id} connected to game gateway`);
 	}
 
 	@SubscribeMessage('joinGame')
 	joinGame(@ConnectedSocket() client: Socket, @MessageBody() id: string) {
-		console.log(`Client ${client.id} joined the game`);
+		this.logger.log(`Client ${client.id} joined the game`);
 
 		let gameRoom: GameRoomClass = this.gameRoomService.getRoomById(id);
 		if (gameRoom === undefined) {
@@ -247,16 +246,18 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
 
 		if (!game.pad1.id || !game.pad2.id) {
 			var playerinfo: PlayerInfo = gameRoom.getPlayerInfoById(client.id);
-			if (playerinfo.player_number === 1) {
-				game.pad1.id = client.id;
-				pointToWin = gameRoom.getPoints();
-				difficulty = gameRoom.getDifficulty();
-				game.map = gameRoom.getMap();
-				initGame(game);
+			if (playerinfo !== null && playerinfo.player_number !== null) {
+				if (playerinfo.player_number === 1) {
+					game.pad1.id = client.id;
+					pointToWin = gameRoom.getPoints();
+					difficulty = gameRoom.getDifficulty();
+					game.map = gameRoom.getMap();
+					initGame(game);
+				}
+				else if (playerinfo.player_number === 2)
+					game.pad2.id = client.id;
+				this.gatewayStatus.inGame(playerinfo.userid);
 			}
-			else if (playerinfo.player_number === 2)
-				game.pad2.id = client.id;
-			this.gatewayStatus.inGame(playerinfo.userid);
 		}
 		this.emitInfoPlayersToGame(id, gameRoom);
 		this.server.to(id).emit("initDone", game);
@@ -274,7 +275,7 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
 				game.status = checkCollision(game);
 			if (game.status != GameStatus.INPROGRESS)
 				clearInterval(moveInterval);
-			if (game.status === GameStatus.PLAYER2WON || game.status === GameStatus.PLAYER1WON) { //rentre deux fois dans le DB les scores
+			if (game.status === GameStatus.PLAYER2WON || game.status === GameStatus.PLAYER1WON) {
 				this.gameEnded(gameRoom, game, id);
 			}
 			else

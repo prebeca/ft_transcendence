@@ -964,8 +964,8 @@ interface Message {
 
 interface Channel {
   id: number;
-  name: string; // for classic channels
-  username: string; // for DM channel
+  name: string;
+  username: string;
   scope: string;
   users: User[];
   owner: User;
@@ -1024,7 +1024,7 @@ export default Vue.extend({
       muteMinutes: 10 as number,
       banDialog: false,
       banMinutes: 10 as number,
-      // besoin de bien comprendre comment les regles sont gerees / en juillet
+
       rules: {
         required: (v: string) => !!v || "Required",
         name_length: (v: string) =>
@@ -1054,17 +1054,6 @@ export default Vue.extend({
         console.error(error);
       });
 
-    // // fetch all channels
-    // await this.$axios
-    //   .get("/channels")
-    //   .then((res) => {
-    //     this.allChannels = res.data;
-    //   })
-    //   .catch((error) => {
-    //     console.error(error);
-    //   });
-
-    // fetch users channels
     await this.$axios
       .get("/users/channels")
       .then(async (res) => {
@@ -1121,6 +1110,10 @@ export default Vue.extend({
     });
 
     this.socket.on("JoinChan", async (channel: Channel) => {
+      if (channel != undefined && channel != null)
+        channel.messages.sort((a, b) => {
+          return a.id - b.id;
+        });
       if (
         channel.scope == "dm" &&
         this.channels_dm.find((e) => {
@@ -1266,9 +1259,6 @@ export default Vue.extend({
   destroyed() {
     this.socket.off("NewMessage");
     this.socket.off("ChannelDeleted");
-    this.socket.off("NewMessage");
-    this.socket.off("NewMessage");
-    this.socket.off("NewMessage");
     this.socket.off("UserKick");
     this.socket.off("Kick");
     this.socket.off("DeleteMessage");
@@ -1344,7 +1334,7 @@ export default Vue.extend({
           scope: this.scope,
           password: this.password,
         })
-        .then((res) => {
+        .then(async (res) => {
           if (typeof res.data === "string") {
             this.socket.emit("Alert", {
               color: "red",
@@ -1352,9 +1342,9 @@ export default Vue.extend({
             });
             return;
           }
-          this.socket.emit("JoinChan", {
+          await this.socket.emit("JoinChan", {
             channel_id: res.data.id,
-            password: this.password,
+            password: "",
           });
         })
         .catch((error) => {
@@ -1538,7 +1528,7 @@ export default Vue.extend({
       }
     },
     challenge(target: User) {
-      this.$axios //-> POST CREATION WITH OPTION will generate new name and with the return the game Room will be instanciated
+      this.$axios
         .post("/gameroom/create", {
           difficulty: 2,
           points: 5,
@@ -1554,9 +1544,7 @@ export default Vue.extend({
             challenge: true,
           });
         })
-        .catch((error) => {
-          console.log(error);
-        });
+        .catch((error) => {});
     },
     toChallenge(id: string) {
       this.$router.push({ path: "/groom/room", query: { name: id } });

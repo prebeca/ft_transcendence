@@ -22,8 +22,6 @@ export class AuthController {
 	@Get('42login')
 	@Redirect('https://api.intra.42.fr/oauth/authorize', 302)
 	redirect42API(): { url: string } {
-		// Pour tpierre
-		//return { url: 'https://api.intra.42.fr/oauth/authorize?client_id=9636f7cfa95d97b39cb1692f878d8d528cdacb742d07235819f04aee71f38232&redirect_uri=http%3A%2F%2F176.144.250.217%3A3000%2Fauth%2F42callback&response_type=code&scopepublic&state='};
 		return this.authService.get42OAuthURL();
 	}
 
@@ -35,7 +33,7 @@ export class AuthController {
 		if (!response)
 			throw new UnauthorizedException("JWT Generation error");
 		if (ret.istwofa)
-			return { url: `${process.env.APPLICATION_REDIRECT_URI}/login/2fa` };
+			return { url: `${process.env.APPLICATION_REDIRECT_URI}/login/two-fa` };
 		else if (!ret.created) {
 			this.gatewayStatus.onConnection(ret.userid);
 			return { url: `${process.env.APPLICATION_REDIRECT_URI}/home` };
@@ -65,7 +63,6 @@ export class AuthController {
 		response = ret.response;
 		if (!response)
 			throw new UnauthorizedException("JWT Generation error");
-		console.log(ret.userid);
 		this.gatewayStatus.onConnection(ret.userid);
 		return ret.istwofa;
 	}

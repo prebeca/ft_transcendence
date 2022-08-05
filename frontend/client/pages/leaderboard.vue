@@ -49,7 +49,6 @@ export default Vue.extend({
       .get("/users")
       .then((res) => {
         this.users = res.data;
-        console.log(this.users);
       })
       .catch((error) => {
         console.error(error);

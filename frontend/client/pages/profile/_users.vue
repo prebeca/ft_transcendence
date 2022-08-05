@@ -189,12 +189,9 @@ export default Vue.extend({
       await this.$axios
         .get("/users/profile")
         .then((res: any) => {
-          console.log(res.data);
           this.currentUser = res.data;
         })
-        .catch((error: any) => {
-          console.error(error);
-        });
+        .catch((error: any) => {});
     },
     getUser(id: string) {
       this.$axios
@@ -238,9 +235,8 @@ export default Vue.extend({
     },
     getMatchHistory(user_id: string) {
       this.$axios
-        .get("/gameroom/history/" + user_id) //historique du user que l'on souhaite
+        .get("/gameroom/history/" + user_id)
         .then((res: any) => {
-          console.log(res);
           this.user_matches = res.data;
         })
         .catch((error: any) => {
@@ -248,27 +244,21 @@ export default Vue.extend({
         });
     },
     async block() {
-      console.log("block user");
       await this.$axios
         .post("users/block/" + this.user.id)
         .then((res: any) => {
           this.isBlocked = true;
           this.isFriend = false;
         })
-        .catch((error: any) => {
-          console.log(error);
-        });
+        .catch((error: any) => {});
     },
     async unblock() {
-      console.log("unblock user");
       await this.$axios
         .post("users/unblock/" + this.user.id)
         .then((res: any) => {
           this.isBlocked = false;
         })
-        .catch((error: any) => {
-          console.log(error);
-        });
+        .catch((error: any) => {});
     },
     async addFriend() {
       this.$axios
@@ -276,12 +266,9 @@ export default Vue.extend({
           user_id_to_add: this.user.id,
         })
         .then((res: any) => {
-          console.log(res);
           this.isFriend = true;
         })
-        .catch((error: any) => {
-          console.log(error);
-        });
+        .catch((error: any) => {});
     },
     async removeFriend() {
       await this.$axios
@@ -289,12 +276,9 @@ export default Vue.extend({
           user_id_to_remove: this.user.id,
         })
         .then((res: any) => {
-          console.log(res);
           this.isFriend = false;
         })
-        .catch((error: any) => {
-          console.log(error);
-        });
+        .catch((error: any) => {});
     },
   },
 });

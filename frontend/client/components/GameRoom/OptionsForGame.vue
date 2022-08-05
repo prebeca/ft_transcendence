@@ -34,7 +34,15 @@
       <v-radio label="Tennis" value="Tennis"></v-radio>
       <v-radio label="Golf" value="Golf"></v-radio>
     </v-radio-group>
-    <v-btn color="accent" @click="validate"> Validate </v-btn>
+    <!-- <template v-slot:thumb-label>
+      <span class="font-weight-bold" style="font-size: 15px">
+        {{ map }}
+      </span>
+    </template> -->
+    <v-card-actions>
+      <v-btn large color="primary" to="/home">Cancel</v-btn>
+      <v-btn large color="accent" @click="validate"> Validate </v-btn>
+    </v-card-actions>
   </v-form>
 </template>
 
@@ -51,7 +59,7 @@ export default Vue.extend({
   },
   methods: {
     async validate() {
-      await this.$axios //-> POST CREATION WITH OPTION will generate new name and with the return the game Room will be instanciated
+      await this.$axios
         .post("/gameroom/create", {
           difficulty: this.difficulty,
           points: this.points,
@@ -60,9 +68,7 @@ export default Vue.extend({
         .then((res) => {
           this.$router.push({ path: "/groom/room", query: { name: res.data } });
         })
-        .catch((error) => {
-          console.log(error);
-        });
+        .catch((error) => {});
     },
   },
 });

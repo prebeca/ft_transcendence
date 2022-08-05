@@ -64,8 +64,8 @@ interface Message {
 interface Channel {
   id: number;
   scope: string;
-  name: string; // for classic channels
-  username: string; // for DM channel
+  name: string;
+  username: string;
   users: User[];
   messages: Message[];
 }
@@ -128,7 +128,6 @@ export default Vue.extend({
       .get("/users/profile")
       .then((res) => {
         this.user = res.data;
-        // this.changeAvatar(res.data.avatar);
       })
       .catch((error) => {
         this.$router.push("/");
@@ -162,8 +161,6 @@ export default Vue.extend({
         });
     });
 
-    this.socket.on("disconnect", async (reason) => {});
-
     this.socket.on("Alert", async (alert: Alert, cb) => {
       this.snackbar = false;
       this.notif_text = alert.content;
@@ -179,6 +176,9 @@ export default Vue.extend({
         });
       }
     });
+  },
+  destroyed: function () {
+    this.socket.emit("UnsetSocket");
   },
 });
 </script>

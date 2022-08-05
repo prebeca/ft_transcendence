@@ -65,7 +65,6 @@
         outlined
         required
         color="info"
-        clearable
         maxlength="15"
         counter
         :rules="[rules.required, rules.counter_max, rules.counter_min]"
@@ -76,7 +75,29 @@
     <v-divider></v-divider>
 
     <v-card-actions class="d-flex justify-center align-center pa-3">
-      <v-btn color="accent" text @click="saveUsername"> Validate </v-btn>
+      <template>
+        <v-btn
+          color="accent"
+          text
+          @click="saveUsername"
+          @click.stop="usernameDialog = false"
+        >
+          Validate
+        </v-btn>
+        <v-dialog v-model="usernameDialog" persistent max-width="290">
+          <v-card color="secondary">
+            <v-card-text class="text-h6 pt-5"
+              >Please choose an other username !
+            </v-card-text>
+            <v-card-actions>
+              <v-spacer></v-spacer>
+              <v-btn color="success" @click="usernameDialog = false">
+                OK
+              </v-btn>
+            </v-card-actions>
+          </v-card>
+        </v-dialog>
+      </template>
     </v-card-actions>
   </v-card>
 </template>
@@ -111,6 +132,7 @@ export default Vue.extend({
         required: (value: string | null) => !!value || "Required",
       },
       sizeDialog: false,
+      usernameDialog: false,
     };
   },
   created: function () {
@@ -151,18 +173,17 @@ export default Vue.extend({
       }
     },
     async saveUsername() {
-      console.log(this.user.username);
       this.$axios
         .post("/users/profile/update/username", {
           new_username: this.user.username,
         })
         .then((res) => {
-          console.log(res);
+          this.$router.push("/home");
         })
         .catch((error) => {
           console.error(error);
+          this.usernameDialog = true;
         });
-      this.$router.push("/home");
     },
     async saveAvatar() {
       this.saving = false;
@@ -177,7 +198,6 @@ export default Vue.extend({
       this.$axios
         .post("/users/profile/update/avatar", formdata, config)
         .then((res) => {
-          console.log(res);
           this.changeAvatar(res.data.avatar);
         })
         .catch((error) => {
