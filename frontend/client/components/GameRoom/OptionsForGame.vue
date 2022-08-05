@@ -45,7 +45,10 @@
         {{ map }}
       </span>
     </template> -->
-    <v-btn color="accent" @click="validate"> Validate </v-btn>
+    <v-card-actions>
+      <v-btn large color="primary" to="/home">Cancel</v-btn>
+      <v-btn large color="accent" @click="validate"> Validate </v-btn>
+    </v-card-actions>
   </v-form>
 </template>
 

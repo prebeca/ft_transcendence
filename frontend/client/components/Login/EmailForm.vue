@@ -35,14 +35,14 @@
                   <v-col cols="12">
                     <v-text-field
                       v-model="loginPassword"
-                      :append-icon="show1 ? 'eye' : 'eye-off'"
+                      :append-icon="show2 ? 'mdi-eye' : 'mdi-eye-off'"
                       :rules="[rules.required, rules.min]"
-                      :type="show1 ? 'text' : 'password'"
+                      :type="show2 ? 'text' : 'password'"
                       name="input-10-1"
                       label="Password"
                       hint="At least 8 characters"
                       counter
-                      @click:append="show1 = !show1"
+                      @click:append="show2 = !show2"
                       color="info"
                     >
                     </v-text-field>
@@ -167,12 +167,20 @@
                         max-width="290"
                       >
                         <v-card color="secondary">
-                          <v-card-text class="text-h6 pt-5"
-                            >Your account has been created.</v-card-text
-                          >
-                          <v-card-text class="text-h6"
-                            >You can now Log In !</v-card-text
-                          >
+                          <div v-if="registerSuccess">
+                            <v-card-text class="text-h6 pt-5"
+                              >Your account has been created.</v-card-text
+                            >
+                            <v-card-text class="text-h6"
+                              >You can now Log In !</v-card-text
+                            >
+                          </div>
+                          <div v-else>
+                            <v-card-text class="text-h6 pt-5"
+                              >Please choose an other username or an other email
+                              !
+                            </v-card-text>
+                          </div>
                           <v-card-actions>
                             <v-spacer></v-spacer>
                             <v-btn
@@ -227,8 +235,10 @@ export default Vue.extend({
       (v: string) => /.+@.+\..+/.test(v) || "E-mail must be valid",
     ],
     registerDialog: false,
+    registerSuccess: false,
     passwordDialog: false,
     show1: false,
+    show2: false,
     rules: {
       required: (value: string) => !!value || "Required.",
       min: (v: string) => (v && v.length >= 8) || "Min 8 characters",
@@ -267,10 +277,12 @@ export default Vue.extend({
         })
         .then((res) => {
           this.tab = 0;
+          this.registerSuccess = true;
           this.registerDialog = true;
         })
         .catch((error) => {
           console.error(error);
+          this.registerDialog = true;
         });
     },
   },
