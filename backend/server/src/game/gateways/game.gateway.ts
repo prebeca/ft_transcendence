@@ -183,7 +183,7 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
 	}
 
 	handleDisconnect(client: Socket) {
-		console.log(`Client ${client.id} disconnected from game`);
+		this.logger.log(`Client ${client.id} disconnected from game`);
 		this.leaveGame(client, this.gameRoomService.getRoomNameByPlayerId(client.id));
 	}
 
@@ -230,12 +230,12 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
 	}
 
 	handleConnection(client: Socket, ...args: any[]) {
-		console.log(`Client ${client.id} connected to game gateway`);
+		this.logger.log(`Client ${client.id} connected to game gateway`);
 	}
 
 	@SubscribeMessage('joinGame')
 	joinGame(@ConnectedSocket() client: Socket, @MessageBody() id: string) {
-		console.log(`Client ${client.id} joined the game`);
+		this.logger.log(`Client ${client.id} joined the game`);
 
 		let gameRoom: GameRoomClass = this.gameRoomService.getRoomById(id);
 		if (gameRoom === undefined) {

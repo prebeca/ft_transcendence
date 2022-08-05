@@ -71,9 +71,7 @@ export default Vue.extend({
         .then((res) => {
           this.$router.push({ path: "/groom/room", query: { name: res.data } });
         })
-        .catch((error) => {
-          console.log(error);
-        });
+        .catch((error) => {});
     },
   },
 });

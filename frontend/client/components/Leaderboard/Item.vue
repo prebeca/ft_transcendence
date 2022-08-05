@@ -78,9 +78,7 @@ export default Vue.extend({
         .then((res) => {
           this.isFriend = true;
         })
-        .catch((error) => {
-          console.log(error);
-        });
+        .catch((error) => {});
     },
     async removeFriend() {
       await this.$axios
@@ -90,9 +88,7 @@ export default Vue.extend({
         .then((res) => {
           this.isFriend = false;
         })
-        .catch((error) => {
-          console.log(error);
-        });
+        .catch((error) => {});
     },
   },
   computed: {

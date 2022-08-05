@@ -63,7 +63,6 @@ export default Vue.extend({
     this.$axios
       .get("/users/profile")
       .then((res) => {
-        console.log(res.data);
         this.user = res.data;
       })
       .catch((error) => {
@@ -78,7 +77,6 @@ export default Vue.extend({
   methods: {
     async validate() {
       const { code } = this;
-      console.log(this.code);
       this.$axios
         .post("/2fa/authenticate", {
           code: this.code,

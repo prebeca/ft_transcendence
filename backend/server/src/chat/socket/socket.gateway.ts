@@ -23,7 +23,6 @@ export class SocketGateway {
 	@UseGuards(WsJwtAuthGuard)
 	@SubscribeMessage('disconnect')
 	async disconnect(@Req() req: Request, @MessageBody() data: any, @ConnectedSocket() client: Socket) {
-		console.log(req.user["username"] + " disconnected !");
 	}
 
 	@UseGuards(WsJwtAuthGuard)

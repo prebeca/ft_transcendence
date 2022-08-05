@@ -65,7 +65,6 @@ export class AuthController {
 		response = ret.response;
 		if (!response)
 			throw new UnauthorizedException("JWT Generation error");
-		console.log(ret.userid);
 		this.gatewayStatus.onConnection(ret.userid);
 		return ret.istwofa;
 	}

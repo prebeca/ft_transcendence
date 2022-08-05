@@ -103,12 +103,11 @@ export default Vue.extend({
         .then((stream) => new Response(stream))
         .then((response) => response.blob())
         .then((blob) => URL.createObjectURL(blob))
-        .then((url) => console.log((this.qr_code = url)))
+        .then((url) => (this.qr_code = url))
         .catch((err) => console.error(err));
     },
     async validate() {
       const { code } = this;
-      console.log(this.code);
       this.$axios
         .post("/2fa/turn-on-qr", {
           code: this.code,

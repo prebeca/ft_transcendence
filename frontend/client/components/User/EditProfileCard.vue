@@ -119,7 +119,6 @@ export default Vue.extend({
     this.$axios
       .get("/users/profile")
       .then((res) => {
-        console.log(res.data);
         this.user = res.data;
         this.changeAvatar(res.data.avatar);
       })

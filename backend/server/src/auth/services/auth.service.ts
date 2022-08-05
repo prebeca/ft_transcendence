@@ -148,7 +148,6 @@ export class AuthService {
 					break;
 				same_username = (res2.data.login as string).concat(i.toString());
 			}
-			console.log(same_username);
 			createUserDto.username = same_username;
 			user = await this.usersService.createUser(createUserDto);
 			if (user === null)

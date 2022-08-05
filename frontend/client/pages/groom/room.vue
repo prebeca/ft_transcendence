@@ -66,7 +66,6 @@ export default Vue.extend({
     },
   },
   created() {
-    console.log("created");
     this.socket = this.$nuxtSocket({
       name: "gameroom",
       withCredentials: true,
@@ -74,15 +73,11 @@ export default Vue.extend({
     });
   },
   beforeMount() {
-    console.log("beforeMount");
-    this.socket.on("handshake", (data) => {
-      console.log(data);
-    });
+    this.socket.on("handshake", (data) => {});
     this.socket.on("gamestart", (data) => {
       this.$router.push({ path: "/game", query: { roomid: this.roomid } });
     });
     this.socket.on("p1leaving", (data) => {
-      console.log("p1leaving");
       this.player1 = {
         username: "",
         avatar: "",
@@ -96,7 +91,6 @@ export default Vue.extend({
       this.$router.push("/groom/selection");
     });
     this.socket.on("p2leaving", (data) => {
-      console.log("p2leaving");
       this.player2 = {
         username: "",
         avatar: "",
@@ -107,7 +101,6 @@ export default Vue.extend({
       };
     });
     this.socket.on("infouserp1", (data) => {
-      console.log(data);
       this.counter++;
       this.player1 = {
         ...this.player1,
@@ -119,10 +112,8 @@ export default Vue.extend({
         level: data.level,
         mmr: data.mmr,
       };
-      console.log(this.player1);
     });
     this.socket.on("infouserp2", (data) => {
-      console.log(data);
       this.counter++;
       this.player2 = {
         ...this.player2,
@@ -137,13 +128,10 @@ export default Vue.extend({
     });
   },
   mounted() {
-    console.log("mounted");
     this.socket.emit("joinRoom", this.$route.query.name);
     this.roomid = this.$route.query.name as string;
   },
   beforeDestroy() {
-    console.log("BeforeDestruction: leaving room");
-    console.log("roomid = " + this.roomid);
     this.socket.emit("leaveRoom", this.roomid);
   },
 });

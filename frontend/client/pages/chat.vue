@@ -1555,7 +1555,6 @@ export default Vue.extend({
           });
         })
         .catch((error) => {
-          console.log(error);
         });
     },
     toChallenge(id: string) {

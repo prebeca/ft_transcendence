@@ -152,7 +152,6 @@ export default Vue.extend({
       await this.$axios
         .get("/gameroom/list")
         .then((res) => {
-          console.log(res.data);
           var array: {
             roomname: string;
             player1: string;
@@ -190,9 +189,7 @@ export default Vue.extend({
           }
           this.rooms = new_rooms;
         })
-        .catch((error) => {
-          console.log(error);
-        });
+        .catch((error) => {});
     },
     async join(name: string) {
       if (name === "") return;
