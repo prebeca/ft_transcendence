@@ -9,7 +9,7 @@ import {
 	UseGuards
 } from '@nestjs/common';
 import { Request } from 'express';
-import { JwtAuthGuard } from '../../../auth/guards/jwt-auth.guard';
+import { JwtTwoFactorAuthGuard } from '../../../auth/guards/jwt-twofa.guard';
 import { User } from '../../../typeorm';
 import { CreateChannelDto } from '../dto/channels.dto';
 import { Channel } from '../entities/channel.entity';
