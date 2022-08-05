@@ -243,16 +243,18 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
 
 		if (!game.pad1.id || !game.pad2.id) {
 			var playerinfo: PlayerInfo = gameRoom.getPlayerInfoById(client.id);
-			if (playerinfo.player_number === 1) {
-				game.pad1.id = client.id;
-				pointToWin = gameRoom.getPoints();
-				difficulty = gameRoom.getDifficulty();
-				game.map = gameRoom.getMap();
-				initGame(game);
+			if (playerinfo !== null && playerinfo.player_number !== null) {
+				if (playerinfo.player_number === 1) {
+					game.pad1.id = client.id;
+					pointToWin = gameRoom.getPoints();
+					difficulty = gameRoom.getDifficulty();
+					game.map = gameRoom.getMap();
+					initGame(game);
+				}
+				else if (playerinfo.player_number === 2)
+					game.pad2.id = client.id;
+				this.gatewayStatus.inGame(playerinfo.userid);
 			}
-			else if (playerinfo.player_number === 2)
-				game.pad2.id = client.id;
-			this.gatewayStatus.inGame(playerinfo.userid);
 		}
 		this.emitInfoPlayersToGame(id, gameRoom);
 		this.server.to(id).emit("initDone", game);

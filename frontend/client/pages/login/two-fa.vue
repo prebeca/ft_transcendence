@@ -48,7 +48,7 @@
 import Vue from "vue";
 
 export default Vue.extend({
-  name: "2fa",
+  name: "twofa",
   layout: "empty",
   data() {
     return {

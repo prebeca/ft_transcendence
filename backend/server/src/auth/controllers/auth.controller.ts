@@ -33,7 +33,7 @@ export class AuthController {
 		if (!response)
 			throw new UnauthorizedException("JWT Generation error");
 		if (ret.istwofa)
-			return { url: `${process.env.APPLICATION_REDIRECT_URI}/login/2fa` };
+			return { url: `${process.env.APPLICATION_REDIRECT_URI}/login/two-fa` };
 		else if (!ret.created) {
 			this.gatewayStatus.onConnection(ret.userid);
 			return { url: `${process.env.APPLICATION_REDIRECT_URI}/home` };
