@@ -90,7 +90,6 @@
           color="accent"
           text
           @click="saveUserinfo"
-          n
           @click.stop="usernameDialog = false"
         >
           Validate
