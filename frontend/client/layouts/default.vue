@@ -183,6 +183,7 @@ export default Vue.extend({
   },
   destroyed: function () {
     this.socket.emit("UnsetSocket");
+    this.socket.close();
   },
 });
 </script>
