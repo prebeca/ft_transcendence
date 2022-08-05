@@ -1,15 +1,32 @@
 <template>
-  <div id="gameDetails" style="height: 80vh; max-height: 100%; row-gap: 50px"
-    class="d-flex justify-center align-center">
+  <div
+    id="gameDetails"
+    style="height: 80vh; max-height: 100%; row-gap: 50px"
+    class="d-flex justify-center align-center"
+  >
     <div class="d-flex justify-center align-center" style="column-gap: 20px">
-      <GameRoomWinnerLooserCard v-if="game_details.winner" :player="game_details.winner" title="WINNER"
-        :score="game_details.score_winner" :username="game_details.username_winner" :level="game_details.level_winner"
-        :xp="game_details.xp_winner" />
+      <GameRoomWinnerLooserCard
+        v-if="game_details.winner"
+        :player="game_details.winner"
+        title="WINNER"
+        :score="game_details.score_winner"
+        :avatar="game_details.avatar_winner"
+        :username="game_details.username_winner"
+        :level="game_details.level_winner"
+        :xp="game_details.xp_winner"
+      />
       <GameRoomWaitingCard v-else />
       <h1>VS</h1>
-      <GameRoomWinnerLooserCard v-if="game_details.looser" :player="game_details.looser" title="LOOSER"
-        :score="game_details.score_looser" :username="game_details.username_looser" :level="game_details.level_looser"
-        :xp="game_details.xp_looser" />
+      <GameRoomWinnerLooserCard
+        v-if="game_details.looser"
+        :player="game_details.looser"
+        title="LOOSER"
+        :score="game_details.score_looser"
+        :avatar="game_details.avatar_looser"
+        :username="game_details.username_looser"
+        :level="game_details.level_looser"
+        :xp="game_details.xp_looser"
+      />
       <GameRoomWaitingCard v-else />
     </div>
   </div>
@@ -50,6 +67,8 @@ export default Vue.extend({
         xp_looser: 0,
         level_winner: 0,
         level_looser: 0,
+        avatar_winner: "" as String,
+        avatar_looser: "" as String,
         date: "",
         time: "",
       },
