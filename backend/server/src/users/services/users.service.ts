@@ -43,7 +43,6 @@ export class UsersService {
 	}
 
 	async findUsersById(id: number): Promise<User> {
-		console.log(typeof (id))
 		try {
 			const { password, salt, ...user } = await this.userRepository.findOne({ where: { id }, relations: ["friends", "channels", "blocked"] });
 			if (!(user as User))
