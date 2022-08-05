@@ -56,6 +56,7 @@ export class SocketService {
 	}
 
 	async newMessage(user: User, message: Message, server: Server) {
+		console.log(user.username + ": " + message.content);
 		let channel = await this.channelService.findOneById(message.channel.id);
 
 		message.channel.scope = "channel.scope"

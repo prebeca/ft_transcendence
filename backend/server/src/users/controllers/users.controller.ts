@@ -18,11 +18,6 @@ export class UsersController {
 		private readonly channelService: ChannelsService,
 	) { }
 
-	@Get()
-	async getUsers(): Promise<User[]> {
-		return await this.userService.getUsers();
-	}
-
 	@UseGuards(JwtTwoFactorAuthGuard)
 	@Get('profile')
 	async getProfile(@Req() req: Request): Promise<User> {
@@ -94,11 +89,6 @@ export class UsersController {
 	@Get('friends')
 	async getFriends(@Req() req: Request): Promise<User[]> {
 		return (await this.userService.findUsersById(req.user["id"])).friends;
-	}
-
-	@Get('deleteall')
-	async deleteUsers(): Promise<User[]> {
-		return await this.userService.removeAll();
 	}
 
 	@UseGuards(JwtTwoFactorAuthGuard)
