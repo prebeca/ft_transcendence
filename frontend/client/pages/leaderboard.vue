@@ -47,10 +47,10 @@ export default Vue.extend({
   created: function () {
     this.$axios
       .get("/users")
-      .then((res) => {
+      .then((res:any) => {
         this.users = res.data;
       })
-      .catch((error) => {
+      .catch((error:any) => {
         console.error(error);
       });
   },

@@ -1047,16 +1047,16 @@ export default Vue.extend({
   async created() {
     await this.$axios
       .get("/users")
-      .then((res) => {
+      .then((res:any) => {
         this.users = res.data;
       })
-      .catch((error) => {
+      .catch((error:any) => {
         console.error(error);
       });
 
     await this.$axios
       .get("/users/channels")
-      .then(async (res) => {
+      .then(async (res:any) => {
         this.channels = res.data;
         this.channels.forEach((e) => {
           e.messages.sort((a, b) => {
@@ -1070,7 +1070,7 @@ export default Vue.extend({
           return e.scope != "dm";
         });
       })
-      .catch((error) => {
+      .catch((error:any) => {
         console.error(error);
       });
 
@@ -1230,10 +1230,10 @@ export default Vue.extend({
       if (channel === undefined) return;
       await this.$axios
         .get("/channels/" + channel.id + "/admins")
-        .then((res) => {
+        .then((res:any) => {
           (channel as Channel).admins = res.data;
         })
-        .catch((error) => {
+        .catch((error:any) => {
           console.error(error);
         });
     });
@@ -1303,13 +1303,13 @@ export default Vue.extend({
     async fetchAllChannels() {
       await this.$axios
         .get("/channels")
-        .then((res) => {
+        .then((res:any) => {
           this.allChannels = res.data;
           this.allChannels = this.allChannels.filter((e) => {
             return e.scope != "dm";
           });
         })
-        .catch((error) => {
+        .catch((error:any) => {
           console.error(error);
         });
     },
@@ -1317,10 +1317,10 @@ export default Vue.extend({
     async fetchFiends() {
       await this.$axios
         .get("/users/friends")
-        .then((res) => {
+        .then((res:any) => {
           this.user.friends = res.data;
         })
-        .catch((error) => {
+        .catch((error:any) => {
           console.error(error);
         });
     },
@@ -1334,7 +1334,7 @@ export default Vue.extend({
           scope: this.scope,
           password: this.password,
         })
-        .then(async (res) => {
+        .then(async (res:any) => {
           if (typeof res.data === "string") {
             this.socket.emit("Alert", {
               color: "red",
@@ -1347,7 +1347,7 @@ export default Vue.extend({
             password: "",
           });
         })
-        .catch((error) => {
+        .catch((error:any) => {
           console.error(error);
           this.socket.emit("Alert", {
             color: "red",
@@ -1519,10 +1519,10 @@ export default Vue.extend({
             password_old: this.currentPassword,
             password_new: this.changePassword,
           })
-          .then((res) => {
+          .then((res:any) => {
             this.socket.emit("Alert", res.data);
           })
-          .catch((error) => {
+          .catch((error:any) => {
             console.error(error);
           });
       }
@@ -1533,7 +1533,7 @@ export default Vue.extend({
           difficulty: 2,
           points: 5,
         })
-        .then((res) => {
+        .then((res:any) => {
           let channel = this.channels_dm.find((e) => {
             return this.getDMUser(e)?.id == target.id;
           });
@@ -1544,7 +1544,7 @@ export default Vue.extend({
             challenge: true,
           });
         })
-        .catch((error) => {});
+        .catch((error:any) => {});
     },
     toChallenge(id: string) {
       this.$router.push({ path: "/groom/room", query: { name: id } });

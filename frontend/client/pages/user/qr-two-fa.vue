@@ -112,12 +112,12 @@ export default Vue.extend({
         .post("/2fa/turn-on-qr", {
           code: this.code,
         })
-        .then((res) => {
+        .then((res:any) => {
           if (res.data === true) {
             this.$router.push("/");
           }
         })
-        .catch((error) => {
+        .catch((error:any) => {
           this.snackbar = true;
           (this.code = ""), this.generateQr();
         });

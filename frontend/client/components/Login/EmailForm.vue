@@ -263,7 +263,7 @@ export default Vue.extend({
             this.$router.push("/home");
           }
         })
-        .catch((error) => {
+        .catch((error:any) => {
           console.error(error);
           this.passwordDialog = true;
         });
@@ -275,12 +275,12 @@ export default Vue.extend({
           email: this.email,
           password: this.password,
         })
-        .then((res) => {
+        .then((res:any) => {
           this.tab = 0;
           this.registerSuccess = true;
           this.registerDialog = true;
         })
-        .catch((error) => {
+        .catch((error:any) => {
           console.error(error);
           this.registerDialog = true;
         });
