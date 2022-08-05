@@ -40,10 +40,6 @@ export class AvatarStatusGateway implements OnGatewayConnection, OnGatewayDiscon
 		this.logger.log(`Client ${client.id} connected to avatar status`);
 	}
 
-	/*
-	** When one just logged itself, the server spread the information to
-	** the components that are listening to it
-	*/
 	onConnection(userid: number): void {
 		this.logger.log("onConnection " + userid);
 		this.user_socket.set(userid, "");
@@ -73,9 +69,7 @@ export class AvatarStatusGateway implements OnGatewayConnection, OnGatewayDiscon
 		this.logger.log(userid + " changed avatar");
 		this.server.emit("changeAvatar" + userid, new_filename);
 	}
-	/*
-	** When the component is created, it asks for its information
-	*/
+
 	@UseGuards(WsJwtAuthGuard)
 	@SubscribeMessage("information")
 	emitInformationToUser(@Req() req: Request, @MessageBody() user_id: number, @ConnectedSocket() client: Socket): void {
@@ -89,7 +83,7 @@ export class AvatarStatusGateway implements OnGatewayConnection, OnGatewayDiscon
 		if (this.user_socket.has(user_id)) {
 			status = this.status.get(user_id);
 			if (!status)
-				status = "connected"; //development issue when compiling backend server
+				status = "connected";
 		}
 		else
 			status = "disconnected";

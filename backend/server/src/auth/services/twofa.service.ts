@@ -63,7 +63,6 @@ export class TwoFactorAuthService {
 			path: '/',
 			maxAge: 1000 * 60 * 60 * 20,
 			sameSite: "strict",
-			/* secure: true, -> only for localhost AND https */
 		});
 	}
 }

@@ -8,4 +8,4 @@ const entities = [User, Channel, Game, Ban, Mute];
 
 export { User, Channel, Game, Ban, Mute };
 export default entities;
-/* Why are more than one table missing here ? Is it to override pre-existing entities from typeorm ?*/
+

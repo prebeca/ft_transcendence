@@ -62,7 +62,7 @@ export default Vue.extend({
   },
   methods: {
     async validate() {
-      await this.$axios //-> POST CREATION WITH OPTION will generate new name and with the return the game Room will be instanciated
+      await this.$axios
         .post("/gameroom/create", {
           difficulty: this.difficulty,
           points: this.points,

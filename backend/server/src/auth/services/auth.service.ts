@@ -52,7 +52,6 @@ export class AuthService {
 			path: '/',
 			maxAge: 1000 * 60 * 60 * 20,
 			sameSite: "strict",
-			/* secure: true, -> only for localhost AND https */
 		});
 		const rt_token: string = await this.createRTCookie(user.id);
 		const hash_token: string = await bcrypt.hash(rt_token, 5);
@@ -90,7 +89,6 @@ export class AuthService {
 			path: '/',
 			maxAge: 1000 * 60 * 60 * 20,
 			sameSite: "strict",
-			/* secure: true, -> only for localhost AND https */
 		});
 
 		const rt_token: string = await this.createRTCookie(userid);

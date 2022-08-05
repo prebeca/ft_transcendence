@@ -233,7 +233,7 @@ export default Vue.extend({
     },
     getMatchHistory(user_id: string) {
       this.$axios
-        .get("/gameroom/history/" + user_id) //historique du user que l'on souhaite
+        .get("/gameroom/history/" + user_id)
         .then((res: any) => {
           this.user_matches = res.data;
         })

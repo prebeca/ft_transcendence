@@ -37,8 +37,6 @@
 </template>
 
 <script>
-// import MatchHistoryCard from "./MatchHistory.vue";
-
 export default {
   name: "MatchItem",
   props: {

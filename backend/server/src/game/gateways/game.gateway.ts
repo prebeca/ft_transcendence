@@ -69,7 +69,6 @@ function resetAfterPoint(game: GameI, side: string) {
 }
 
 function checkCollision(game: GameI) {
-	//check collision with top and bottom
 	if (game.ball.y + game.ball.r + game.ball.speed > game.gameHeight) {
 		game.ball.y = game.gameHeight - game.ball.r;
 		game.ball.dir.y *= -1;
@@ -78,10 +77,8 @@ function checkCollision(game: GameI) {
 		game.ball.y = game.ball.r;
 		game.ball.dir.y *= -1;
 	}
-	//check if the ball is in the middle of the screen to do nothing
 	if (game.ball.x - game.ball.r > game.gameWidth / 7 && game.ball.x + game.ball.r < game.gameWidth - game.gameWidth / 7)
 		return GameStatus.INPROGRESS;
-	//check collision with the goals
 	if (game.ball.x - game.ball.r <= 0) {
 		game.score2++;
 		if (game.score2 === pointToWin)
@@ -96,7 +93,6 @@ function checkCollision(game: GameI) {
 		game.looserPoint = game.pad2.id;
 		return resetAfterPoint(game, "right");
 	}
-	//check collision with pads
 	else if (game.ball.x - game.ball.r < game.pad1.x + game.pad1.width && game.pad1.x < game.ball.x + game.ball.r &&
 		game.pad1.y < game.ball.y + game.ball.r && game.pad1.height + game.pad1.y > game.ball.y - game.ball.r) {
 		game.ball.dir.x *= -1;
@@ -274,7 +270,7 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
 				game.status = checkCollision(game);
 			if (game.status != GameStatus.INPROGRESS)
 				clearInterval(moveInterval);
-			if (game.status === GameStatus.PLAYER2WON || game.status === GameStatus.PLAYER1WON) { //rentre deux fois dans le DB les scores
+			if (game.status === GameStatus.PLAYER2WON || game.status === GameStatus.PLAYER1WON) {
 				this.gameEnded(gameRoom, game, id);
 			}
 			else
