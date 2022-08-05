@@ -1121,6 +1121,10 @@ export default Vue.extend({
     });
 
     this.socket.on("JoinChan", async (channel: Channel) => {
+      if (channel != undefined && channel != null)
+        channel.messages.sort((a, b) => {
+          return a.id - b.id;
+        });
       if (
         channel.scope == "dm" &&
         this.channels_dm.find((e) => {
@@ -1266,9 +1270,6 @@ export default Vue.extend({
   destroyed() {
     this.socket.off("NewMessage");
     this.socket.off("ChannelDeleted");
-    this.socket.off("NewMessage");
-    this.socket.off("NewMessage");
-    this.socket.off("NewMessage");
     this.socket.off("UserKick");
     this.socket.off("Kick");
     this.socket.off("DeleteMessage");
@@ -1344,7 +1345,7 @@ export default Vue.extend({
           scope: this.scope,
           password: this.password,
         })
-        .then((res) => {
+        .then(async (res) => {
           if (typeof res.data === "string") {
             this.socket.emit("Alert", {
               color: "red",
@@ -1352,9 +1353,9 @@ export default Vue.extend({
             });
             return;
           }
-          this.socket.emit("JoinChan", {
+          await this.socket.emit("JoinChan", {
             channel_id: res.data.id,
-            password: this.password,
+            password: "",
           });
         })
         .catch((error) => {

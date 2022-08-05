@@ -162,8 +162,6 @@ export default Vue.extend({
         });
     });
 
-    this.socket.on("disconnect", async (reason) => {});
-
     this.socket.on("Alert", async (alert: Alert, cb) => {
       this.snackbar = false;
       this.notif_text = alert.content;
@@ -179,6 +177,9 @@ export default Vue.extend({
         });
       }
     });
+  },
+  destroyed: function () {
+    this.socket.emit("UnsetSocket");
   },
 });
 </script>

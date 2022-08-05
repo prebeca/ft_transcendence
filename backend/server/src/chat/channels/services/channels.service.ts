@@ -18,7 +18,8 @@ export class ChannelsService {
 	) { }
 
 
-	async createChannel(user: User, createChannelDto: CreateChannelDto) {
+	async createChannel(user: User, createChannelDto: CreateChannelDto): Promise<Channel | string> {
+		console.log(user.username)
 		let channel: Channel = await this.channelRepository.findOne({ where: { name: createChannelDto.name } })
 
 		if (createChannelDto.scope != "dm" && createChannelDto.name.startsWith("dm_"))
@@ -46,7 +47,7 @@ export class ChannelsService {
 		channel.users.push(user);
 		if (channel.scope == "private")
 			this.addInvite(channel.id, user.id)
-		this.userService.addChannel(user.id, channel);
+		await this.userService.addChannel(user.id, channel);
 		channel = await this.channelRepository.save(channel)
 		channel.password = undefined;
 		return channel;

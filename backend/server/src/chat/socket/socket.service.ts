@@ -28,7 +28,7 @@ export class SocketService {
 			client.join(channel.id.toString())							// join socket room
 		}
 		channel.messages = channel.messages.filter(msg => { return (user.blocked.find(blocked_user => { return blocked_user.id == msg.user.id }) == undefined) });
-		server.to(user.socket_id).emit("JoinChan", channel)
+		client.emit("JoinChan", channel)
 		return channel
 	}
 
@@ -94,29 +94,29 @@ export class SocketService {
 			server.to(channel.id.toString()).except(except).emit('NewMessageDM', message);
 	}
 
-	async invite(user: User, data: any, server: Server) {
+	async invite(user: User, data: any, server: Server, client: Socket) {
 		let target = await this.userService.findUsersById(data.target_id);
 		let channel = await this.channelService.findOneById(data.channel_id)
 
 		if (target == null || channel == null) return
 
 		if (channel.users.find(e => { return e.id == target.id }) != undefined) {
-			server.to(user.socket_id).emit("Alert", { content: "User already in channel", color: "red" })
+			client.emit("Alert", { content: "User already in channel", color: "red" })
 			return;
 		}
 
 		if (channel.admins.find(e => { return e.id == user.id }) == undefined) {
-			server.to(user.socket_id).emit("Alert", { content: "Invite require admin rights", color: "red" })
+			client.emit("Alert", { content: "Invite require admin rights", color: "red" })
 			return;
 		}
 		if (user.blocked.find(e => { return e.id == target.id }) != undefined || target.blocked.find(e => { return e.id == user.id }) != undefined) {
-			server.to(user.socket_id).emit("Alert", { content: "You can't invite this player.", color: "red" })
+			client.emit("Alert", { content: "You can't invite this player.", color: "red" })
 			return;
 		}
 		let ban = channel.banned.find(e => { return e.user.id == target.id })
 		if (ban != undefined) {
 			if (ban.end > new Date()) {
-				server.to(user.socket_id).emit("Alert", { content: "This player is banned from this channel.", color: "red" })
+				client.emit("Alert", { content: "This player is banned from this channel.", color: "red" })
 				return;
 			}
 			this.channelService.removeFromBanList(ban);
@@ -130,26 +130,30 @@ export class SocketService {
 		this.userService.updateSocket(user, client.id);
 	}
 
+	async unsetSocket(user: User) {
+		this.userService.updateSocket(user, null);
+	}
+
 	async newDMChannel(user: User, target_id: number, server: Server, client: Socket): Promise<Channel | string> {
 		let target_user = await this.userService.findUsersById(target_id);
 
 		if (target_user.id == user.id) {
-			server.to(user.socket_id).emit("Alert", { content: "Error: user and target are the same", color: "red" })
+			client.emit("Alert", { content: "Error: user and target are the same", color: "red" })
 			return
 		}
 
 		if (user.blocked.find(e => { return e.id == target_user.id })) {
-			server.to(user.socket_id).emit("Alert", { content: "DM target is blocked", color: "red" })
+			client.emit("Alert", { content: "DM target is blocked", color: "red" })
 			return
 		}
 
 		if (target_user.blocked.find(e => { return e.id == user.id })) {
-			server.to(user.socket_id).emit("Alert", { content: "Unable to DM this user", color: "red" })
+			client.emit("Alert", { content: "Unable to DM this user", color: "red" })
 			return
 		}
 
 		if (await this.channelService.findOneByName("dm_" + user.id + "_" + target_user.id) != null || await this.channelService.findOneByName("dm_" + target_user.id + "_" + user.id) != null) {
-			server.to(user.socket_id).emit("Alert", { content: "DM channel already exist", color: "red" })
+			client.emit("Alert", { content: "DM channel already exist", color: "red" })
 			return
 		}
 
