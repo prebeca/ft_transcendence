@@ -86,7 +86,7 @@
                           :player1_score="match.score_winner"
                           :player2_score="match.score_looser"
                           :player1_username="user.username"
-                          player2_username="Player 2"
+                          :player2_username="match.username_looser"
                           :date="match.date"
                         />
                         <UserMatchItem
@@ -94,7 +94,7 @@
                           :player1_score="match.score_looser"
                           :player2_score="match.score_winner"
                           :player1_username="user.username"
-                          player2_username="Player 2"
+                          :player2_username="match.username_winner"
                           :date="match.date"
                         />
                       </tr>
@@ -165,6 +165,8 @@ export default Vue.extend({
             id: "",
           },
           id: "",
+          username_winner: "",
+          username_looser: "",
           score_winner: 0,
           score_looser: 0,
           date: "",
