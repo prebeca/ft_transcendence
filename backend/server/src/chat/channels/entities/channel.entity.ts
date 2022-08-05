@@ -1,4 +1,4 @@
-import { Ban, Mute, User } from 'src/typeorm';
+import { Ban, Mute, User } from '../../../typeorm';
 import { Column, Entity, JoinColumn, JoinTable, ManyToMany, ManyToOne, OneToMany, PrimaryGeneratedColumn } from 'typeorm';
 import { Message } from './message.entity';
 

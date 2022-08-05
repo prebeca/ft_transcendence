@@ -1,7 +1,7 @@
 import { forwardRef, Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { Ban, Channel, Mute } from 'src/typeorm';
-import { UsersModule } from 'src/users/users.module';
+import { Ban, Channel, Mute } from '../../typeorm';
+import { UsersModule } from '../../users/users.module';
 import { ChannelsController } from './controllers/channels.controller';
 import { CreateChannelDto } from './dto/channels.dto';
 import { Message } from './entities/message.entity';

@@ -44,7 +44,7 @@ export class UsersService {
 
 	async findUsersById(id: number): Promise<User> {
 		try {
-			const { password, salt, ...user } = await this.userRepository.findOne(id, { relations: ["friends", "channels", "blocked"] });
+			const { password, salt, ...user } = await this.userRepository.findOne({ where: { id }, relations: ["friends", "channels", "blocked"] });
 			if (!(user as User))
 				return null;
 			var friends: User[] = user.friends;
@@ -58,7 +58,7 @@ export class UsersService {
 
 	async findUsersByIdWithChannels(id: number): Promise<User> {
 		try {
-			const { password, salt, ...user } = await this.userRepository.findOne(id, { relations: ["friends", "blocked", "channels", "channels.messages", "channels.users", "channels.messages.user", "channels.messages.channel", "channels.admins", "channels.owner"] });
+			const { password, salt, ...user } = await this.userRepository.findOne({ where: { id }, relations: ["friends", "blocked", "channels", "channels.messages", "channels.users", "channels.messages.user", "channels.messages.channel", "channels.admins", "channels.owner"] });
 			if (!(user as User))
 				return null;
 			user.channels.forEach(chan => {
@@ -91,7 +91,7 @@ export class UsersService {
 
 	async findUsersByIdWithRelations(id: number): Promise<User> {
 		try {
-			const { password, salt, ...user } = await this.userRepository.findOne(id, { relations: ["player", "friends", "channels", "blocked"] });
+			const { password, salt, ...user } = await this.userRepository.findOne({ where: { id }, relations: ["player", "friends", "channels", "blocked"] });
 			if (!(user as User))
 				return null;
 			var friends: User[] = user.friends;
@@ -197,7 +197,7 @@ export class UsersService {
 			}
 		}
 		this.statusGateway.changingAvatar(user.id, filename);
-		return await this.userRepository.findOne(user.id);
+		return await this.userRepository.findOne({ where: { id: user.id } });
 	}
 
 	async cleanLogout(user: User): Promise<void> {
@@ -212,7 +212,7 @@ export class UsersService {
 		} catch (error) {
 			throw new HttpException("Update TwoFAUser does not work", HttpStatus.INTERNAL_SERVER_ERROR);
 		}
-		return await this.userRepository.findOne(user.id);
+		return await this.userRepository.findOne({ where: { id: user.id } });
 	}
 
 	async updateTwoFASecret(user: User, twofasecret: string): Promise<void> {
@@ -225,7 +225,7 @@ export class UsersService {
 
 	async getAvatarUrl(userid: number): Promise<string> {
 		try {
-			return (await this.userRepository.findOne(userid)).avatar;
+			return (await this.userRepository.findOne({ where: { id: userid } })).avatar;
 		} catch (error) {
 			throw new HttpException("Query to search for avatar failed", HttpStatus.INTERNAL_SERVER_ERROR);
 		}
@@ -301,7 +301,7 @@ export class UsersService {
 		}
 	}
 	async addChannel(user_id: number, chan: Channel): Promise<void> {
-		let user = await this.userRepository.findOne(user_id, { relations: ["channels"] });
+		let user = await this.userRepository.findOne({ where: { id: user_id }, relations: ["channels"] });
 		if (user == null)
 			return
 		if (user.channels.find((e) => { return e.id == chan.id }) != undefined)
@@ -311,7 +311,7 @@ export class UsersService {
 	}
 
 	async removeChannel(user_id: number, chan: Channel): Promise<void> {
-		let user = await this.userRepository.findOne(user_id, { relations: ["channels"] });
+		let user = await this.userRepository.findOne({ where: { id: user_id }, relations: ["channels"] });
 		if (user == null)
 			return
 		if (user.channels.find((e) => { return e.id == chan.id }) == undefined)
@@ -327,8 +327,8 @@ export class UsersService {
 	}
 
 	async addToBlocked(user: User, id: number) {
-		user = await this.userRepository.findOne(user.id, { relations: ["blocked", "friends"] });
-		let target = await this.userRepository.findOne(id, { relations: ["blocked", "friends"] });
+		user = await this.userRepository.findOne({ where: { id: user.id }, relations: ["blocked", "friends"] });
+		let target = await this.userRepository.findOne({ where: { id }, relations: ["blocked", "friends"] });
 		if (user.id == id) return
 		if (target == null) return
 		if (user.blocked.find(e => { return e.id == target.id }) != undefined) return
@@ -341,7 +341,7 @@ export class UsersService {
 	}
 
 	async removeFromBlocked(user: User, id: number) {
-		let target = await this.userRepository.findOne(id);
+		let target = await this.userRepository.findOne({ where: { id } });
 
 		if (target == null) return
 		let index = user.blocked.findIndex(e => { return e.id == target.id });

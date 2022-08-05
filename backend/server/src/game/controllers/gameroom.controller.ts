@@ -1,7 +1,7 @@
 import { Body, Controller, Get, Param, Post, Req, UseGuards } from '@nestjs/common';
 import { Request } from 'express';
-import { JwtTwoFactorAuthGuard } from 'src/auth/guards/jwt-twofa.guard';
-import { User } from 'src/users/entities/user.entity';
+import { JwtTwoFactorAuthGuard } from '../../auth/guards/jwt-twofa.guard';
+import { User } from '../../users/entities/user.entity';
 import { CreateGameDto } from '../dto/create-game.dto';
 import { Game } from '../entities/game.entity';
 import GameRoomInterface from '../interfaces/gameroom.interface';

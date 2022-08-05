@@ -4,8 +4,8 @@ import { Injectable, UnauthorizedException, Res, Req, Inject } from '@nestjs/com
 import { jwtConstants } from '../constants';
 import { Request, Response } from 'express';
 import { JwtPayload } from '../interfaces/JwtPayload.interface';
-import { UsersService } from 'src/users/services/users.service';
-import { User } from 'src/users/entities/user.entity';
+import { UsersService } from '../../users/services/users.service';
+import { User } from '../../users/entities/user.entity';
 import { AuthService } from '../services/auth.service';
 import * as bcrypt from 'bcrypt';
 

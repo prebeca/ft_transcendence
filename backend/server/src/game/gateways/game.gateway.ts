@@ -1,7 +1,7 @@
 import { Inject, Logger } from "@nestjs/common";
 import { ConnectedSocket, MessageBody, OnGatewayConnection, OnGatewayDisconnect, SubscribeMessage, WebSocketGateway, WebSocketServer } from "@nestjs/websockets";
 import { Server, Socket } from "socket.io";
-import { AvatarStatusGateway } from "src/users/gateways/avatarstatus.gateway";
+import { AvatarStatusGateway } from "../../users/gateways/avatarstatus.gateway";
 import { GameRoomClass } from "../classes/gameroom.class";
 import { PlayerClass } from "../classes/player.class";
 import GameI from "../interfaces/gameI.interface";

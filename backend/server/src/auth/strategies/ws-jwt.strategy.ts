@@ -4,8 +4,8 @@ import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { Socket } from "socket.io";
 import { jwtConstants } from '../constants';
 import { JwtPayload } from '../interfaces/JwtPayload.interface';
-import { UsersService } from 'src/users/services/users.service';
-import { User } from 'src/users/entities/user.entity';
+import { UsersService } from '../../users/services/users.service';
+import { User } from '../../users/entities/user.entity';
 
 const name_cookie: string = "access_token";
 
