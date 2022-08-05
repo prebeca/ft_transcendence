@@ -44,7 +44,7 @@ export class UsersService {
 
 	async findUsersById(id: number): Promise<User> {
 		try {
-			const { password, salt, ...user } = await this.userRepository.findOne({ where: { id }, relations: ["friends", "channels", "blocked"] });
+			const { password, salt, ...user } = await this.userRepository.findOne({ where: { id: id }, relations: ["friends", "channels", "blocked"] });
 			if (!(user as User))
 				return null;
 			var friends: User[] = user.friends;
@@ -58,7 +58,7 @@ export class UsersService {
 
 	async findUsersByIdWithChannels(id: number): Promise<User> {
 		try {
-			const { password, salt, ...user } = await this.userRepository.findOne({ where: { id }, relations: ["friends", "blocked", "channels", "channels.messages", "channels.users", "channels.messages.user", "channels.messages.channel", "channels.admins", "channels.owner"] });
+			const { password, salt, ...user } = await this.userRepository.findOne({ where: { id: id }, relations: ["friends", "blocked", "channels", "channels.messages", "channels.users", "channels.messages.user", "channels.messages.channel", "channels.admins", "channels.owner"] });
 			if (!(user as User))
 				return null;
 			user.channels.forEach(chan => {
@@ -91,7 +91,7 @@ export class UsersService {
 
 	async findUsersByIdWithRelations(id: number): Promise<User> {
 		try {
-			const { password, salt, ...user } = await this.userRepository.findOne({ where: { id }, relations: ["player", "friends", "channels", "blocked"] });
+			const { password, salt, ...user } = await this.userRepository.findOne({ where: { id: id }, relations: ["player", "friends", "channels", "blocked"] });
 			if (!(user as User))
 				return null;
 			var friends: User[] = user.friends;
