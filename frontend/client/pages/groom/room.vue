@@ -26,6 +26,7 @@
       >
         Ready !
       </v-btn>
+      <v-btn x-large color="primary" to="/home"> Cancel </v-btn>
     </div>
   </div>
 </template>
