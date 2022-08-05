@@ -121,7 +121,7 @@ export class UsersService {
 	async updateUsersById(user: User, updatedto: UpdateUserDto) {
 		try {
 			const same_user: User = { ...user, ...updatedto };
-			await this.userRepository.update(same_user.id, { ...updatedto });
+			await this.userRepository.update({ id: same_user.id }, { ...updatedto });
 		}
 		catch (error) {
 			throw new HttpException("update of user failed", HttpStatus.INTERNAL_SERVER_ERROR);
@@ -165,7 +165,7 @@ export class UsersService {
 		if (this.containsSpecialChars(new_username))
 			throw new HttpException("Username cannot contain special characters", HttpStatus.CONFLICT);
 		const username_user: User = await this.userRepository.findOne({ where: { username: new_username } });
-		if (username_user !== undefined)
+		if (username_user !== null)
 			throw new HttpException("Username already used", HttpStatus.CONFLICT);
 		try {
 			this.updateUsersById(user, { username: new_username })
