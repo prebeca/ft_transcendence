@@ -19,6 +19,12 @@ export class UsersController {
 	) { }
 
 	@UseGuards(JwtTwoFactorAuthGuard)
+	@Get()
+	async getUsers(): Promise<User[]> {
+		return await this.userService.getUsers();
+	}
+
+	@UseGuards(JwtTwoFactorAuthGuard)
 	@Get('profile')
 	async getProfile(@Req() req: Request): Promise<User> {
 		const user: User = { ... (req.user as User) };
