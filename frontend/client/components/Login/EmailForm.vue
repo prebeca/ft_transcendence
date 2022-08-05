@@ -167,12 +167,20 @@
                         max-width="290"
                       >
                         <v-card color="secondary">
-                          <v-card-text class="text-h6 pt-5"
-                            >Your account has been created.</v-card-text
-                          >
-                          <v-card-text class="text-h6"
-                            >You can now Log In !</v-card-text
-                          >
+                          <div v-if="registerSuccess">
+                            <v-card-text class="text-h6 pt-5"
+                              >Your account has been created.</v-card-text
+                            >
+                            <v-card-text class="text-h6"
+                              >You can now Log In !</v-card-text
+                            >
+                          </div>
+                          <div v-else>
+                            <v-card-text class="text-h6 pt-5"
+                              >Please choose an other username or an other email
+                              !
+                            </v-card-text>
+                          </div>
                           <v-card-actions>
                             <v-spacer></v-spacer>
                             <v-btn
@@ -227,6 +235,7 @@ export default Vue.extend({
       (v: string) => /.+@.+\..+/.test(v) || "E-mail must be valid",
     ],
     registerDialog: false,
+    registerSuccess: false,
     passwordDialog: false,
     show1: false,
     show2: false,
@@ -268,10 +277,12 @@ export default Vue.extend({
         })
         .then((res) => {
           this.tab = 0;
+          this.registerSuccess = true;
           this.registerDialog = true;
         })
         .catch((error) => {
           console.error(error);
+          this.registerDialog = true;
         });
     },
   },
