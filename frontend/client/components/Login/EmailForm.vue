@@ -35,14 +35,14 @@
                   <v-col cols="12">
                     <v-text-field
                       v-model="loginPassword"
-                      :append-icon="show1 ? 'eye' : 'eye-off'"
+                      :append-icon="show2 ? 'mdi-eye' : 'mdi-eye-off'"
                       :rules="[rules.required, rules.min]"
-                      :type="show1 ? 'text' : 'password'"
+                      :type="show2 ? 'text' : 'password'"
                       name="input-10-1"
                       label="Password"
                       hint="At least 8 characters"
                       counter
-                      @click:append="show1 = !show1"
+                      @click:append="show2 = !show2"
                       color="info"
                     >
                     </v-text-field>
@@ -229,6 +229,7 @@ export default Vue.extend({
     registerDialog: false,
     passwordDialog: false,
     show1: false,
+    show2: false,
     rules: {
       required: (value: string) => !!value || "Required.",
       min: (v: string) => (v && v.length >= 8) || "Min 8 characters",
