@@ -214,11 +214,14 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
 			game.status = GameStatus.PLAYER1LEAVE;
 			this.server.to(id).emit('updateStatus', game.status);
 		}
-		if (game.pad2.id === client.id) {
+		else if (game.pad2.id === client.id) {
 			var pc: PlayerClass = gameRoom.getPlayerById(client.id);
 			this.gatewayStatus.backToConnected(pc.userid);
 			game.status = GameStatus.PLAYER2LEAVE;
 			this.server.to(id).emit('updateStatus', game.status);
+		}
+		else {
+			this.server.in(client.id).socketsLeave(id);
 		}
 		if (game.status === GameStatus.PLAYER1LEAVE || game.status === GameStatus.PLAYER2LEAVE) {
 			return this.gameEnded(gameRoom, game, id);
