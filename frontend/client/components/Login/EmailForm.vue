@@ -248,7 +248,7 @@ export default Vue.extend({
         })
         .then((res) => {
           if (res.data) {
-            this.$router.push("/login/2fa");
+            this.$router.push("/login/two-fa");
           } else {
             this.$router.push("/home");
           }
