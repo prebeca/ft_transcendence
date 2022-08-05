@@ -84,13 +84,13 @@ export class UsersController {
 		return null;
 	}
 
-	@UseGuards(JwtAuthGuard)
+	@UseGuards(JwtTwoFactorAuthGuard)
 	@Get('channels')
 	async getChannels(@Req() req: Request): Promise<Channel[]> {
 		return (await this.userService.findUsersByIdWithChannels(req.user["id"])).channels;
 	}
 
-	@UseGuards(JwtAuthGuard)
+	@UseGuards(JwtTwoFactorAuthGuard)
 	@Get('friends')
 	async getFriends(@Req() req: Request): Promise<User[]> {
 		return (await this.userService.findUsersById(req.user["id"])).friends;

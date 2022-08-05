@@ -9,7 +9,7 @@ import {
 	UseGuards
 } from '@nestjs/common';
 import { Request } from 'express';
-import { JwtAuthGuard } from 'src/auth/guards/jwt-auth.guard';
+import { JwtTwoFactorAuthGuard } from 'src/auth/guards/jwt-twofa.guard';
 import { User } from 'src/typeorm';
 import { CreateChannelDto } from '../dto/channels.dto';
 import { Channel } from '../entities/channel.entity';
@@ -20,55 +20,55 @@ import { ChannelsService } from '../services/channels.service';
 export class ChannelsController {
 	constructor(private readonly channelService: ChannelsService) { }
 
-	@UseGuards(JwtAuthGuard)
+	@UseGuards(JwtTwoFactorAuthGuard)
 	@Post('join')
 	async joinChannel(@Req() req: Request, @Body() data: any): Promise<Channel | String> {
 		return this.channelService.joinChannel(req.user as User, data);
 	}
 
-	@UseGuards(JwtAuthGuard)
+	@UseGuards(JwtTwoFactorAuthGuard)
 	@Post('create')
 	async createChannel(@Req() req: Request, @Body() createChannelDto: CreateChannelDto): Promise<Channel | String> {
 		return this.channelService.createChannel(req.user as User, createChannelDto)
 	}
 
-	@UseGuards(JwtAuthGuard)
+	@UseGuards(JwtTwoFactorAuthGuard)
 	@Post('delete/:id')
 	async deleteChannel(@Req() req: Request, @Param('id', ParseIntPipe) id: number) {
 		this.channelService.remove(id);
 	}
 
-	@UseGuards(JwtAuthGuard)
+	@UseGuards(JwtTwoFactorAuthGuard)
 	@Get(':id/users')
 	async getUsers(@Req() req: Request, @Param('id', ParseIntPipe) id: number): Promise<User[]> {
 		return this.channelService.getUsers(id);
 	}
 
-	@UseGuards(JwtAuthGuard)
+	@UseGuards(JwtTwoFactorAuthGuard)
 	@Get(':id/admins')
 	async getAdmins(@Req() req: Request, @Param('id', ParseIntPipe) id: number): Promise<User[]> {
 		return this.channelService.getAdmins(id);
 	}
 
-	@UseGuards(JwtAuthGuard)
+	@UseGuards(JwtTwoFactorAuthGuard)
 	@Get(':id/owner')
 	async getOwner(@Req() req: Request, @Param('id', ParseIntPipe) id: number): Promise<User> {
 		return this.channelService.getOwner(id);
 	}
 
-	@UseGuards(JwtAuthGuard)
+	@UseGuards(JwtTwoFactorAuthGuard)
 	@Post('handleMessage')
 	async handleMessage(@Req() req: Request, @Body() message: Message) {
 		this.channelService.handleMessage(req.user as User, message);
 	}
 
-	@UseGuards(JwtAuthGuard)
+	@UseGuards(JwtTwoFactorAuthGuard)
 	@Post(':id/update/password')
 	async updatePassword(@Req() req: Request, @Body() data: any): Promise<any> {
 		return this.channelService.updatePassword(req.user as User, data);
 	}
 
-	@UseGuards(JwtAuthGuard)
+	@UseGuards(JwtTwoFactorAuthGuard)
 	@Get()
 	getChannels(@Req() req: Request) {
 		return this.channelService.getChannels();

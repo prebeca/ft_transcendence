@@ -21,7 +21,7 @@ export class SocketService {
 		}
 		let channel = res as Channel;
 		channel.password = undefined;
-		client.to(channel.id.toString()).emit("NewUser", { user: user, channel_id: channel.id })
+		server.to(channel.id.toString()).emit("NewUser", { user: user, channel_id: channel.id })
 
 		const socket_ids = await server.to(channel.id.toString()).allSockets()
 		if (!socket_ids.has(user.socket_id)) {
