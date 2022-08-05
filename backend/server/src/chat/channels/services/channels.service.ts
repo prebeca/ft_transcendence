@@ -37,7 +37,7 @@ export class ChannelsService {
 
 		let channeltmp = this.channelRepository.create(createChannelDto);
 		channel = await this.channelRepository.save(channeltmp);
-		channel = await this.channelRepository.findOne(channel.id, { relations: ["admins", "users"] })
+		channel = await this.channelRepository.findOne({ where: { id: channel.id }, relations: ["admins", "users"] })
 
 		if (channel.scope != "dm") {
 			channel.owner = user;
@@ -63,7 +63,7 @@ export class ChannelsService {
 	}
 
 	async getChannel(user: User, id: number): Promise<Channel | String> {
-		let channel = await this.channelRepository.findOne(id, { relations: ["admins", "users", "messages", "messages.user", "messages.channel"] });
+		let channel = await this.channelRepository.findOne({ where: { id: id }, relations: ["admins", "users", "messages", "messages.user", "messages.channel"] });
 
 		if (channel.users.find(e => { return e.id == user.id }) == undefined)
 			return;
@@ -74,7 +74,7 @@ export class ChannelsService {
 	}
 
 	async getUsers(channel_id: number): Promise<User[]> {
-		let channel = await this.channelRepository.findOne(channel_id, { relations: ["users"] });
+		let channel = await this.channelRepository.findOne({ where: { id: channel_id }, relations: ["users"] });
 		let userList = [];
 		for (let i = 0; i < channel.users.length; ++i) {
 			userList.push(await this.userService.findUsersById(channel.users[i].id));
@@ -83,7 +83,7 @@ export class ChannelsService {
 	}
 
 	async getAdmins(channel_id: number): Promise<User[]> {
-		let channel = await this.channelRepository.findOne(channel_id, { relations: ["admins"] });
+		let channel = await this.channelRepository.findOne({ where: { id: channel_id }, relations: ["admins"] });
 		let adminList = [];
 		for (let i = 0; i < channel.admins.length; ++i) {
 			adminList.push(await this.userService.findUsersById(channel.admins[i].id));
@@ -93,18 +93,18 @@ export class ChannelsService {
 	}
 
 	async getOwner(channel_id: number): Promise<User> {
-		let channel = await this.channelRepository.findOne(channel_id, { relations: ["owner"] });
+		let channel = await this.channelRepository.findOne({ where: { id: channel_id }, relations: ["owner"] });
 		return await this.userService.findUsersById(channel.owner.id)
 	}
 
 	async deleteMessage(id: number) {
-		let message = await this.messagesRepository.findOne(id);
+		let message = await this.messagesRepository.findOne({ where: { id: id } });
 		if (message)
 			this.messagesRepository.remove(message);
 	}
 
 	async updateChannel(channel: Channel) {
-		if (await this.channelRepository.findOne(channel.id) == null)
+		if (await this.channelRepository.findOne({ where: { id: channel.id } }) == null)
 			return null;
 		return this.channelRepository.save(channel);
 	}
@@ -131,11 +131,11 @@ export class ChannelsService {
 	}
 
 	async findOneById(id: number): Promise<Channel> {
-		return this.channelRepository.findOne(id, { relations: ["users", "owner", "admins", "invited", "banned", "banned.user", "muted", "muted.user", "messages", "messages.user", "messages.channel"] });
+		return this.channelRepository.findOne({ where: { id: id }, relations: ["users", "owner", "admins", "invited", "banned", "banned.user", "muted", "muted.user", "messages", "messages.user", "messages.channel"] });
 	}
 
 	async addInvite(channel_id: number, user_id: number) {
-		let channel: Channel = await this.channelRepository.findOne(channel_id, { relations: ["invited"] });
+		let channel: Channel = await this.channelRepository.findOne({ where: { id: channel_id }, relations: ["invited"] });
 		let user: User = await this.userService.findUsersById(user_id)
 
 		if (user == null)
@@ -150,7 +150,7 @@ export class ChannelsService {
 	}
 
 	async removeInvite(channel_id: number, user_id: number) {
-		let channel: Channel = await this.channelRepository.findOne(channel_id, { relations: ["invited"] });
+		let channel: Channel = await this.channelRepository.findOne({ where: { id: channel_id }, relations: ["invited"] });
 		let user: User = await this.userService.findUsersById(user_id)
 
 		if (user == null)
@@ -163,7 +163,7 @@ export class ChannelsService {
 	}
 
 	async addUser(channel_id: number, user_id: number) {
-		let channel = await this.channelRepository.findOne(channel_id, { relations: ["users"] });
+		let channel = await this.channelRepository.findOne({ where: { id: channel_id }, relations: ["users"] });
 		let user: User = await this.userService.findUsersById(user_id)
 
 		if (channel == null || user == null)
@@ -175,7 +175,7 @@ export class ChannelsService {
 	}
 
 	async removeUser(channel_id: number, user_id: number) {
-		let channel = await this.channelRepository.findOne(channel_id, { relations: ["users", "owner", "admins"] });
+		let channel = await this.channelRepository.findOne({ where: { id: channel_id }, relations: ["users", "owner", "admins"] });
 		let user: User = await this.userService.findUsersById(user_id)
 		if (channel == null || user == null)
 			return;
@@ -253,7 +253,7 @@ export class ChannelsService {
 	}
 
 	async addAdmin(channel_id: number, user_id: number): Promise<User> {
-		let channel: Channel = await this.channelRepository.findOne(channel_id, { relations: ["admins", "users"] });
+		let channel: Channel = await this.channelRepository.findOne({ where: { id: channel_id }, relations: ["admins", "users"] });
 		let user: User = await this.userService.findUsersById(user_id)
 
 		if (user == null)
@@ -268,7 +268,7 @@ export class ChannelsService {
 	}
 
 	async addToBanList(data: any): Promise<User> {
-		let channel: Channel = await this.channelRepository.findOne(data.channel_id, { relations: ["banned", "banned.user"] });
+		let channel: Channel = await this.channelRepository.findOne({ where: { id: data.channel_id }, relations: ["banned", "banned.user"] });
 		let user: User = await this.userService.findUsersById(data.user_id)
 
 		if (user == null)
@@ -299,7 +299,7 @@ export class ChannelsService {
 	}
 
 	async addToMuteList(data: any): Promise<User> {
-		let channel: Channel = await this.channelRepository.findOne(data.channel_id, { relations: ["muted", "muted.user"] });
+		let channel: Channel = await this.channelRepository.findOne({ where: { id: data.channel_id }, relations: ["muted", "muted.user"] });
 		let user: User = await this.userService.findUsersById(data.user_id)
 
 		if (user == null)
@@ -338,7 +338,7 @@ export class ChannelsService {
 	}
 
 	async updatePassword(user: User, data: any): Promise<any> {
-		let channel: Channel = await this.channelRepository.findOne(data.channel_id, { relations: ["admins", "owner"] });
+		let channel: Channel = await this.channelRepository.findOne({ where: { id: data.channel_id }, relations: ["admins", "owner"] });
 
 		if (channel.owner == null || channel.owner.id != user.id)
 			return { color: "red", content: "ERROR: owner right required" }
