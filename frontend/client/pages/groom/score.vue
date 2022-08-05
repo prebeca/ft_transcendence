@@ -2,7 +2,7 @@
   <div
     id="gameDetails"
     style="height: 80vh; max-height: 100%; row-gap: 50px"
-    class="d-flex justify-center align-center"
+    class="d-flex flex-column justify-center align-center"
   >
     <div class="d-flex justify-center align-center" style="column-gap: 20px">
       <GameRoomWinnerLooserCard
@@ -28,6 +28,10 @@
         :xp="game_details.xp_looser"
       />
       <GameRoomWaitingCard v-else />
+    </div>
+
+    <div class="d-block">
+      <v-btn x-large color="accent" to="/home"> HOME </v-btn>
     </div>
   </div>
 </template>
