@@ -65,7 +65,6 @@
         outlined
         required
         color="info"
-        clearable
         maxlength="15"
         counter
         :rules="[rules.required, rules.counter_max, rules.counter_min]"
