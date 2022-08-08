@@ -5,7 +5,9 @@
       <v-toolbar-title v-text="title" class="info--text" />
 
       <v-spacer></v-spacer>
-
+	  <h3>
+		  {{ user.username }}
+	  </h3>
       <v-menu bottom min-width="200px" rounded offset-y>
         <template v-slot:activator="{ on }">
           <v-btn icon x-large v-on="on">

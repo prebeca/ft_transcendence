@@ -130,10 +130,12 @@ export default Vue.extend({
     if (!this.canvas) return;
     this.context = this.canvas.getContext("2d") as CanvasRenderingContext2D;
     window.addEventListener("keydown", this.handleKeyDown);
+	window.addEventListener("keyup", this.handleKeyUp);
     window.addEventListener("resize", this.handleResize);
   },
   destroyed() {
     window.removeEventListener("keydown", this.handleKeyDown);
+    window.removeEventListener("keyup", this.handleKeyUp);
     window.removeEventListener("resize", this.handleResize);
     this.socket.emit("leaveGame", this.roomid);
   },
@@ -143,6 +145,12 @@ export default Vue.extend({
         this.socket.emit("arrowUp", { data: this.game, id: this.roomid });
       if (event.key === "ArrowDown")
         this.socket.emit("arrowDown", { data: this.game, id: this.roomid });
+    },
+    handleKeyUp: function (event: any) {
+      if (event.key === "ArrowUp")
+        this.socket.emit("arrowUpRelease", { data: this.game, id: this.roomid });
+      if (event.key === "ArrowDown")
+        this.socket.emit("arrowDownRelease", { data: this.game, id: this.roomid });
     },
     update(data: GameI) {
       this.game = data;

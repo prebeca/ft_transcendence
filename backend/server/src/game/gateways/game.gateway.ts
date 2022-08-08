@@ -4,6 +4,7 @@ import { Server, Socket } from "socket.io";
 import { AvatarStatusGateway } from "../../users/gateways/avatarstatus.gateway";
 import { GameRoomClass } from "../classes/gameroom.class";
 import { PlayerClass } from "../classes/player.class";
+import BallI from "../interfaces/ballI.interface";
 import GameI from "../interfaces/gameI.interface";
 import PadI from "../interfaces/padI.interface";
 import { PlayerInfo } from "../interfaces/playerinfo.interface";
@@ -60,8 +61,12 @@ function generate_random_start(side: string) {
 function resetAfterPoint(game: GameI, side: string) {
 	game.pad1.x = game.gameWidth / 10 - padWidth;
 	game.pad1.y = game.gameHeight / 2 - game.pad1.height / 2;
+	game.pad1.arrow_up = false
+	game.pad1.arrow_down = false
 	game.pad2.x = game.gameWidth - game.gameWidth / 10;
 	game.pad2.y = game.gameHeight / 2 - game.pad2.height / 2;
+	game.pad2.arrow_up = false
+	game.pad2.arrow_down = false
 	game.ball.x = game.gameWidth / 2;
 	game.ball.y = game.gameHeight / 2;
 	game.ball.dir = generate_random_start(side);
@@ -84,6 +89,7 @@ function checkCollision(game: GameI) {
 		if (game.score2 === pointToWin)
 			return GameStatus.PLAYER2WON;
 		game.looserPoint = game.pad1.id;
+		game.ball.speed = ballSpeed
 		return resetAfterPoint(game, "left");
 	}
 	else if (game.ball.x + game.ball.r >= game.gameWidth) {
@@ -91,23 +97,26 @@ function checkCollision(game: GameI) {
 		if (game.score1 === pointToWin)
 			return GameStatus.PLAYER1WON;
 		game.looserPoint = game.pad2.id;
+		game.ball.speed = ballSpeed
 		return resetAfterPoint(game, "right");
 	}
 	else if (game.ball.x - game.ball.r < game.pad1.x + game.pad1.width && game.pad1.x < game.ball.x + game.ball.r &&
 		game.pad1.y < game.ball.y + game.ball.r && game.pad1.height + game.pad1.y > game.ball.y - game.ball.r) {
 		game.ball.dir.x *= -1;
-		if ((game.ball.y - game.ball.r < game.pad1.y + game.pad1.height && game.ball.y + game.ball.r > game.pad1.y + game.pad1.height ||
-			game.ball.y + game.ball.r > game.pad1.y && game.ball.y - game.ball.r < game.pad1.y) &&
-			game.ball.x - game.ball.r < game.pad1.x + game.pad1.width) {
+		game.ball.speed *= 1.05;
+		if ((game.ball.y - game.ball.r <= game.pad1.y + game.pad1.height && game.ball.y + game.ball.r >= game.pad1.y + game.pad1.height ||
+			game.ball.y + game.ball.r >= game.pad1.y && game.ball.y - game.ball.r <= game.pad1.y) &&
+			game.ball.x - game.ball.r <= game.pad1.x + game.pad1.width) {
 			game.ball.dir.y *= -1;
 		}
 	}
 	else if (game.pad2.x < game.ball.x + game.ball.r && game.pad2.x + game.pad2.width > game.ball.x &&
 		game.pad2.y < game.ball.y + game.ball.r && game.pad2.height + game.pad2.y > game.ball.y) {
 		game.ball.dir.x *= -1;
-		if ((game.ball.y - game.ball.r < game.pad2.y + game.pad2.height && game.ball.y + game.ball.r > game.pad2.y + game.pad2.height ||
-			game.ball.y + game.ball.r > game.pad2.y && game.ball.y - game.ball.r < game.pad2.y) &&
-			game.ball.x + game.ball.r > game.pad2.x) {
+		game.ball.speed *= 1.05;
+		if ((game.ball.y - game.ball.r <= game.pad2.y + game.pad2.height && game.ball.y + game.ball.r >= game.pad2.y + game.pad2.height ||
+			game.ball.y + game.ball.r >= game.pad2.y && game.ball.y - game.ball.r <= game.pad2.y) &&
+			game.ball.x + game.ball.r >= game.pad2.x) {
 			game.ball.dir.y *= -1;
 		}
 	}
@@ -117,6 +126,22 @@ function checkCollision(game: GameI) {
 function moveBall(game: GameI) {
 	game.ball.x += game.ball.dir.x * game.ball.speed;
 	game.ball.y += game.ball.dir.y * game.ball.speed;
+}
+
+function movePad(pad: PadI, min_y: number, max_y: number) {
+	if (pad.arrow_down && !pad.arrow_up)
+		pad.dir_y = 1;
+	else if (!pad.arrow_down && pad.arrow_up)
+		pad.dir_y = -1;
+	else
+		pad.dir_y = 0;
+	if ((pad.dir_y == 1 && pad.y < max_y - pad.height) || (pad.dir_y == -1 && pad.y > min_y))
+		pad.y += pad.dir_y * pad.speed;
+}
+
+function movePads(game: GameI) {
+	movePad(game.pad1, 0, game.gameHeight)
+	movePad(game.pad2, 0, game.gameHeight)
 }
 
 function initGame(game: GameI) {
@@ -271,6 +296,7 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
 		game.status = GameStatus.INPROGRESS;
 		moveInterval = setInterval(async () => {
 			moveBall(game);
+			movePads(game);
 			if (game.status === GameStatus.INPROGRESS)
 				game.status = checkCollision(game);
 			if (game.status != GameStatus.INPROGRESS)
@@ -297,11 +323,7 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
 			if (data.status === GameStatus.WAITING && game.looserPoint === pad.id)
 				this.startGame(client, id);
 			if (game.status === GameStatus.INPROGRESS) {
-				if (pad.y > pad.speed)
-					pad.y -= pad.speed;
-				else
-					pad.y = 0;
-				this.server.to(id).emit("updateGame", game);
+				pad.arrow_up = true;
 			}
 		}
 	}
@@ -320,12 +342,40 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
 			if (data.status === GameStatus.WAITING && game.looserPoint === pad.id)
 				this.startGame(client, id);
 			if (game.status === GameStatus.INPROGRESS) {
-				if (pad.y < game.gameHeight - pad.height - pad.speed)
-					pad.y += pad.speed;
-				else
-					pad.y = game.gameHeight - pad.height;
-				this.server.to(id).emit("updateGame", game);
+				pad.arrow_down = true;
 			}
+		}
+	}
+
+	@SubscribeMessage('arrowUpRelease')
+	padUpRelease(@ConnectedSocket() client: Socket, @MessageBody('data') data: GameI, @MessageBody('id') id: string) {
+		let game: GameI = this.gameRoomService.getRoomById(id).getGame();
+		if (!game.pad1.id || !game.pad2.id)
+			return;
+		let pad: PadI;
+		if (game.pad1.id === client.id)
+			pad = game.pad1;
+		else if (game.pad2.id === client.id)
+			pad = game.pad2;
+		if (pad) {
+			if (game.status === GameStatus.INPROGRESS)
+				pad.arrow_up = false;
+		}
+	}
+
+	@SubscribeMessage('arrowDownRelease')
+	padDownRelease(@ConnectedSocket() client: Socket, @MessageBody('data') data: GameI, @MessageBody('id') id: string) {
+		let game: GameI = this.gameRoomService.getRoomById(id).getGame();
+		if (!game.pad1.id || !game.pad2.id)
+			return;
+		let pad: PadI;
+		if (game.pad1.id === client.id)
+			pad = game.pad1;
+		else if (game.pad2.id === client.id)
+			pad = game.pad2;
+		if (pad) {
+			if (game.status === GameStatus.INPROGRESS)
+				pad.arrow_down = false;
 		}
 	}
 }
